@@ -160,7 +160,7 @@ def parse_args():
     parser.add_argument(
         '--log-level',
         choices=['debug', 'info', 'warning', 'error', 'critical'],
-        default='notset',
+        default='warning',
     )
 
     return parser.parse_args()
