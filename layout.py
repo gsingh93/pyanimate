@@ -1,9 +1,10 @@
 import logging
-from abc import ABC, abstractmethod
 from enum import Enum
-from typing import List, NamedTuple, Tuple
+from typing import List, Tuple
 
 from point import Point as P
+from renderer import Renderer
+from style import Anchor, Style
 
 logger = logging.getLogger(__name__)
 
@@ -16,30 +17,6 @@ class Align(str, Enum):
     LEFT = "left"
 
 
-class Anchor(str, Enum):
-    TOP_LEFT = "la"
-    TOP_MIDDLE = "ma"
-    TOP_RIGHT = "ra"
-
-    MIDDLE_LEFT = "lm"
-    MIDDLE_MIDDLE = "mm"
-    MIDDLE_RIGHT = "rm"
-
-    BOTTOM_LEFT = "ld"
-    BOTTOM_MIDDLE = "md"
-    BOTTOM_RIGHT = "rd"
-
-
-class Style(NamedTuple):
-    padding: int = 10
-    font: str = 'Roboto-Regular.ttf'
-    font_size: int = 32
-    anchor: Anchor = Anchor.TOP_LEFT
-    stroke_color: str = "black"
-    fill_color: str = "white"
-    font_color: str = "black"
-
-
 default_style = Style()
 
 
@@ -47,28 +24,6 @@ def set_style(style):
     global default_style
     default_style = style
     logger.debug('Default style: %s', repr(style))
-
-
-class Renderer(ABC):
-    @abstractmethod
-    def rectangle(self, p1, p2, style: Style):
-        raise NotImplementedError()
-
-    @abstractmethod
-    def text(self, text: str, p, style: Style):
-        raise NotImplementedError()
-
-    @abstractmethod
-    def text_bbox(self, text: str, style: Style) -> Tuple[int, int, int, int]:
-        raise NotImplementedError()
-
-    @abstractmethod
-    def line(self, p1, p2, style: Style):
-        raise NotImplementedError()
-
-    @abstractmethod
-    def set_dimensions(self, dim):
-        raise NotImplementedError()
 
 
 class Object:
