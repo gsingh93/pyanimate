@@ -1,5 +1,6 @@
 import logging
 from abc import ABC, abstractmethod
+from pathlib import Path
 from typing import Dict, Tuple
 
 from PIL import Image, ImageDraw, ImageFont
@@ -55,7 +56,7 @@ class PILRenderer(Renderer):
         self._w = ctx.w
         self._h = ctx.h
 
-        self.image = Image.new("RGB", (self._w, self._h), "white")
+        self.image = Image.new("RGBA", (self._w, self._h), (255, 255, 255, 0))
         self.draw = ImageDraw.Draw(self.image)
         self.fonts: Dict[Tuple[str, int], FreeTypeFont] = {}
 
@@ -67,12 +68,12 @@ class PILRenderer(Renderer):
         return self.fonts[key]
 
     def set_dimensions(self, dim):
-        self._w, self._h = dim
+        self._w, self._h = map(int, dim)
 
     def show(self):
         self.image.show()
 
-    def output(self, filename: str):
+    def output(self, filename: str | Path):
         # TODO: Font sizes don't seem to be scaled properly
         # self.image = self.image.resize(
         #     (self._w // ctx.scale, self._h // ctx.scale),
@@ -89,19 +90,20 @@ class PILRenderer(Renderer):
 
     def rectangle(self, p1, p2, style: Style):
         logger.debug("Rectangle: %s %s", p1, p2)
-        self.draw.rectangle(
-            (p1, p2), fill=style.fill_color, outline=style.stroke_color
-        )
+        fill_color = style.fill_color + (style.composite_alpha, )
+        stroke_color = style.stroke_color + (style.composite_alpha, )
+        self.draw.rectangle((p1, p2), fill=fill_color, outline=stroke_color)
 
     def text(self, text, p, style: Style):
         logger.debug("Text: %s %s", repr(text), p)
         font = self._get_font(style.font, style.font_size)
+        font_color = style.font_color + (style.composite_alpha, )
         self.draw.multiline_text(
             p,
             text,
             font=font,
             anchor=style.anchor,
-            fill=style.font_color,
+            fill=font_color,
             align="center",
         )
 
@@ -112,4 +114,10 @@ class PILRenderer(Renderer):
     def line(self, p1, p2, style):
         # Dotted line is too verbose
         # logger.debug("Line: %s %s", p1, p2)
-        self.draw.line([p1, p2], fill=style.stroke_color, width=1)
+        stroke_color = style.stroke_color + (style.composite_alpha, )
+        self.draw.line([p1, p2], fill=stroke_color, width=1)
+
+    def clear(self):
+        self.image.close()
+        self.image = Image.new("RGBA", (self._w, self._h), (255, 255, 255, 0))
+        self.draw = ImageDraw.Draw(self.image)

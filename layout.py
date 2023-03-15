@@ -1,6 +1,7 @@
+import copy
 import logging
 from enum import Enum
-from typing import List, Tuple
+from typing import Dict
 
 from point import Point as P
 from renderer import Renderer
@@ -17,26 +18,21 @@ class Align(str, Enum):
     LEFT = "left"
 
 
-default_style = Style()
-
-
-def set_style(style):
-    global default_style
-    default_style = style
-    logger.debug('Default style: %s', repr(style))
-
-
 class Object:
     def __init__(self, width=None, height=None, style=None, **kwargs):
+        # Construct a new Style that inherits from the parent
         if not style:
-            style = default_style
+            # This will inherit from the default style
+            style = Style(**kwargs)
 
         if kwargs:
-            style = style._replace(**kwargs)
+            # This will inherit from the user-supplied style
+            style = style.clone(**kwargs)
+
         self.style = style
         self._w = width
         self._h = height
-        self.children: List[Tuple[Object, P]] = []
+        self.children: Dict[Object, P] = {}
         self.parent = None
 
     @property
@@ -58,19 +54,23 @@ class Object:
         self._h = val
 
     def add(self, obj, pos=P(0, 0)):
-        self.children.append((obj, pos))
+        self.children[obj] = pos
         obj.parent = self
+        obj.style._parent_obj_style = self.style
 
     def prepare(self, renderer: Renderer):
-        for (obj, _) in self.children:
+        for obj in self.children:
             obj.prepare(renderer)
 
     def render(self, renderer: Renderer, pos=(0, 0)):
         x, y = pos
-        for (obj, offset) in self.children:
+        for (obj, offset) in self.children.items():
             logger.debug('%s %s', obj, offset)
             offx, offy = offset
             obj.render(renderer, P(x + offx, y + offy))
+
+    def clone(self):
+        return copy.deepcopy(self)
 
     def __str__(self):
         return f"{type(self).__name__}({self._w}, {self._h})"
@@ -84,7 +84,7 @@ class VLayout(Object):
     @property
     def width(self) -> int:
         self._w = 0
-        for (obj, offset) in self.children:
+        for (obj, offset) in self.children.items():
             offx, _ = offset
             self._w = max(self._w, obj.width + offx)
 
@@ -97,7 +97,7 @@ class VLayout(Object):
     @property
     def height(self) -> int:
         self._h = 0
-        for (obj, offset) in self.children:
+        for (obj, offset) in self.children.items():
             _, offy = offset
             self._h += obj.height + offy
 
@@ -114,7 +114,7 @@ class VLayout(Object):
         # TODO: if align == Align.CENTER:
         centerx = x + (self.width // 2)
         logger.debug('center: %s', centerx)
-        for (obj, offset) in self.children:
+        for (obj, offset) in self.children.items():
             logger.debug('%s %s', obj, offset)
             offx, offy = offset
 
@@ -133,7 +133,7 @@ class HLayout(Object):
     def width(self) -> int:
 
         self._w = 0
-        for (obj, offset) in self.children:
+        for (obj, offset) in self.children.items():
             offx, _ = offset
             self._w += obj.width + offx
 
@@ -146,7 +146,7 @@ class HLayout(Object):
     @property
     def height(self) -> int:
         self._h = 0
-        for (obj, offset) in self.children:
+        for (obj, offset) in self.children.items():
             _, offy = offset
             self._h = max(self._h, obj.height + offy)
 
@@ -158,7 +158,7 @@ class HLayout(Object):
 
     def render(self, renderer: Renderer, pos=P(0, 0)):
         x, y = pos
-        for (obj, offset) in self.children:
+        for (obj, offset) in self.children.items():
             logger.debug('%s %s', obj, offset)
             offx, offy = offset
             obj.render(renderer, P(x + offx, y + offy))
@@ -171,6 +171,13 @@ class Rectangle(Object):
         x, y = pos
         renderer.rectangle((x, y), (x + self._w, y + self._h), self.style)
         super().render(renderer, pos)
+
+    # def move_to(self, pos):
+    #     if self.parent:
+    #         print(self.parent.children)
+    #         self.parent.children.pop(1)
+    #         self.parent.add(self, pos)
+    #         print(self.parent.children)
 
 
 class Line(Object):
@@ -205,12 +212,13 @@ class TextBox(Rectangle):
         pos = (0, 0)
         style = self.style
         if align == Anchor.MIDDLE_MIDDLE:
-            style = self.style._replace(anchor=Anchor.MIDDLE_MIDDLE)
+            style = self.style.clone(anchor=Anchor.MIDDLE_MIDDLE)
             pos = (self.width // 2, self.height // 2)
 
-        self.add(
-            Text(text, style=style, width=self.width, height=self.height), pos
+        self.text_obj = Text(
+            text, style=style, width=self.width, height=self.height
         )
+        self.add(self.text_obj, pos)
 
     @property
     def width(self) -> int:
@@ -231,8 +239,10 @@ class TextBox(Rectangle):
         self._h = val
 
         # Recenter text
-        t, _ = self.children[0]
-        self.children[0] = (t, P(self.width // 2, self.height // 2))
+        self.add(self.text_obj, P(self.width // 2, self.height // 2))
+
+    def set_text(self, text):
+        self.text_obj.text = text
 
     # def prepare(self, renderer: Renderer):
     #     super().prepare(renderer)
@@ -251,11 +261,11 @@ class Table(HLayout):
     def prepare(self, renderer: Renderer):
         super().prepare(renderer)
         self._h = 0
-        for (obj, _) in self.children:
+        for (obj, _) in self.children.items():
             self._h = max(self._h, obj.height)
 
         # Set all cells to the same height
-        for (obj, _) in self.children:
+        for (obj, _) in self.children.items():
             obj.height = self._h
 
 
@@ -332,7 +342,7 @@ class Text(Object):
         if self.align == "right":
             pos = pos + P(self.width, 0)
             renderer.text(
-                self.text, pos, self.style._replace(anchor=Anchor.TOP_RIGHT)
+                self.text, pos, self.style.clone(anchor=Anchor.TOP_RIGHT)
             )
         else:
             renderer.text(self.text, pos, self.style)
@@ -346,7 +356,7 @@ class Canvas(Object):
         self.width = self.style.padding
         self.height = self.style.padding
         pos = pos + self.style.padding
-        for (obj, offset) in self.children:
+        for (obj, offset) in self.children.items():
             logger.debug('%s %s', obj, offset)
             obj.prepare(renderer)
             obj.render(renderer, pos + offset)
