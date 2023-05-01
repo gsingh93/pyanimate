@@ -1,12 +1,8 @@
 #!/usr/bin/env python3
-"""
-TODO:
-- Customize bit labels on top or bottom
-- Option to add all bit labels, not just at the boundaries
-- Option to add extra text below each field
-- Option to generate ascii art instead of PNG
-- Multiple lanes (see Vol 4, Part E, Figure 5.1)
-"""
+
+import sys
+
+sys.path.insert(0, '..')
 
 import logging
 import math
@@ -15,15 +11,14 @@ from argparse import ArgumentParser
 from enum import Enum
 from typing import Optional
 
-import layout
+import style
 from layout import (
-    Anchor, Arrow, Canvas, DottedLine, HLayout, Spacer, Style, Table, Text,
-    TextBox, VLayout
+    Anchor, Arrow, Canvas, DottedLine, HLayout, Spacer, Table, Text, TextBox,
+    VLayout
 )
 from point import Point as P
 from renderer import PILRenderer, RenderContext
-
-#from loguru import logger
+from style import Style
 
 logger = logging.getLogger(os.path.basename(__file__))
 
@@ -48,7 +43,7 @@ class Endianness(str, Enum):
 
 
 def parse_args():
-    parser = ArgumentParser(description='Description')
+    parser = ArgumentParser(description='TODO: Description')
     parser.add_argument(
         '-r',
         '--relative',
@@ -197,7 +192,7 @@ def create_canvas(
 
     # Title
     logger.info("Laying out title")
-    v.add(Text(title, style=default_style._replace(anchor=Anchor.TOP_LEFT)))
+    v.add(Text(title, style=default_style.clone(anchor=Anchor.TOP_LEFT)))
 
     # LSB/MSB
     logger.info("Laying out LSB/MSB")
@@ -288,7 +283,8 @@ def main():
 
     logging.basicConfig(
         level=args.log_level.upper(),
-        format="[%(filename)s:%(lineno)s - %(funcName)s()] %(message)s"
+        format=
+        "[%(filename)s:%(lineno)s - %(funcName)s()] %(levelname)s: %(message)s"
     )
 
     ctx = RenderContext(
@@ -303,7 +299,7 @@ def main():
         font='Roboto-Regular.ttf',
         font_size=args.font_size * args.scale,
     )
-    layout.set_style(default_style)
+    style.set_style(default_style)
 
     #title, fields = phys_fields()
     #title, fields = packet_header_fields()
