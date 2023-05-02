@@ -24,6 +24,10 @@ disable_error_code = [
     "assignment"
 ]
 
+enable_incomplete_feature = ["TypeVarTuple"]
+
+[tool.pyright]
+
 [tool.isort]
 profile = "black"
 known_third_party = ["PIL"]
