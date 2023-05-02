@@ -31,7 +31,7 @@ class Style:
         stroke_color=None,
         fill_color=None,
         font_color=None,
-        alpha=None
+        alpha=None,
     ):
         self._parent: Optional[Style] = parent
         if self._parent is None:
@@ -58,35 +58,35 @@ class Style:
 
     @property
     def padding(self):
-        return self._attr('_padding')
+        return self._attr("_padding")
 
     @property
     def font(self):
-        return self._attr('_font')
+        return self._attr("_font")
 
     @property
     def font_size(self):
-        return self._attr('_font_size')
+        return self._attr("_font_size")
 
     @property
     def anchor(self):
-        return self._attr('_anchor')
+        return self._attr("_anchor")
 
     @property
     def stroke_color(self):
-        return self._attr('_stroke_color')
+        return self._attr("_stroke_color")
 
     @property
     def fill_color(self):
-        return self._attr('_fill_color')
+        return self._attr("_fill_color")
 
     @property
     def font_color(self):
-        return self._attr('_font_color')
+        return self._attr("_font_color")
 
     @property
     def alpha(self):
-        return int(self._attr('_alpha'))
+        return int(self._attr("_alpha"))
 
     @property
     def composite_alpha(self):
@@ -104,7 +104,7 @@ class Style:
 
 _default_style = Style(
     padding=10,
-    font='Roboto-Regular.ttf',
+    font="Roboto-Regular.ttf",
     font_size=32,
     anchor=Anchor.TOP_LEFT,
     stroke_color=(0, 0, 0),

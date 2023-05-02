@@ -1,9 +1,5 @@
 #!/usr/bin/env python3
 
-import sys
-
-sys.path.insert(0, '..')
-
 import logging
 import math
 import os
@@ -11,14 +7,22 @@ from argparse import ArgumentParser
 from enum import Enum
 from typing import Optional
 
-import style
-from layout import (
-    Anchor, Arrow, Canvas, DottedLine, HLayout, Spacer, Table, Text, TextBox,
-    VLayout
+import pyanimate.style
+from pyanimate.layout import (
+    Anchor,
+    Arrow,
+    Canvas,
+    DottedLine,
+    HLayout,
+    Spacer,
+    Table,
+    Text,
+    TextBox,
+    VLayout,
 )
-from point import Point as P
-from renderer import PILRenderer, RenderContext
-from style import Style
+from pyanimate.point import Point as P
+from pyanimate.renderer import PILRenderer, RenderContext
+from pyanimate.style import Style
 
 logger = logging.getLogger(os.path.basename(__file__))
 
@@ -27,52 +31,51 @@ default_style: Optional[Style] = None
 
 
 class Mode(str, Enum):
-    WIDTH = 'width'
-    POSITION = 'position'
+    WIDTH = "width"
+    POSITION = "position"
 
     def __str__(self):
         return self.value
 
 
 class Endianness(str, Enum):
-    BIG = 'big'
-    LITTLE = 'little'
+    BIG = "big"
+    LITTLE = "little"
 
     def __str__(self):
         return self.value
 
 
 def parse_args():
-    parser = ArgumentParser(description='TODO: Description')
+    parser = ArgumentParser(description="TODO: Description")
     parser.add_argument(
-        '-r',
-        '--relative',
-        action='store_true',
-        help=
-        'Make the width of a bit as small as possible while preserving the relative sizes between fields'
+        "-r",
+        "--relative",
+        action="store_true",
+        help="Make the width of a bit as small as possible while preserving the relative sizes between fields",
     )
-    parser.add_argument('-s', '--scale', default=2, type=int, help='TODO')
+    parser.add_argument("-s", "--scale", default=2, type=int, help="TODO")
     parser.add_argument(
-        '-m', '--mode', choices=list(Mode), default=Mode.WIDTH, help='TODO'
+        "-m", "--mode", choices=list(Mode), default=Mode.WIDTH, help="TODO"
     )
     parser.add_argument(
-        '-e',
-        '--endianness',
+        "-e",
+        "--endianness",
         choices=list(Endianness),
         default=Endianness.LITTLE,
-        help='TODO'
+        help="TODO",
     )
-    parser.add_argument('-w', '--width', default=1920, type=int, help='TODO')
-    parser.add_argument('--height', default=1080, type=int, help='TODO')
-    parser.add_argument('-c', '--crop', action='store_true', help='TODO')
-    parser.add_argument('--bit-width', default=100, type=int, help='TODO')
-    parser.add_argument('-p', '--padding', default=10, type=int, help='TODO')
-    parser.add_argument('-f', '--font-size', default=32, type=int, help='TODO')
-    parser.add_argument('-o', '--output', default="output.png", help='TODO')
+    parser.add_argument("-w", "--width", default=1920, type=int, help="TODO")
+    parser.add_argument("--height", default=1080, type=int, help="TODO")
+    parser.add_argument("-c", "--crop", action="store_true", help="TODO")
+    parser.add_argument("--bit-width", default=100, type=int, help="TODO")
+    parser.add_argument("-p", "--padding", default=10, type=int, help="TODO")
+    parser.add_argument("-f", "--font-size", default=32, type=int, help="TODO")
+    parser.add_argument("-o", "--output", default="output.png", help="TODO")
     parser.add_argument(
-        '--log-level',
-        choices=['debug', 'info', 'warning', 'error', 'critical'],
-        default='warning',
+        "--log-level",
+        choices=["debug", "info", "warning", "error", "critical"],
+        default="warning",
     )
 
     return parser.parse_args()
@@ -127,7 +130,7 @@ def get_bit_label(bits, unit):
         # A set of specific values
         assert len(bits) > 1
         str_bits = list(map(str, bits))
-        return ', '.join(str_bits[:-1]) + f' or {str_bits[-1]} {unit}s'
+        return ", ".join(str_bits[:-1]) + f" or {str_bits[-1]} {unit}s"
     elif isinstance(bits, int):
         # A single value
         s = f"{bits} {unit}"
@@ -160,32 +163,30 @@ def packet_header_fields():
 
 def payload_header_fields():
     return "Bluetooth BR/EDR Payload Header", [
-        Field('LLID', 2),
-        Field('Flow', 1),
-        Field('Length', 5),
+        Field("LLID", 2),
+        Field("Flow", 1),
+        Field("Length", 5),
     ]
 
 
 def acl_payload_format_fields():
     return "Bluetooth ACL Payload", [
-        Field('Payload\nHeader', 8, 2),
-        Field('Payload Body', (0, 2790), 6),
-        Field('MIC', 32, 4),
-        Field('CRC', 16, 3),
+        Field("Payload\nHeader", 8, 2),
+        Field("Payload Body", (0, 2790), 6),
+        Field("MIC", 32, 4),
+        Field("CRC", 16, 3),
     ]
 
 
 def bdaddr_fields():
     return "Bluetooth Device Address", [
-        Field('NAP', 16),
-        Field('UAP', 8),
-        Field('LAP', 24),
+        Field("NAP", 16),
+        Field("UAP", 8),
+        Field("LAP", 24),
     ]
 
 
-def create_canvas(
-    title, fields, mode: Mode, endianness: Endianness, style
-) -> Canvas:
+def create_canvas(title, fields, mode: Mode, endianness: Endianness, style) -> Canvas:
     c = Canvas()
 
     v = VLayout(align="center")
@@ -226,7 +227,7 @@ def create_canvas(
                 text,
                 align=Anchor.MIDDLE_MIDDLE,
                 width=cell_width,
-                height=75 * ctx.scale
+                height=75 * ctx.scale,
             )
         )
 
@@ -245,9 +246,7 @@ def create_canvas(
             # TODO: We're cheating here to get the text width
             renderer = PILRenderer(ctx)
             _, _, text_width, _ = renderer.text_bbox(label, default_style)
-            arrow_length = (
-                cell_width - text_width - (default_style.padding * 4)
-            ) // 2
+            arrow_length = (cell_width - text_width - (default_style.padding * 4)) // 2
             arrow = Arrow(double_sided=True, end=P(arrow_length, 0))
 
             spacer = Spacer()
@@ -262,9 +261,7 @@ def create_canvas(
 
             h.add(bit_label)
         else:
-            h.add(
-                Text(str(current_bit), width=cell_width, height=50 * ctx.scale)
-            )
+            h.add(Text(str(current_bit), width=cell_width, height=50 * ctx.scale))
 
         current_bit += field.max
     h.add(DottedLine(end=P(0, 50 * ctx.scale)))
@@ -283,8 +280,7 @@ def main():
 
     logging.basicConfig(
         level=args.log_level.upper(),
-        format=
-        "[%(filename)s:%(lineno)s - %(funcName)s()] %(levelname)s: %(message)s"
+        format="[%(filename)s:%(lineno)s - %(funcName)s()] %(levelname)s: %(message)s",
     )
 
     ctx = RenderContext(
@@ -296,15 +292,15 @@ def main():
     )
     default_style = Style(
         padding=args.padding * args.scale,
-        font='Roboto-Regular.ttf',
+        font="Roboto-Regular.ttf",
         font_size=args.font_size * args.scale,
     )
-    style.set_style(default_style)
+    pyanimate.style.set_style(default_style)
 
-    #title, fields = phys_fields()
-    #title, fields = packet_header_fields()
-    #title, fields = payload_header_fields()
-    #title, fields = bdaddr_fields()
+    # title, fields = phys_fields()
+    # title, fields = packet_header_fields()
+    # title, fields = payload_header_fields()
+    # title, fields = bdaddr_fields()
     title, fields = acl_payload_format_fields()
 
     if args.relative:
@@ -314,11 +310,9 @@ def main():
             map(lambda f: Field(f.name, f.bits, f.display_bits // gcd), fields)
         )
         if gcd == 1:
-            logger.warning('Warning: gcd is 1')
+            logger.warning("Warning: gcd is 1")
 
-    canvas = create_canvas(
-        title, fields, args.mode, args.endianness, default_style
-    )
+    canvas = create_canvas(title, fields, args.mode, args.endianness, default_style)
 
     logger.info("Starting rendering")
     renderer = PILRenderer(ctx)
@@ -331,5 +325,5 @@ def main():
     renderer.output(args.output)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

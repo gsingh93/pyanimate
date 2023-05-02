@@ -1,11 +1,11 @@
 from collections import namedtuple
-from typing import Union, Tuple
+from typing import Tuple, Union
 
 
-class Point(namedtuple('Point', ['x', 'y'])):
+class Point(namedtuple("Point", ["x", "y"])):
     __slots__ = ()
 
-    def __new__(cls, x: Union['Point', Tuple, int] = 0, y=0):
+    def __new__(cls, x: Union["Point", Tuple, int] = 0, y=0):
         if isinstance(x, (Point, tuple)):
             x, y = x
 
@@ -89,13 +89,13 @@ class Point(namedtuple('Point', ['x', 'y'])):
     #         self._x, self._y, self._r, self._a
     #     )
 
-    def __add__(self, other: Union['Point', Tuple, int]):
+    def __add__(self, other: Union["Point", Tuple, int]):
         if isinstance(other, (Point, tuple)):
             return Point(self.x + other[0], self.y + other[1])
 
         return Point(self.x + other, self.y + other)
 
-    def __sub__(self, other: Union['Point', Tuple, int]):
+    def __sub__(self, other: Union["Point", Tuple, int]):
         if isinstance(other, (Point, tuple)):
             return Point(self.x - other[0], self.y - other[1])
 
@@ -110,7 +110,7 @@ class Point(namedtuple('Point', ['x', 'y'])):
     def __truediv__(self, val: int):
         return Point(self.x / val, self.y / val)
 
-    def __radd__(self, other: Union['Point', Tuple, int]):
+    def __radd__(self, other: Union["Point", Tuple, int]):
         return self + other
 
     def __rmul__(self, val):

@@ -3,9 +3,9 @@ import logging
 from enum import Enum
 from typing import Dict
 
-from point import Point as P
-from renderer import Renderer
-from style import Anchor, Style
+from .point import Point as P
+from .renderer import Renderer
+from .style import Anchor, Style
 
 logger = logging.getLogger(__name__)
 
@@ -64,8 +64,8 @@ class Object:
 
     def render(self, renderer: Renderer, pos=(0, 0)):
         x, y = pos
-        for (obj, offset) in self.children.items():
-            logger.debug('%s %s', obj, offset)
+        for obj, offset in self.children.items():
+            logger.debug("%s %s", obj, offset)
             offx, offy = offset
             obj.render(renderer, P(x + offx, y + offy))
 
@@ -84,7 +84,7 @@ class VLayout(Object):
     @property
     def width(self) -> int:
         self._w = 0
-        for (obj, offset) in self.children.items():
+        for obj, offset in self.children.items():
             offx, _ = offset
             self._w = max(self._w, obj.width + offx)
 
@@ -97,7 +97,7 @@ class VLayout(Object):
     @property
     def height(self) -> int:
         self._h = 0
-        for (obj, offset) in self.children.items():
+        for obj, offset in self.children.items():
             _, offy = offset
             self._h += obj.height + offy
 
@@ -108,14 +108,14 @@ class VLayout(Object):
         self._h = val
 
     def render(self, renderer: Renderer, pos=(0, 0)):
-        logger.debug('%s %s', self, pos)
+        logger.debug("%s %s", self, pos)
         x, y = pos
         # TODO: implement the centering logic better
         # TODO: if align == Align.CENTER:
         centerx = x + (self.width // 2)
-        logger.debug('center: %s', centerx)
-        for (obj, offset) in self.children.items():
-            logger.debug('%s %s', obj, offset)
+        logger.debug("center: %s", centerx)
+        for obj, offset in self.children.items():
+            logger.debug("%s %s", obj, offset)
             offx, offy = offset
 
             obj_posx = x + offx
@@ -131,9 +131,8 @@ class HLayout(Object):
 
     @property
     def width(self) -> int:
-
         self._w = 0
-        for (obj, offset) in self.children.items():
+        for obj, offset in self.children.items():
             offx, _ = offset
             self._w += obj.width + offx
 
@@ -146,7 +145,7 @@ class HLayout(Object):
     @property
     def height(self) -> int:
         self._h = 0
-        for (obj, offset) in self.children.items():
+        for obj, offset in self.children.items():
             _, offy = offset
             self._h = max(self._h, obj.height + offy)
 
@@ -158,8 +157,8 @@ class HLayout(Object):
 
     def render(self, renderer: Renderer, pos=P(0, 0)):
         x, y = pos
-        for (obj, offset) in self.children.items():
-            logger.debug('%s %s', obj, offset)
+        for obj, offset in self.children.items():
+            logger.debug("%s %s", obj, offset)
             offx, offy = offset
             obj.render(renderer, P(x + offx, y + offy))
             x += obj.width + offx
@@ -168,8 +167,16 @@ class HLayout(Object):
 # TODO: width and height are actually one pixel larger than requested
 class Rectangle(Object):
     def render(self, renderer: Renderer, pos=P(0, 0)):
+        # Borders are mandatory at the moment, so the minimum size is 2x2
+        assert self._w >= 2 and self._h >= 2
+
         x, y = pos
-        renderer.rectangle((x, y), (x + self._w, y + self._h), self.style)
+        renderer.rectangle(
+            (x, y),
+            # Subtract one from width and height to account for the border
+            (x + self._w - 1, y + self._h - 1),
+            self.style,
+        )
         super().render(renderer, pos)
 
 
@@ -208,9 +215,7 @@ class TextBox(Rectangle):
             style = self.style.clone(anchor=Anchor.MIDDLE_MIDDLE)
             pos = (self.width // 2, self.height // 2)
 
-        self.text_obj = Text(
-            text, style=style, width=self.width, height=self.height
-        )
+        self.text_obj = Text(text, style=style, width=self.width, height=self.height)
         self.add(self.text_obj, pos)
 
     @property
@@ -254,11 +259,11 @@ class Table(HLayout):
     def prepare(self, renderer: Renderer):
         super().prepare(renderer)
         self._h = 0
-        for (obj, _) in self.children.items():
+        for obj, _ in self.children.items():
             self._h = max(self._h, obj.height)
 
         # Set all cells to the same height
-        for (obj, _) in self.children.items():
+        for obj, _ in self.children.items():
             obj.height = self._h
 
 
@@ -269,8 +274,8 @@ class DottedLine(Line):
 
     def render(self, renderer: Renderer, pos=P(0, 0)):
         length = (
-            (self.end.x - self.start.x)**2 + (self.end.y - self.start.y)**2
-        )**0.5
+            (self.end.x - self.start.x) ** 2 + (self.end.y - self.start.y) ** 2
+        ) ** 0.5
 
         if self.end.x != self.start.x:
             u = (self.end - self.start) / length
@@ -295,18 +300,16 @@ class Arrow(Line):
 
         renderer.line(pos + self.end, pos + self.end - self.alen, self.style)
         renderer.line(
-            pos + self.end, pos + self.end + P(-self.alen, self.alen),
-            self.style
+            pos + self.end, pos + self.end + P(-self.alen, self.alen), self.style
         )
 
         if self.double_sided:
             renderer.line(
-                pos + self.start, pos + self.start + P(self.alen, -self.alen),
-                self.style
+                pos + self.start,
+                pos + self.start + P(self.alen, -self.alen),
+                self.style,
             )
-            renderer.line(
-                pos + self.start, pos + self.start + self.alen, self.style
-            )
+            renderer.line(pos + self.start, pos + self.start + self.alen, self.style)
 
 
 class Spacer(Object):
@@ -334,9 +337,7 @@ class Text(Object):
     def render(self, renderer: Renderer, pos=(0, 0)):
         if self.align == "right":
             pos = pos + P(self.width, 0)
-            renderer.text(
-                self.text, pos, self.style.clone(anchor=Anchor.TOP_RIGHT)
-            )
+            renderer.text(self.text, pos, self.style.clone(anchor=Anchor.TOP_RIGHT))
         else:
             renderer.text(self.text, pos, self.style)
 
@@ -349,8 +350,8 @@ class Canvas(Object):
         self.width = self.style.padding
         self.height = self.style.padding
         pos = pos + self.style.padding
-        for (obj, offset) in self.children.items():
-            logger.debug('%s %s', obj, offset)
+        for obj, offset in self.children.items():
+            logger.debug("%s %s", obj, offset)
             obj.prepare(renderer)
             obj.render(renderer, pos + offset)
 
