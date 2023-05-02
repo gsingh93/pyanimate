@@ -2,7 +2,7 @@ import logging
 import time
 
 from .layout import Object
-from .point import Point as P
+from .shape import Point as P
 
 logger = logging.getLogger(__name__)
 

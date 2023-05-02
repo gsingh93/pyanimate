@@ -8,9 +8,9 @@ from PIL import Image
 from pyanimate import style as sty
 from pyanimate.animation import FadeIn, RgbTransform, Translate
 from pyanimate.layout import Arrow, Canvas, TextBox, VLayout
-from pyanimate.point import Point as P
 from pyanimate.renderer import RenderContext
 from pyanimate.scene import Scene
+from pyanimate.shape import Point as P
 
 ctx = RenderContext(
     1920,

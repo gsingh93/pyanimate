@@ -20,8 +20,8 @@ from pyanimate.layout import (
     TextBox,
     VLayout,
 )
-from pyanimate.point import Point as P
 from pyanimate.renderer import PILRenderer, RenderContext
+from pyanimate.shape import Point as P
 from pyanimate.style import Style
 
 logger = logging.getLogger(os.path.basename(__file__))

@@ -3,8 +3,8 @@ import logging
 from enum import Enum
 from typing import Dict
 
-from .point import Point as P
 from .renderer import Renderer
+from .shape import Point as P
 from .style import Anchor, Style
 
 logger = logging.getLogger(__name__)

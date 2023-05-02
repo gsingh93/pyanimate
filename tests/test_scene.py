@@ -6,7 +6,6 @@ import pytest
 import pyanimate.style as sty
 from pyanimate.animation import FadeIn, StaticAnimation
 from pyanimate.layout import Rectangle
-from pyanimate.point import Point as P
 
 from . import convert_to_ascii
 
