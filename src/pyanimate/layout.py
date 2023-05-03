@@ -174,7 +174,7 @@ class Rectangle(Object):
         renderer.rectangle(
             (x, y),
             # Subtract one from width and height to account for the border
-            (x + self._w - 1, y + self._h - 1),
+            (x + self.width - 1, y + self.height - 1),
             self.style,
         )
         super().render(renderer, pos)

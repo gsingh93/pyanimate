@@ -17,3 +17,5 @@ s3 = s2 + s1  # T: tuple[int, int]
 s1 = Shape(1, 2)  # T: Shape[int, int]
 s2 = 3  # T: int
 s3 = s1 + s2  # E: Operator "+" not supported for types "Shape[int, int]" and "Literal[3]"
+
+s1 = Shape(1, 1.0)  # T: Shape[int, float]

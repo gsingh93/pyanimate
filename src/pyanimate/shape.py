@@ -7,7 +7,7 @@ T = TypeVar("T", int, float)
 S = TypeVarTuple("S")
 
 
-class Shape(tuple, Generic[T, *S]):
+class Shape(tuple[T, ...], Generic[T, *S]):
     def __new__(cls, arg0: T, *args: *S) -> Self:
         return tuple.__new__(cls, (arg0,) + args)
 
@@ -85,8 +85,9 @@ class Point(Shape[T, T], Generic[T]):
 
 
 class Color(Shape[T, T, T], Generic[T]):
-    # TODO: I think alpha is breaking test
-    def __new__(cls, r: T, g: T, b: T, a: T = 0) -> Self:
+    def __new__(  # pylint: disable=arguments-differ
+        cls, r: T, g: T, b: T, a: T = 0
+    ) -> Self:
         return tuple.__new__(cls, (r, g, b, a))
 
     @staticmethod
