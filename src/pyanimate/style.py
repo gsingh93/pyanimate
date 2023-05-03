@@ -38,7 +38,6 @@ class Style:
         alpha: Optional[int] = None,
     ) -> None:
         if parent is None:
-            assert _default_style is not None
             parent = _default_style
 
         self._parent = parent
@@ -58,6 +57,8 @@ class Style:
         attr = getattr(self, attr_name)
         if attr is not None:
             return attr
+
+        assert self._parent is not None
 
         # This seems like a pylint bug, protected access should be fine here
         return self._parent._attr(attr_name)  # pylint: disable=protected-access
