@@ -34,7 +34,7 @@ class Style:
         fill_color: Optional[Color[int]] = None,
         font_color: Optional[Color[int]] = None,
         alpha: Optional[int] = None,
-    ):
+    ) -> None:
         self._parent = parent
         if self._parent is None:
             self._parent = _default_style
@@ -100,7 +100,7 @@ class Style:
     def clone(self, **kwargs):
         return Style(parent=self, **kwargs)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return str(self.__dict__)
 
 
@@ -116,7 +116,7 @@ _default_style = Style(
 )
 
 
-def set_style(style):
+def set_style(style) -> None:
     global _default_style
     _default_style = style
     # logger.debug('Default style: %s', repr(style))

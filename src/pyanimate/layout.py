@@ -19,7 +19,7 @@ class Align(str, Enum):
 
 
 class Object:
-    def __init__(self, width=None, height=None, style=None, **kwargs):
+    def __init__(self, width=None, height=None, style=None, **kwargs) -> None:
         # Construct a new Style that inherits from the parent
         if not style:
             # This will inherit from the default style
@@ -41,7 +41,7 @@ class Object:
         return self._w
 
     @width.setter
-    def width(self, val):
+    def width(self, val) -> None:
         self._w = val
 
     @property
@@ -50,19 +50,19 @@ class Object:
         return self._h
 
     @height.setter
-    def height(self, val):
+    def height(self, val) -> None:
         self._h = val
 
-    def add(self, obj, pos=P(0, 0)):
+    def add(self, obj, pos=P(0, 0)) -> None:
         self.children[obj] = pos
         obj.parent = self
         obj.style._parent_obj_style = self.style
 
-    def prepare(self, renderer: Renderer):
+    def prepare(self, renderer: Renderer) -> None:
         for obj in self.children:
             obj.prepare(renderer)
 
-    def render(self, renderer: Renderer, pos=(0, 0)):
+    def render(self, renderer: Renderer, pos=(0, 0)) -> None:
         x, y = pos
         for obj, offset in self.children.items():
             logger.debug("%s %s", obj, offset)
@@ -72,12 +72,12 @@ class Object:
     def clone(self):
         return copy.deepcopy(self)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"{type(self).__name__}({self._w}, {self._h})"
 
 
 class VLayout(Object):
-    def __init__(self, align=Align.CENTER, **kwargs):
+    def __init__(self, align=Align.CENTER, **kwargs) -> None:
         super().__init__(**kwargs)
         self.align = align
 
@@ -91,7 +91,7 @@ class VLayout(Object):
         return self._w
 
     @width.setter
-    def width(self, val):
+    def width(self, val) -> None:
         self._w = val
 
     @property
@@ -104,10 +104,10 @@ class VLayout(Object):
         return self._h
 
     @height.setter
-    def height(self, val):
+    def height(self, val) -> None:
         self._h = val
 
-    def render(self, renderer: Renderer, pos=(0, 0)):
+    def render(self, renderer: Renderer, pos=(0, 0)) -> None:
         logger.debug("%s %s", self, pos)
         x, y = pos
         # TODO: implement the centering logic better
@@ -125,7 +125,7 @@ class VLayout(Object):
 
 
 class HLayout(Object):
-    def __init__(self, align=Align.CENTER, **kwargs):
+    def __init__(self, align=Align.CENTER, **kwargs) -> None:
         super().__init__(**kwargs)
         self.align = align
 
@@ -139,7 +139,7 @@ class HLayout(Object):
         return self._w
 
     @width.setter
-    def width(self, val):
+    def width(self, val) -> None:
         self._w = val
 
     @property
@@ -152,10 +152,10 @@ class HLayout(Object):
         return self._h
 
     @height.setter
-    def height(self, val):
+    def height(self, val) -> None:
         self._h = val
 
-    def render(self, renderer: Renderer, pos=P(0, 0)):
+    def render(self, renderer: Renderer, pos=P(0, 0)) -> None:
         x, y = pos
         for obj, offset in self.children.items():
             logger.debug("%s %s", obj, offset)
@@ -166,7 +166,7 @@ class HLayout(Object):
 
 # TODO: width and height are actually one pixel larger than requested
 class Rectangle(Object):
-    def render(self, renderer: Renderer, pos=P(0, 0)):
+    def render(self, renderer: Renderer, pos=P(0, 0)) -> None:
         # Borders are mandatory at the moment, so the minimum size is 2x2
         assert self.width >= 2 and self.height >= 2
 
@@ -182,7 +182,7 @@ class Rectangle(Object):
 
 class Line(Object):
     # TODO: Support polar coordinates
-    def __init__(self, *, end, start=P(0, 0), **kwargs):
+    def __init__(self, *, end, start=P(0, 0), **kwargs) -> None:
         width = max(start.x, end.x)
         height = max(start.y, end.y)
         super().__init__(width=width, height=height, **kwargs)
@@ -190,7 +190,7 @@ class Line(Object):
         self.start = start
         self.end = end
 
-    def render(self, renderer: Renderer, pos=(0, 0)):
+    def render(self, renderer: Renderer, pos=(0, 0)) -> None:
         renderer.line(self.start + pos, self.end + pos, self.style)
 
 
@@ -206,7 +206,7 @@ class Line(Object):
 
 
 class TextBox(Rectangle):
-    def __init__(self, text, align=Anchor.MIDDLE_MIDDLE, **kwargs):
+    def __init__(self, text, align=Anchor.MIDDLE_MIDDLE, **kwargs) -> None:
         super().__init__(**kwargs)
 
         pos = P(0, 0)
@@ -224,7 +224,7 @@ class TextBox(Rectangle):
         return self._w
 
     @width.setter
-    def width(self, val):
+    def width(self, val) -> None:
         self._w = val
 
     @property
@@ -233,13 +233,13 @@ class TextBox(Rectangle):
         return self._h
 
     @height.setter
-    def height(self, val):
+    def height(self, val) -> None:
         self._h = val
 
         # Recenter text
         self.add(self.text_obj, P(self.width // 2, self.height // 2))
 
-    def set_text(self, text):
+    def set_text(self, text) -> None:
         self.text_obj.text = text
 
     # def prepare(self, renderer: Renderer):
@@ -248,15 +248,15 @@ class TextBox(Rectangle):
     #     t, _ = self.children[0]
     #     self.height = t.height
 
-    def render(self, renderer: Renderer, pos=P(0, 0)):
+    def render(self, renderer: Renderer, pos=P(0, 0)) -> None:
         super().render(renderer, pos)
 
 
 class Table(HLayout):
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
 
-    def prepare(self, renderer: Renderer):
+    def prepare(self, renderer: Renderer) -> None:
         super().prepare(renderer)
         self._h = 0
         for obj, _ in self.children.items():
@@ -268,11 +268,11 @@ class Table(HLayout):
 
 
 class DottedLine(Line):
-    def __init__(self, dash_len=10, **kwargs):
+    def __init__(self, dash_len=10, **kwargs) -> None:
         super().__init__(**kwargs)
         self.dash_len = dash_len
 
-    def render(self, renderer: Renderer, pos=P(0, 0)):
+    def render(self, renderer: Renderer, pos=P(0, 0)) -> None:
         length = (
             (self.end.x - self.start.x) ** 2 + (self.end.y - self.start.y) ** 2
         ) ** 0.5
@@ -290,12 +290,12 @@ class DottedLine(Line):
 
 
 class Arrow(Line):
-    def __init__(self, double_sided=False, arrow_length=10, **kwargs):
+    def __init__(self, double_sided=False, arrow_length=10, **kwargs) -> None:
         super().__init__(**kwargs)
         self.double_sided = double_sided
         self.alen = arrow_length
 
-    def render(self, renderer: Renderer, pos=P(0, 0)):
+    def render(self, renderer: Renderer, pos=P(0, 0)) -> None:
         renderer.line(self.start + pos, self.end + pos, self.style)
 
         renderer.line(pos + self.end, (pos + self.end).sub(self.alen), self.style)
@@ -315,20 +315,20 @@ class Arrow(Line):
 
 
 class Spacer(Object):
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
         self.width = self._w or self.style.padding
         self.height = self._h or self.style.padding
 
 
 class Text(Object):
-    def __init__(self, text: str, align=Align.LEFT, **kwargs):
+    def __init__(self, text: str, align=Align.LEFT, **kwargs) -> None:
         super().__init__(**kwargs)
         self.text = text
         self.align = align
 
     # TODO: the width and height may be misleading if the text is anchored in the center
-    def prepare(self, renderer: Renderer):
+    def prepare(self, renderer: Renderer) -> None:
         super().prepare(renderer)
 
         if not self._w or not self._h:
@@ -336,19 +336,19 @@ class Text(Object):
             self.width = self._w or right
             self.height = self._h or bottom
 
-    def render(self, renderer: Renderer, pos=(0, 0)):
+    def render(self, renderer: Renderer, pos=(0, 0)) -> None:
         if self.align == "right":
             pos = pos + P(self.width, 0)
             renderer.text(self.text, pos, self.style.clone(anchor=Anchor.TOP_RIGHT))
         else:
             renderer.text(self.text, pos, self.style)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"{type(self).__name__}({repr(self.text)}, {self._w}, {self._h})"
 
 
 class Canvas(Object):
-    def render(self, renderer: Renderer, pos=P(0, 0)):
+    def render(self, renderer: Renderer, pos=P(0, 0)) -> None:
         self.width = self.style.padding
         self.height = self.style.padding
         pos = pos.add(self.style.padding)

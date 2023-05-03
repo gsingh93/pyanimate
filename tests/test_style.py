@@ -19,7 +19,7 @@ class TestStyle:
             alpha=255,
         )
 
-    def test_attributes(self, style):
+    def test_attributes(self, style) -> None:
         assert style.padding == 5
         assert style.font == "Roboto-Regular.ttf"
         assert style.font_size == 24
@@ -29,7 +29,7 @@ class TestStyle:
         assert style.font_color == BLACK
         assert style.alpha == 255
 
-    def test_parent_style(self, style):
+    def test_parent_style(self, style) -> None:
         child_style = style.clone()
         assert child_style.padding == 5
         assert child_style.font == "Roboto-Regular.ttf"
@@ -40,7 +40,7 @@ class TestStyle:
         assert style.font_color == BLACK
         assert child_style.alpha == 255
 
-    def test_parent_style_override(self, style):
+    def test_parent_style_override(self, style) -> None:
         child_style = style.clone(padding=10)
         assert style.padding == 5
 

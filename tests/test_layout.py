@@ -23,7 +23,7 @@ class MockRenderer(Renderer):
 
 
 class TestObject:
-    def test_add(self):
+    def test_add(self) -> None:
         """
         Test that a child object is properly added to the parent object
         """
@@ -36,7 +36,7 @@ class TestObject:
         assert child.parent == parent
         assert child.style._parent_obj_style == parent.style
 
-    def test_clone(self):
+    def test_clone(self) -> None:
         """
         Test that cloning an object replicates all attributes
         """
@@ -51,7 +51,7 @@ class TestObject:
 
 
 class TestLayout:
-    def test_vlayout_dimensions(self):
+    def test_vlayout_dimensions(self) -> None:
         """
         Test that VLayout dimensions are properly calculated
         """
@@ -66,7 +66,7 @@ class TestLayout:
         assert parent.width == 45
         assert parent.height == 55
 
-    def test_hlayout_dimensions(self):
+    def test_hlayout_dimensions(self) -> None:
         """
         Test that HLayout dimensions are properly calculated
         """

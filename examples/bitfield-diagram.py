@@ -34,7 +34,7 @@ class Mode(str, Enum):
     WIDTH = "width"
     POSITION = "position"
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.value
 
 
@@ -42,7 +42,7 @@ class Endianness(str, Enum):
     BIG = "big"
     LITTLE = "little"
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.value
 
 
@@ -95,7 +95,7 @@ class Field:
         start_label=None,
         end_label=None,
         unit=Unit.BITS,
-    ):
+    ) -> None:
         if isinstance(bits, tuple):
             assert len(bits) == 2
             self.min = bits[0]
@@ -274,7 +274,7 @@ def create_canvas(title, fields, mode: Mode, endianness: Endianness, style) -> C
     return c
 
 
-def main():
+def main() -> None:
     global ctx, default_style
     args = parse_args()
 

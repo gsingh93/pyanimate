@@ -22,21 +22,21 @@ ctx = RenderContext(
 
 
 class Scene:
-    def __init__(self, canvas):
+    def __init__(self, canvas) -> None:
         self.animations: list[Animation] = []
         self.renderer = PILRenderer(ctx)
         self.canvas = canvas
         self.frame_num = 0
 
     @singledispatchmethod
-    def add(self, anim: Animation):
+    def add(self, anim: Animation) -> None:
         self.animations.append(anim)
 
     @add.register
-    def _(self, animations: list):
+    def _(self, animations: list) -> None:
         self.animations.append(AnimationGroup(animations))
 
-    def render(self):
+    def render(self) -> None:
         self.canvas.render(self.renderer)
         self.renderer.crop_to_fit()
         self.renderer.output(FRAME_DIR / f"frame-{self.frame_num}.png")
@@ -74,7 +74,7 @@ class Scene:
         if output_filename:
             self._save(1000 / frame_rate, output_filename)
 
-    def _save(self, frame_duration_ms, output_filename):
+    def _save(self, frame_duration_ms, output_filename) -> None:
         images = [
             Image.open(FRAME_DIR / f"frame-{i}.png") for i in range(0, self.frame_num)
         ]

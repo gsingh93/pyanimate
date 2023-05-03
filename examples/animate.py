@@ -112,7 +112,7 @@ def create_scene() -> Scene:
     return s
 
 
-def main():
+def main() -> None:
     args = parse_args()
 
     logging.basicConfig(

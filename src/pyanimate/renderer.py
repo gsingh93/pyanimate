@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 
 class RenderContext:
-    def __init__(self, width, height, bit_width, dpi: Tuple[int, int], scale):
+    def __init__(self, width, height, bit_width, dpi: Tuple[int, int], scale) -> None:
         self.scale = scale
         self.w = int(width * scale)
         self.h = int(height * scale)
@@ -21,7 +21,7 @@ class RenderContext:
         self.bit_width = int(bit_width * scale)
         self.dpi = dpi
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return repr(self.__dict__)
 
 
@@ -49,7 +49,7 @@ class Renderer(ABC):
 
 # TODO: Set ImageDraw.ink and fill default properties
 class PILRenderer(Renderer):
-    def __init__(self, ctx: RenderContext):
+    def __init__(self, ctx: RenderContext) -> None:
         logger.debug("RenderContext: %s", repr(ctx))
 
         self.ctx = ctx
@@ -68,13 +68,13 @@ class PILRenderer(Renderer):
 
         return self.fonts[key]
 
-    def set_dimensions(self, dim):
+    def set_dimensions(self, dim) -> None:
         self._w, self._h = map(int, dim)
 
-    def show(self):
+    def show(self) -> None:
         self.image.show()
 
-    def output(self, filename: str | Path):
+    def output(self, filename: str | Path) -> None:
         # TODO: Font sizes don't seem to be scaled properly
         # self.image = self.image.resize(
         #     (self._w // ctx.scale, self._h // ctx.scale),
@@ -86,16 +86,16 @@ class PILRenderer(Renderer):
         #     )
         self.image.save(filename, dpi=self.ctx.dpi)
 
-    def crop_to_fit(self):
+    def crop_to_fit(self) -> None:
         self.image = self.image.crop((0, 0, self._w, self._h))
 
-    def rectangle(self, p1, p2, style: Style):
+    def rectangle(self, p1, p2, style: Style) -> None:
         logger.debug("Rectangle: %s %s", p1, p2)
         fill_color = style.fill_color + Color.from_alpha(style.composite_alpha)
         stroke_color = style.stroke_color + Color.from_alpha(style.composite_alpha)
         self.draw.rectangle((p1, p2), fill=fill_color, outline=stroke_color)
 
-    def text(self, text, p, style: Style):
+    def text(self, text, p, style: Style) -> None:
         logger.debug("Text: %s %s", repr(text), p)
         font = self._get_font(style.font, style.font_size)
         font_color = style.font_color + Color.from_alpha(style.composite_alpha)
@@ -112,13 +112,13 @@ class PILRenderer(Renderer):
         font = self._get_font(style.font, style.font_size)
         return self.draw.textbbox((0, 0), text, font=font)
 
-    def line(self, p1, p2, style):
+    def line(self, p1, p2, style) -> None:
         # Dotted line is too verbose
         # logger.debug("Line: %s %s", p1, p2)
         stroke_color = style.stroke_color + Color.from_alpha(style.composite_alpha)
         self.draw.line([p1, p2], fill=stroke_color, width=1)
 
-    def clear(self):
+    def clear(self) -> None:
         self.image.close()
         self.image = Image.new("RGBA", (self._w, self._h), (255, 255, 255, 0))
         self.draw = ImageDraw.Draw(self.image)

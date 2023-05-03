@@ -9,7 +9,7 @@ logger = logging.getLogger(__name__)
 
 
 class Animation:
-    def __init__(self, duration=1.0):
+    def __init__(self, duration=1.0) -> None:
         """
         Initialize an Animation object.
 
@@ -28,7 +28,7 @@ class Animation:
     def step(self):
         raise NotImplementedError()
 
-    def play(self, render, frame_rate=50):
+    def play(self, render, frame_rate=50) -> None:
         """
         Play the animation.
 
@@ -56,7 +56,7 @@ class Animation:
 
 
 class AnimationGroup(Animation):
-    def __init__(self, animations: list[Animation]):
+    def __init__(self, animations: list[Animation]) -> None:
         """
         Initialize an AnimationGroup object.
 
@@ -71,7 +71,7 @@ class AnimationGroup(Animation):
         self.animations = animations
         self.duration = max(anim.duration for anim in animations)
 
-    def step(self):
+    def step(self) -> None:
         """
         Update the state of all child animations by calling their `step` methods.
         """
@@ -83,7 +83,7 @@ class AnimationGroup(Animation):
 
 
 class StaticAnimation(Animation):
-    def __init__(self, obj: Object):
+    def __init__(self, obj: Object) -> None:
         """
         Initialize a StaticAnimation object.
 
@@ -96,13 +96,13 @@ class StaticAnimation(Animation):
         super().__init__()
         self.obj = obj
 
-    def step(self):
+    def step(self) -> None:
         pass
 
 
 # TODO: Make abstract base class
 class Transform(Animation):
-    def __init__(self, obj, start_val, end_val):
+    def __init__(self, obj, start_val, end_val) -> None:
         """
         Initialize a Transform object.
 
@@ -121,7 +121,7 @@ class Transform(Animation):
         self.start_val = start_val
         self.val_diff = end_val - start_val
 
-    def step(self):
+    def step(self) -> None:
         """
         Calculate the new value of the transform and update the object by calling the `update_val` method.
         """
@@ -150,7 +150,7 @@ class Transform(Animation):
 
 
 class StyleTransform(Transform):
-    def __init__(self, obj, start_val, end_val, property_name: str):
+    def __init__(self, obj, start_val, end_val, property_name: str) -> None:
         """
         Initialize a StyleTransform object.
 
@@ -166,14 +166,14 @@ class StyleTransform(Transform):
         super().__init__(obj, start_val, end_val)
         self.property_name = property_name
 
-    def update_val(self, val):
+    def update_val(self, val) -> None:
         # TODO: style should be immutable? but creating a new style object every
         # frame is expensive
         setattr(self.obj.style, self.property_name, val)
 
 
 class RgbTransform(StyleTransform):
-    def __init__(self, obj, start_color: Color, end_color: Color):
+    def __init__(self, obj, start_color: Color, end_color: Color) -> None:
         super().__init__(obj, start_color, end_color, "_fill_color")
 
     def calculate_new_val(self, progress):
@@ -185,47 +185,49 @@ class RgbTransform(StyleTransform):
 
 
 class AlphaTransform(StyleTransform):
-    def __init__(self, obj, start_alpha, end_alpha):
+    def __init__(self, obj, start_alpha, end_alpha) -> None:
         super().__init__(obj, start_alpha, end_alpha, "_alpha")
 
 
 class FadeIn(AlphaTransform):
-    def __init__(self, obj: Object, start_alpha=0, end_alpha=255):
+    def __init__(self, obj: Object, start_alpha=0, end_alpha=255) -> None:
         assert start_alpha < end_alpha
         super().__init__(obj, start_alpha, end_alpha)
 
 
 class FadeOut(AlphaTransform):
-    def __init__(self, obj: Object, start_alpha=255, end_alpha=0):
+    def __init__(self, obj: Object, start_alpha=255, end_alpha=0) -> None:
         assert start_alpha > end_alpha
         super().__init__(obj, start_alpha, end_alpha)
 
 
 class Translate(Transform):
-    def __init__(self, parent: Object, child: Object, dest: P, *, relative=False):
+    def __init__(
+        self, parent: Object, child: Object, dest: P, *, relative=False
+    ) -> None:
         super().__init__(child, parent.children[child], dest)
         self.parent = parent
         # TODO: remove this special case
         if relative:
             self.val_diff = dest
 
-    def update_val(self, val):
+    def update_val(self, val) -> None:
         self.parent.add(self.obj, val)
 
 
 # TODO
 class Rotate(Transform):
-    def __init__(self, obj, start_angle, end_angle):
+    def __init__(self, obj, start_angle, end_angle) -> None:
         super().__init__(obj, start_angle, end_angle)
 
-    def update_val(self, val):
+    def update_val(self, val) -> None:
         pass
 
 
 # TODO
 class Scale(Transform):
-    def __init__(self, obj, start_scale, end_scale):
+    def __init__(self, obj, start_scale, end_scale) -> None:
         super().__init__(obj, start_scale, end_scale)
 
-    def update_val(self, val):
+    def update_val(self, val) -> None:
         pass
