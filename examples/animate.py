@@ -7,10 +7,10 @@ from PIL import Image
 
 from pyanimate import style as sty
 from pyanimate.animation import FadeIn, RgbTransform, Translate
-from pyanimate.color import CYAN, GREEN, MAGENTA, RED, YELLOW
 from pyanimate.layout import Arrow, Canvas, TextBox, VLayout
 from pyanimate.renderer import RenderContext
 from pyanimate.scene import Scene
+from pyanimate.shape import CYAN, GREEN, MAGENTA, RED, YELLOW
 from pyanimate.shape import Point as P
 
 ctx = RenderContext(

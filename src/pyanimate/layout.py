@@ -284,9 +284,9 @@ class DottedLine(Line):
 
         xy1 = self.start + pos
         for _ in range(0, int(length), self.dash_len):
-            xy2 = xy1 + (u * (self.dash_len // 2))
+            xy2 = xy1 + u.mul(self.dash_len // 2)
             renderer.line(xy1, xy2, self.style)
-            xy1 = xy1 + u * self.dash_len
+            xy1 = xy1 + u.mul(self.dash_len)
 
 
 class Arrow(Line):
@@ -298,7 +298,7 @@ class Arrow(Line):
     def render(self, renderer: Renderer, pos=P(0, 0)):
         renderer.line(self.start + pos, self.end + pos, self.style)
 
-        renderer.line(pos + self.end, pos + self.end - self.alen, self.style)
+        renderer.line(pos + self.end, (pos + self.end).sub(self.alen), self.style)
         renderer.line(
             pos + self.end, pos + self.end + P(-self.alen, self.alen), self.style
         )
@@ -309,7 +309,9 @@ class Arrow(Line):
                 pos + self.start + P(self.alen, -self.alen),
                 self.style,
             )
-            renderer.line(pos + self.start, pos + self.start + self.alen, self.style)
+            renderer.line(
+                pos + self.start, (pos + self.start).add(self.alen), self.style
+            )
 
 
 class Spacer(Object):
@@ -349,7 +351,7 @@ class Canvas(Object):
     def render(self, renderer: Renderer, pos=P(0, 0)):
         self.width = self.style.padding
         self.height = self.style.padding
-        pos = pos + self.style.padding
+        pos = pos.add(self.style.padding)
         for obj, offset in self.children.items():
             logger.debug("%s %s", obj, offset)
             obj.prepare(renderer)

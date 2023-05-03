@@ -139,7 +139,11 @@ class Transform(Animation):
         Returns:
         - float or tuple of floats, the new value of the transform
         """
-        return self.start_val + (self.val_diff * progress)
+        # TODO: Remove this special case
+        if isinstance(self.val_diff, (Color, P)):
+            return self.start_val + (self.val_diff.mul(progress))
+        else:
+            return self.start_val + (self.val_diff * progress)
 
     def update_val(self, val):
         raise NotImplementedError()

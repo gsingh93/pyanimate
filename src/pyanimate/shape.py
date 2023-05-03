@@ -1,3 +1,6 @@
+from __future__ import annotations
+
+import copy
 from typing import Generic, Self, TypeVar, TypeVarTuple
 
 T = TypeVar("T", int, float)
@@ -8,59 +11,67 @@ class Shape(tuple, Generic[T, *S]):
     def __new__(cls, arg0: T, *args: *S) -> Self:
         return tuple.__new__(cls, (arg0,) + args)
 
-    def __add__(self, other: Self | T, /) -> Self:
-        if isinstance(other, (int, float)):
-            x = (i + other for i in self)
-        else:
-            x = (i + j for i, j in zip(self, other))
-
+    def add(self, other: T, /) -> Self:
+        x = (i + other for i in self)
         return Shape(*x)  # pyright: ignore[reportGeneralTypeIssues]
 
-    def __sub__(self, other: Self | T, /) -> Self:
-        if isinstance(other, (int, float)):
-            x = (i - other for i in self)
-        else:
-            x = (i - j for i, j in zip(self, other))
-
+    def __add__(self, other: Self, /) -> Self:
+        x = (i + j for i, j in zip(self, other))
         return Shape(*x)  # pyright: ignore[reportGeneralTypeIssues]
 
-    def __mul__(self, other: Self | T, /) -> Self:
-        if isinstance(other, (int, float)):
-            x = (i * other for i in self)
-        else:
-            x = (i * j for i, j in zip(self, other))
-
+    def sub(self, other: T, /) -> Self:
+        x = (i - other for i in self)
         return Shape(*x)  # pyright: ignore[reportGeneralTypeIssues]
 
-    def __floordiv__(self, other: Self | T, /) -> Self:
-        if isinstance(other, (int, float)):
-            x = (i // other for i in self)
-        else:
-            x = (i // j for i, j in zip(self, other))
-
+    def __sub__(self, other: Self, /) -> Self:
+        x = (i - j for i, j in zip(self, other))
         return Shape(*x)  # pyright: ignore[reportGeneralTypeIssues]
 
-    def __truediv__(self, other: Self | T, /) -> Self:
-        if isinstance(other, (int, float)):
-            x = (i / other for i in self)
-        else:
-            x = (i / j for i, j in zip(self, other))
-
+    def mul(self, other: T, /) -> Self:
+        x = (i * other for i in self)
         return Shape(*x)  # pyright: ignore[reportGeneralTypeIssues]
 
-    def __mod__(self, other: Self | T, /) -> Self:
-        if isinstance(other, (int, float)):
-            x = (i % other for i in self)
-        else:
-            x = (i % j for i, j in zip(self, other))
-
+    def __mul__(self, other: Self, /) -> Self:
+        x = (i * j for i, j in zip(self, other))
         return Shape(*x)  # pyright: ignore[reportGeneralTypeIssues]
 
-    def __radd__(self, other: Self | T, /) -> Self:
+    def floordiv(self, other: T, /) -> Self:
+        x = (i // other for i in self)
+        return Shape(*x)  # pyright: ignore[reportGeneralTypeIssues]
+
+    def __floordiv__(self, other: Self, /) -> Self:
+        x = (i // j for i, j in zip(self, other))
+        return Shape(*x)  # pyright: ignore[reportGeneralTypeIssues]
+
+    def truediv(self, other: T, /) -> Self:
+        x = (i / other for i in self)
+        return Shape(*x)  # pyright: ignore[reportGeneralTypeIssues]
+
+    def __truediv__(self, other: Self, /) -> Self:
+        x = (i / j for i, j in zip(self, other))
+        return Shape(*x)  # pyright: ignore[reportGeneralTypeIssues]
+
+    def mod(self, other: T, /) -> Self:
+        x = (i % other for i in self)
+        return Shape(*x)  # pyright: ignore[reportGeneralTypeIssues]
+
+    def __mod__(self, other: Self, /) -> Self:
+        x = (i % j for i, j in zip(self, other))
+        return Shape(*x)  # pyright: ignore[reportGeneralTypeIssues]
+
+    def __radd__(self, other: Self, /) -> Self:
         return self + other
 
-    def __rmul__(self, other: Self | T, /) -> Self:
+    def __rmul__(self, other: Self, /) -> Self:
         return self * other
+
+    def __deepcopy__(
+        self,
+        memo: dict[int, Self],
+    ) -> Self:
+        # We need to deepcopy a tuple, not the original object, otherwise the
+        # deepcopy implementation will not use the tuple's deepcopy method.
+        return Shape(*copy.deepcopy(tuple(self)))  # type: ignore
 
 
 class Point(Shape[T, T], Generic[T]):
@@ -74,6 +85,15 @@ class Point(Shape[T, T], Generic[T]):
 
 
 class Color(Shape[T, T, T], Generic[T]):
+    # TODO: I think alpha is breaking test
+    def __new__(cls, r: T, g: T, b: T, a: T = 0) -> Self:
+        return tuple.__new__(cls, (r, g, b, a))
+
+    @staticmethod
+    def from_alpha(alpha: T) -> Color[T]:
+        zero = type(alpha)(0)
+        return Color(zero, zero, zero, alpha)
+
     @property
     def r(self) -> T:
         return self[0]
@@ -85,6 +105,10 @@ class Color(Shape[T, T, T], Generic[T]):
     @property
     def b(self) -> T:
         return self[2]
+
+    @property
+    def a(self) -> T:
+        return self[3]
 
 
 BLACK = Color(0, 0, 0)

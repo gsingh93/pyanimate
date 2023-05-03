@@ -1,7 +1,7 @@
 from enum import Enum
 from typing import Optional
 
-from .shape import BLACK, WHITE
+from .shape import BLACK, WHITE, Color
 
 
 class Anchor(str, Enum):
@@ -59,7 +59,7 @@ class Style:
         return self._parent._attr(attr_name)
 
     @property
-    def padding(self):
+    def padding(self) -> int:
         return self._attr("_padding")
 
     @property
@@ -67,31 +67,31 @@ class Style:
         return self._attr("_font")
 
     @property
-    def font_size(self):
+    def font_size(self) -> int:
         return self._attr("_font_size")
 
     @property
-    def anchor(self):
+    def anchor(self) -> Anchor:
         return self._attr("_anchor")
 
     @property
-    def stroke_color(self):
+    def stroke_color(self) -> Color:
         return self._attr("_stroke_color")
 
     @property
-    def fill_color(self):
+    def fill_color(self) -> Color:
         return self._attr("_fill_color")
 
     @property
-    def font_color(self):
+    def font_color(self) -> Color:
         return self._attr("_font_color")
 
     @property
-    def alpha(self):
+    def alpha(self) -> int:
         return int(self._attr("_alpha"))
 
     @property
-    def composite_alpha(self):
+    def composite_alpha(self) -> int:
         if self._parent_obj_style is None:
             return self.alpha
 
