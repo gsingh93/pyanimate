@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Optional
+from typing import Optional, Self
 
 from .shape import BLACK, WHITE, Color
 
@@ -25,17 +25,17 @@ class Style:
     def __init__(
         self,
         *,
-        parent=None,
-        padding=None,
-        font=None,
-        font_size=None,
-        anchor=None,
-        stroke_color=None,
-        fill_color=None,
-        font_color=None,
-        alpha=None,
+        parent: Optional[Self] = None,
+        padding: Optional[int] = None,
+        font: Optional[str] = None,
+        font_size: Optional[int] = None,
+        anchor: Optional[Anchor] = None,
+        stroke_color: Optional[Color[int]] = None,
+        fill_color: Optional[Color[int]] = None,
+        font_color: Optional[Color[int]] = None,
+        alpha: Optional[int] = None,
     ):
-        self._parent: Optional[Style] = parent
+        self._parent = parent
         if self._parent is None:
             self._parent = _default_style
 
@@ -48,7 +48,7 @@ class Style:
         self._font_color = font_color
         self._alpha = alpha
 
-        self._parent_obj_style = None
+        self._parent_obj_style: Optional[Style] = None
 
     def _attr(self, attr_name: str):
         attr = getattr(self, attr_name)
