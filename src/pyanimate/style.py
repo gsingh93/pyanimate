@@ -1,6 +1,8 @@
 from enum import Enum
 from typing import Optional
 
+from .shape import BLACK, WHITE
+
 
 class Anchor(str, Enum):
     TOP_LEFT = "la"
@@ -107,9 +109,9 @@ _default_style = Style(
     font="Roboto-Regular.ttf",
     font_size=32,
     anchor=Anchor.TOP_LEFT,
-    stroke_color=(0, 0, 0),
-    fill_color=(255, 255, 255),
-    font_color=(0, 0, 0),
+    stroke_color=BLACK,
+    fill_color=WHITE,
+    font_color=BLACK,
     alpha=255,
 )
 

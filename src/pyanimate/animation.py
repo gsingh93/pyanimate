@@ -2,6 +2,7 @@ import logging
 import time
 
 from .layout import Object
+from .shape import Color
 from .shape import Point as P
 
 logger = logging.getLogger(__name__)
@@ -118,9 +119,7 @@ class Transform(Animation):
         super().__init__()
         self.obj = obj
         self.start_val = start_val
-        self.val_diff = 0  # TODO: handle tuples
-        if not isinstance(end_val, tuple):
-            self.val_diff = end_val - start_val
+        self.val_diff = end_val - start_val
 
     def step(self):
         """
@@ -147,7 +146,7 @@ class Transform(Animation):
 
 
 class StyleTransform(Transform):
-    def __init__(self, obj, start_val, end_val, property_name):
+    def __init__(self, obj, start_val, end_val, property_name: str):
         """
         Initialize a StyleTransform object.
 
@@ -170,17 +169,15 @@ class StyleTransform(Transform):
 
 
 class RgbTransform(StyleTransform):
-    def __init__(self, obj, start_color, end_color):
+    def __init__(self, obj, start_color: Color, end_color: Color):
         super().__init__(obj, start_color, end_color, "_fill_color")
-        # TODO: Improve this
-        self.val_diff = tuple(x - y for x, y in zip(end_color, start_color))
 
     def calculate_new_val(self, progress):
         new_color = tuple(
             int(y + z)
             for y, z in zip(self.start_val, tuple(x * progress for x in self.val_diff))
         )
-        return new_color
+        return Color(*new_color)
 
 
 class AlphaTransform(StyleTransform):

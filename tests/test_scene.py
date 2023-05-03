@@ -6,6 +6,7 @@ import pytest
 import pyanimate.style as sty
 from pyanimate.animation import FadeIn, StaticAnimation
 from pyanimate.layout import Rectangle
+from pyanimate.shape import BLACK, RED, WHITE
 
 from . import convert_to_ascii
 
@@ -38,7 +39,7 @@ class TestSingleFrameRectangleScene2x2:
     # TODO: Is it guaranteed that clean_dir will be called first?
     @pytest.fixture(scope="class", autouse=True)
     def setup_scene(self, scene, canvas) -> None:
-        r = Rectangle(2, 2, fill_color=(255, 0, 0))
+        r = Rectangle(2, 2, fill_color=RED)
         canvas.add(r)
         scene.add(StaticAnimation(r))
 
@@ -58,7 +59,7 @@ class TestSingleFrameRectangleScene2x2:
 class TestSingleFrameRectangleScene3x3:
     @pytest.fixture(scope="class", autouse=True)
     def setup_scene(self, scene, canvas) -> None:
-        r = Rectangle(3, 3, fill_color=(255, 0, 0))
+        r = Rectangle(3, 3, fill_color=RED)
         canvas.add(r)
         scene.add(StaticAnimation(r))
 
@@ -79,7 +80,7 @@ class TestSingleFrameRectangleScene3x3:
 class TestFadeIn:
     @pytest.fixture(scope="class", autouse=True)
     def setup_scene(self, scene, canvas) -> None:
-        r = Rectangle(3, 3, fill_color=(255, 0, 0))
+        r = Rectangle(3, 3, fill_color=RED)
         canvas.add(r)
         scene.add(FadeIn(r))
 
@@ -108,14 +109,14 @@ class TestFadeIn:
             for r in range(im.height):
                 for c in range(im.width):
                     pixel = im.getpixel((r, c))
-                    if pixel[:3] == (255, 0, 0):
+                    if pixel[:3] == RED:
                         alpha = pixel[3]
                         assert alpha > prev_r_alpha
                         prev_r_alpha = alpha
 
                         assert already_set_b_alpha
                         assert prev_r_alpha == prev_b_alpha
-                    elif pixel[:3] == (0, 0, 0):
+                    elif pixel[:3] == BLACK:
                         alpha = pixel[3]
                         if already_set_b_alpha:
                             # All black pixels should have the same alpha
@@ -125,7 +126,7 @@ class TestFadeIn:
                             prev_b_alpha = alpha
 
                             already_set_b_alpha = True
-                    elif pixel[:3] == (255, 255, 255):
+                    elif pixel[:3] == WHITE:
                         assert pixel[3] == 0
                     else:
                         assert False

@@ -168,7 +168,7 @@ class HLayout(Object):
 class Rectangle(Object):
     def render(self, renderer: Renderer, pos=P(0, 0)):
         # Borders are mandatory at the moment, so the minimum size is 2x2
-        assert self._w >= 2 and self._h >= 2
+        assert self.width >= 2 and self.height >= 2
 
         x, y = pos
         renderer.rectangle(
@@ -209,11 +209,11 @@ class TextBox(Rectangle):
     def __init__(self, text, align=Anchor.MIDDLE_MIDDLE, **kwargs):
         super().__init__(**kwargs)
 
-        pos = (0, 0)
+        pos = P(0, 0)
         style = self.style
         if align == Anchor.MIDDLE_MIDDLE:
             style = self.style.clone(anchor=Anchor.MIDDLE_MIDDLE)
-            pos = (self.width // 2, self.height // 2)
+            pos = P(self.width // 2, self.height // 2)
 
         self.text_obj = Text(text, style=style, width=self.width, height=self.height)
         self.add(self.text_obj, pos)

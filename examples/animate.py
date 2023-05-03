@@ -7,6 +7,7 @@ from PIL import Image
 
 from pyanimate import style as sty
 from pyanimate.animation import FadeIn, RgbTransform, Translate
+from pyanimate.color import CYAN, GREEN, MAGENTA, RED, YELLOW
 from pyanimate.layout import Arrow, Canvas, TextBox, VLayout
 from pyanimate.renderer import RenderContext
 from pyanimate.scene import Scene
@@ -51,11 +52,6 @@ def create_scene() -> Scene:
     c = Canvas()
     s = Scene(c)
 
-    col1 = (0, 255, 0)
-    col2 = (255, 255, 0)
-    col3 = (255, 0, 255)
-    col4 = (0, 255, 255)
-
     ###################################################
     #                  Initial Scene                  #
     ###################################################
@@ -68,7 +64,7 @@ def create_scene() -> Scene:
     )
     vlayout.add(t)
 
-    t = TextBox("RIP", width=250, height=50, style=style.clone(fill_color=col1))
+    t = TextBox("RIP", width=250, height=50, style=style.clone(fill_color=GREEN))
     vlayout.add(t)
 
     # t = t.clone()
@@ -77,14 +73,14 @@ def create_scene() -> Scene:
     # t.set_text("RBP")
     # vlayout.add(t)
 
-    t = TextBox("RBP", width=250, height=50, style=style.clone(fill_color=col4))
+    t = TextBox("RBP", width=250, height=50, style=style.clone(fill_color=CYAN))
     vlayout.add(t)
 
-    t = TextBox("canary", width=250, height=50, style=style.clone(fill_color=col2))
+    t = TextBox("canary", width=250, height=50, style=style.clone(fill_color=YELLOW))
     vlayout.add(t)
 
     buf_tb = TextBox(
-        "char buf[16]", width=250, height=100, style=style.clone(fill_color=col3)
+        "char buf[16]", width=250, height=100, style=style.clone(fill_color=MAGENTA)
     )
     vlayout.add(buf_tb)
 
@@ -103,7 +99,7 @@ def create_scene() -> Scene:
     s.add(
         [
             Translate(c, arrow, P(0, -100), relative=True),
-            RgbTransform(buf_tb, col3, (255, 0, 0)),
+            RgbTransform(buf_tb, MAGENTA, RED),
         ]
     )
 
