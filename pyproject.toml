@@ -6,6 +6,30 @@ requires-python = ">=3.11"
 [tool.black]
 extend-exclude = "typesafety"
 
+[tool.ruff]
+exclude = [
+    ".git",
+    "__pycache__",
+]
+ignore = [
+    "A003",
+    "E402",
+    "E501",
+    "E731",
+    "F405",
+    "F811",
+    "F821",
+    "F841",
+    "W505",
+]
+line-length = 88
+select = [
+    "A",
+    "E",
+    "F",
+    "W",
+]
+
 [tool.mypy]
 strict_optional = false
 check_untyped_defs = true
