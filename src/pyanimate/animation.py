@@ -1,5 +1,6 @@
 import logging
 import time
+from abc import ABC, abstractmethod
 
 from .layout import Object
 from .shape import Color
@@ -8,7 +9,7 @@ from .shape import Point as P
 logger = logging.getLogger(__name__)
 
 
-class Animation:
+class Animation(ABC):
     def __init__(self, duration=1.0) -> None:
         """
         Initialize an Animation object.
@@ -25,6 +26,7 @@ class Animation:
         self.elapsed_time: float = 0.0
         self.start_time: float = 0.0
 
+    @abstractmethod
     def step(self):
         raise NotImplementedError()
 
@@ -100,7 +102,6 @@ class StaticAnimation(Animation):
         pass
 
 
-# TODO: Make abstract base class
 class Transform(Animation):
     def __init__(self, obj, start_val, end_val) -> None:
         """
@@ -142,9 +143,10 @@ class Transform(Animation):
         # TODO: Remove this special case
         if isinstance(self.val_diff, (Color, P)):
             return self.start_val + (self.val_diff.mul(progress))
-        else:
-            return self.start_val + (self.val_diff * progress)
 
+        return self.start_val + (self.val_diff * progress)
+
+    @abstractmethod
     def update_val(self, val):
         raise NotImplementedError()
 

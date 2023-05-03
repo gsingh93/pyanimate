@@ -164,7 +164,6 @@ class HLayout(Object):
             x += obj.width + offx
 
 
-# TODO: width and height are actually one pixel larger than requested
 class Rectangle(Object):
     def render(self, renderer: Renderer, pos=P(0, 0)) -> None:
         # Borders are mandatory at the moment, so the minimum size is 2x2

@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from enum import Enum
-from typing import Optional, Self
+from typing import Optional
 
 from .shape import BLACK, WHITE, Color
 
@@ -18,14 +20,14 @@ class Anchor(str, Enum):
     BOTTOM_RIGHT = "rd"
 
 
-_default_style = None
+_default_style: Optional[Style] = None
 
 
 class Style:
     def __init__(
         self,
         *,
-        parent: Optional[Self] = None,
+        parent: Optional[Style] = None,
         padding: Optional[int] = None,
         font: Optional[str] = None,
         font_size: Optional[int] = None,
@@ -35,9 +37,11 @@ class Style:
         font_color: Optional[Color[int]] = None,
         alpha: Optional[int] = None,
     ) -> None:
+        if parent is None:
+            assert _default_style is not None
+            parent = _default_style
+
         self._parent = parent
-        if self._parent is None:
-            self._parent = _default_style
 
         self._padding = padding
         self._font = font
@@ -55,8 +59,8 @@ class Style:
         if attr is not None:
             return attr
 
-        # TODO: Why access to protect attribute warning?
-        return self._parent._attr(attr_name)
+        # This seems like a pylint bug, protected access should be fine here
+        return self._parent._attr(attr_name)  # pylint: disable=protected-access
 
     @property
     def padding(self) -> int:
