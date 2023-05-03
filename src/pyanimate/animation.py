@@ -218,18 +218,18 @@ class Translate(Transform):
 
 
 # TODO
-class Rotate(Transform):
-    def __init__(self, obj, start_angle, end_angle) -> None:
-        super().__init__(obj, start_angle, end_angle)
+# class Rotate(Transform):
+#     def __init__(self, obj, start_angle, end_angle) -> None:
+#         super().__init__(obj, start_angle, end_angle)
 
-    def update_val(self, val) -> None:
-        pass
+#     def update_val(self, val) -> None:
+#         pass
 
 
 # TODO
-class Scale(Transform):
-    def __init__(self, obj, start_scale, end_scale) -> None:
-        super().__init__(obj, start_scale, end_scale)
+# class Scale(Transform):
+#     def __init__(self, obj, start_scale, end_scale) -> None:
+#         super().__init__(obj, start_scale, end_scale)
 
-    def update_val(self, val) -> None:
-        pass
+#     def update_val(self, val) -> None:
+#         pass

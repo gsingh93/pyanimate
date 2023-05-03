@@ -5,11 +5,10 @@ import math
 import os
 from argparse import ArgumentParser
 from enum import Enum
-from typing import Optional
 
 import pyanimate.style
 from pyanimate.layout import (
-    Anchor,
+    Align,
     Arrow,
     Canvas,
     DottedLine,
@@ -22,12 +21,14 @@ from pyanimate.layout import (
 )
 from pyanimate.renderer import PILRenderer, RenderContext
 from pyanimate.shape import Point as P
-from pyanimate.style import Style
+from pyanimate.style import Anchor, Style
 
 logger = logging.getLogger(os.path.basename(__file__))
 
-ctx: Optional[RenderContext] = None
-default_style: Optional[Style] = None
+# These global variables will be initialized in main, so we assume they are not Optional
+# types
+ctx: RenderContext = None  # type: ignore[reportGeneralTypeIssues]
+default_style: Style = None  # type: ignore[reportGeneralTypeIssues]
 
 
 class Mode(str, Enum):
@@ -189,7 +190,7 @@ def bdaddr_fields():
 def create_canvas(title, fields, mode: Mode, endianness: Endianness, style) -> Canvas:
     c = Canvas()
 
-    v = VLayout(align="center")
+    v = VLayout(align=Align.CENTER)
 
     # Title
     logger.info("Laying out title")
@@ -208,8 +209,8 @@ def create_canvas(title, fields, mode: Mode, endianness: Endianness, style) -> C
         right_text = "LSB"
         fields.reverse()
 
-    lsb_msb.add(Text(left_text, width=750 * ctx.scale, align="left"))
-    lsb_msb.add(Text(right_text, width=750 * ctx.scale, align="right"))
+    lsb_msb.add(Text(left_text, width=750 * ctx.scale, align=Align.LEFT))
+    lsb_msb.add(Text(right_text, width=750 * ctx.scale, align=Align.RIGHT))
 
     v.add(lsb_msb)
     v.add(Spacer())
@@ -252,11 +253,11 @@ def create_canvas(title, fields, mode: Mode, endianness: Endianness, style) -> C
             spacer = Spacer()
             bit_label = HLayout()
             bit_label.add(spacer)
-            bit_label.add(arrow, pos=(0, 20 * ctx.scale))
+            bit_label.add(arrow, pos=P(0, 20 * ctx.scale))
             bit_label.add(spacer)
             bit_label.add(Text(label, width=text_width, height=50 * ctx.scale))
             bit_label.add(spacer)
-            bit_label.add(arrow, pos=(0, 20 * ctx.scale))
+            bit_label.add(arrow, pos=P(0, 20 * ctx.scale))
             bit_label.add(spacer)
 
             h.add(bit_label)
@@ -267,7 +268,7 @@ def create_canvas(title, fields, mode: Mode, endianness: Endianness, style) -> C
     h.add(DottedLine(end=P(0, 50 * ctx.scale)))
 
     v.add(t)
-    v.add(h, pos=(0, style.padding))
+    v.add(h, pos=P(0, style.padding))
 
     c.add(v)
 

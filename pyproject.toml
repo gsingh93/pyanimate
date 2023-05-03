@@ -43,8 +43,6 @@ pretty = true
 show_error_codes = true
 incremental = false
 disable_error_code = [
-    # # Lots of dynamic attribute access
-    # "attr-defined",
     # https://github.com/python/mypy/issues/6232
     "assignment"
 ]
@@ -98,6 +96,7 @@ disable = [
 
     # refactoring
     "redefined-argument-from-local",
+    "no-else-return",
 
     # stdlib
     "unspecified-encoding",
