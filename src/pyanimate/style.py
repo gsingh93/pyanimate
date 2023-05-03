@@ -64,6 +64,14 @@ class Style:
         return self._parent._attr(attr_name)  # pylint: disable=protected-access
 
     @property
+    def parent_obj_style(self) -> Optional[Style]:
+        return self._parent_obj_style
+
+    @parent_obj_style.setter
+    def parent_obj_style(self, style: Style) -> None:
+        self._parent_obj_style = style
+
+    @property
     def padding(self) -> int:
         return self._attr("_padding")
 

@@ -34,7 +34,7 @@ class TestObject:
 
         assert child in parent.children
         assert child.parent == parent
-        assert child.style._parent_obj_style == parent.style
+        assert child.style.parent_obj_style == parent.style
 
     def test_clone(self) -> None:
         """

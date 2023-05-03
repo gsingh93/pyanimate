@@ -56,7 +56,7 @@ class Object:
     def add(self, obj, pos=P(0, 0)) -> None:
         self.children[obj] = pos
         obj.parent = self
-        obj.style._parent_obj_style = self.style
+        obj.style.parent_obj_style = self.style
 
     def prepare(self, renderer: Renderer) -> None:
         for obj in self.children:
