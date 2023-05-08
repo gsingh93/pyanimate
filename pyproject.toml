@@ -56,6 +56,7 @@ profile = "black"
 known_third_party = ["PIL"]
 
 [tool.coverage.run]
+source = ["."]
 
 [tool.coverage.report]
 
