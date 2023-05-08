@@ -6,6 +6,7 @@ from pathlib import Path
 from PIL import Image
 
 from .animation import Animation, AnimationGroup
+from .layout import Canvas
 from .renderer import PILRenderer, RenderContext
 
 logger = logging.getLogger(__name__)
@@ -21,23 +22,45 @@ ctx = RenderContext(
 )
 
 
-class Scene:
+# TODO: Probably not the right name for this class
+class KeyFrame:
     def __init__(self, canvas) -> None:
-        self.animations: list[Animation] = []
-        self.renderer = PILRenderer(ctx)
         self.canvas = canvas
+        self.animations: list[Animation] = []
+
+
+class Scene:
+    def __init__(self) -> None:
+        self.keyframes: list[KeyFrame] = []
+        self.cur_keyframe = None
+        self.renderer = PILRenderer(ctx)
         self.frame_num = 0
+
+    def keyframe(self) -> Canvas:
+        if len(self.keyframes) == 0:
+            self.cur_keyframe = KeyFrame(Canvas())
+        else:
+            self.cur_keyframe = KeyFrame(self.keyframes[-1].canvas.clone())
+
+        self.keyframes.append(self.cur_keyframe)
+
+        return self.cur_keyframe.canvas
 
     @singledispatchmethod
     def add(self, anim: Animation) -> None:
-        self.animations.append(anim)
+        assert self.cur_keyframe is not None
+        self.cur_keyframe.animations.append(anim)
 
     @add.register
     def _(self, animations: list) -> None:
-        self.animations.append(AnimationGroup(animations))
+        assert self.cur_keyframe is not None
+        self.cur_keyframe.animations.append(AnimationGroup(animations))
 
     def render(self) -> None:
-        self.canvas.render(self.renderer)
+        logger.debug("Rendering frame %d", self.frame_num)
+        assert self.cur_keyframe is not None
+
+        self.cur_keyframe.canvas.render(self.renderer)
         self.renderer.crop_to_fit()
         self.renderer.output(FRAME_DIR / f"frame-{self.frame_num}.png")
         self.frame_num += 1
@@ -61,8 +84,10 @@ class Scene:
 
         FRAME_DIR.mkdir()
 
-        for anim in self.animations:
-            anim.play(self.render, frame_rate)
+        for keyframe in self.keyframes:
+            self.cur_keyframe = keyframe
+            for anim in keyframe.animations:
+                anim.play(self.render, frame_rate)
 
         logger.info(
             "Rendered %d frames at %d fps (%s seconds)",
