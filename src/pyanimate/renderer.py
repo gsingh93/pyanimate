@@ -119,6 +119,5 @@ class PILRenderer(Renderer):
         self.draw.line([p1, p2], fill=stroke_color, width=1)
 
     def clear(self) -> None:
-        self.image.close()
         self.image = Image.new("RGBA", (self._w, self._h), (255, 255, 255, 0))
         self.draw = ImageDraw.Draw(self.image)
