@@ -37,15 +37,11 @@ jobs:
           pip install .
 
       - name: Install package
-        run: pip install .
+        run: pip install -e .
 
       - name: Run tests
         run: |
           ./test.sh
-
-      - name: Process coverage data
-        run: |
-          coverage xml
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v3

@@ -30,6 +30,8 @@ select = [
     "W",
 ]
 
+[tool.pytest.ini_options]
+
 [tool.mypy]
 strict_optional = false
 check_untyped_defs = true
