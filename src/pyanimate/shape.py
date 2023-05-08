@@ -13,51 +13,51 @@ class Shape(tuple[T, ...], Generic[T, *S]):
 
     def add(self, other: T, /) -> Self:
         x = (i + other for i in self)
-        return Shape(*x)  # pyright: ignore[reportGeneralTypeIssues]
+        return type(self)(*x)  # pyright: ignore[reportGeneralTypeIssues]
 
     def __add__(self, other: Self, /) -> Self:
         x = (i + j for i, j in zip(self, other))
-        return Shape(*x)  # pyright: ignore[reportGeneralTypeIssues]
+        return type(self)(*x)  # pyright: ignore[reportGeneralTypeIssues]
 
     def sub(self, other: T, /) -> Self:
         x = (i - other for i in self)
-        return Shape(*x)  # pyright: ignore[reportGeneralTypeIssues]
+        return type(self)(*x)  # pyright: ignore[reportGeneralTypeIssues]
 
     def __sub__(self, other: Self, /) -> Self:
         x = (i - j for i, j in zip(self, other))
-        return Shape(*x)  # pyright: ignore[reportGeneralTypeIssues]
+        return type(self)(*x)  # pyright: ignore[reportGeneralTypeIssues]
 
     def mul(self, other: T, /) -> Self:
         x = (i * other for i in self)
-        return Shape(*x)  # pyright: ignore[reportGeneralTypeIssues]
+        return type(self)(*x)  # pyright: ignore[reportGeneralTypeIssues]
 
     def __mul__(self, other: Self, /) -> Self:
         x = (i * j for i, j in zip(self, other))
-        return Shape(*x)  # pyright: ignore[reportGeneralTypeIssues]
+        return type(self)(*x)  # pyright: ignore[reportGeneralTypeIssues]
 
     def floordiv(self, other: T, /) -> Self:
         x = (i // other for i in self)
-        return Shape(*x)  # pyright: ignore[reportGeneralTypeIssues]
+        return type(self)(*x)  # pyright: ignore[reportGeneralTypeIssues]
 
     def __floordiv__(self, other: Self, /) -> Self:
         x = (i // j for i, j in zip(self, other))
-        return Shape(*x)  # pyright: ignore[reportGeneralTypeIssues]
+        return type(self)(*x)  # pyright: ignore[reportGeneralTypeIssues]
 
     def truediv(self, other: T, /) -> Self:
         x = (i / other for i in self)
-        return Shape(*x)  # pyright: ignore[reportGeneralTypeIssues]
+        return type(self)(*x)  # pyright: ignore[reportGeneralTypeIssues]
 
     def __truediv__(self, other: Self, /) -> Self:
         x = (i / j for i, j in zip(self, other))
-        return Shape(*x)  # pyright: ignore[reportGeneralTypeIssues]
+        return type(self)(*x)  # pyright: ignore[reportGeneralTypeIssues]
 
     def mod(self, other: T, /) -> Self:
         x = (i % other for i in self)
-        return Shape(*x)  # pyright: ignore[reportGeneralTypeIssues]
+        return type(self)(*x)  # pyright: ignore[reportGeneralTypeIssues]
 
     def __mod__(self, other: Self, /) -> Self:
         x = (i % j for i, j in zip(self, other))
-        return Shape(*x)  # pyright: ignore[reportGeneralTypeIssues]
+        return type(self)(*x)  # pyright: ignore[reportGeneralTypeIssues]
 
     def __radd__(self, other: Self, /) -> Self:
         return self + other
