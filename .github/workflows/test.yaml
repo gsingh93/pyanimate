@@ -45,7 +45,6 @@ jobs:
 
       - name: Process coverage data
         run: |
-          coverage combine
           coverage xml
 
       - name: Upload coverage to Codecov
