@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import copy
+import math
 from typing import Generic, Self, TypeVar, TypeVarTuple
 
 T = TypeVar("T", int, float)
@@ -82,6 +83,12 @@ class Point(Shape[T, T], Generic[T]):
     @property
     def y(self) -> T:
         return self[1]
+
+    def mag(self) -> float:
+        return (self.x**2 + self.y**2) ** 0.5
+
+    def radians(self) -> float:
+        return math.atan2(self.y, self.x)
 
 
 class Color(Shape[T, T, T], Generic[T]):

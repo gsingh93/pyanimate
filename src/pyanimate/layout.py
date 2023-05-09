@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import copy
 import logging
+import math
 import uuid
 from enum import Enum
 from typing import Dict, Optional, Self
@@ -308,19 +309,33 @@ class Arrow(Line):
     def render(self, renderer: Renderer, pos=P(0, 0)) -> None:
         renderer.line(self.start + pos, self.end + pos, self.style)
 
-        renderer.line(pos + self.end, (pos + self.end).sub(self.alen), self.style)
+        d = self.end - self.start
+        length = d.mag()
+        angle = d.radians()
+
+        head_length = length * 0.25
+        head_angle = math.pi / 4  # 45 degrees in radians
+
+        head_dx1 = head_length * math.cos(angle + head_angle)
+        head_dy1 = head_length * math.sin(angle + head_angle)
+        head_dx2 = head_length * math.cos(angle - head_angle)
+        head_dy2 = head_length * math.sin(angle - head_angle)
+
         renderer.line(
-            pos + self.end, pos + self.end + P(-self.alen, self.alen), self.style
+            pos + self.end, pos + self.end - P(head_dx1, head_dy1), self.style
+        )
+        renderer.line(
+            pos + self.end, pos + self.end - P(head_dx2, head_dy2), self.style
         )
 
         if self.double_sided:
             renderer.line(
                 pos + self.start,
-                pos + self.start + P(self.alen, -self.alen),
+                pos + self.start + P(head_dx1, head_dy1),
                 self.style,
             )
             renderer.line(
-                pos + self.start, (pos + self.start).add(self.alen), self.style
+                pos + self.start, pos + self.start + P(head_dx2, head_dy2), self.style
             )
 
 
