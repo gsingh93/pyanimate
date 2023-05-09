@@ -127,7 +127,9 @@ class PILRenderer(Renderer):
         # logger.debug("Line: %s %s", p1, p2)
         stroke_color = style.stroke_color + Color.from_alpha(style.composite_alpha)
         self.draw.line(
-            [p1.mul(self.ctx.scale), p2.mul(self.ctx.scale)], fill=stroke_color, width=1
+            [p1.mul(self.ctx.scale), p2.mul(self.ctx.scale)],
+            fill=stroke_color,
+            width=3,  # TODO: Make configurable
         )
 
     def clear(self) -> None:
