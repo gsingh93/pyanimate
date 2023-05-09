@@ -72,7 +72,7 @@ class Shape(tuple[T, ...], Generic[T, *S]):
     ) -> Self:
         # We need to deepcopy a tuple, not the original object, otherwise the
         # deepcopy implementation will not use the tuple's deepcopy method.
-        return Shape(*copy.deepcopy(tuple(self)))  # type: ignore
+        return type(self)(*copy.deepcopy(tuple(self)))  # type: ignore
 
 
 class Point(Shape[T, T], Generic[T]):
