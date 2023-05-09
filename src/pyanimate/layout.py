@@ -4,8 +4,9 @@ import copy
 import logging
 import math
 import uuid
+from collections import OrderedDict
 from enum import Enum
-from typing import Dict, Optional, Self
+from typing import Optional, Self
 
 from .renderer import Renderer
 from .shape import Point as P
@@ -36,8 +37,8 @@ class Object:
         self.style = style
         self._w = width
         self._h = height
-        self.children: Dict[Object, P] = {}
-        self.parent = None
+        self.children: OrderedDict[Object, P] = OrderedDict()
+        self.parent: Optional[Object] = None
 
         self._id = uuid.uuid4()
 
@@ -63,6 +64,45 @@ class Object:
         self.children[obj] = pos
         obj.parent = self
         obj.style.parent_obj_style = self.style
+
+    def find(self, obj: Object, remove: bool = False) -> Optional[Object]:
+        for child in self.children:
+            if child == obj:
+                if remove:
+                    del self.children[obj]
+
+                return child
+
+        for child in self.children:
+            result = child.find(obj, remove)
+            if result:
+                return result
+
+        return None
+
+    def remove(self, obj: Object) -> None:
+        self.find(obj, remove=True)
+
+    def replace(self, obj: Object, new: Object) -> None:
+        # We need to search for `obj` as we need the actual object we're going to be
+        # replacing, not just some object that is equal to it
+        old = self.find(obj)
+        if not old:
+            raise ValueError(f"Object {obj} not found")
+
+        parent = old.parent
+        assert parent is not None
+        logger.debug(
+            "Replacing %s with %s in parent %s", repr(old), repr(new), repr(parent)
+        )
+
+        # Preserve the order of items in the dictionary
+        parent.children = OrderedDict(
+            (new, value) if key == old else (key, value)
+            for key, value in parent.children.items()
+        )
+        new.parent = parent
+        new.style.parent_obj_style = parent.style
 
     def prepare(self, renderer: Renderer) -> None:
         for obj in self.children:
