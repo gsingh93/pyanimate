@@ -345,10 +345,10 @@ class DottedLine(Line):
 
 
 class Arrow(Line):
-    def __init__(self, double_sided=False, arrow_length=10, **kwargs) -> None:
+    def __init__(self, double_sided=False, arrowhead_ratio=0.2, **kwargs) -> None:
         super().__init__(**kwargs)
         self.double_sided = double_sided
-        self.alen = arrow_length
+        self.aratio = arrowhead_ratio
 
     def render(self, renderer: Renderer, pos=P(0, 0)) -> None:
         renderer.line(self.start + pos, self.end + pos, self.style)
@@ -357,7 +357,7 @@ class Arrow(Line):
         length = d.mag()
         angle = d.radians()
 
-        head_length = length * 0.25
+        head_length = length * self.aratio
         head_angle = math.pi / 4  # 45 degrees in radians
 
         head_dx1 = head_length * math.cos(angle + head_angle)

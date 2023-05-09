@@ -79,8 +79,7 @@ def create_scene(ctx: RenderContext) -> Scene:
 
     c.add(vlayout)
 
-    # TODO: Figure out how to avoid a negative arrow length
-    arrow = Arrow(end=P(0, 0), start=P(100, 0), arrow_length=-10)
+    arrow = Arrow(end=P(0, 0), start=P(100, 0))
     c.add(arrow, P(300, vlayout.height))
 
     s.add(FadeIn(c))
