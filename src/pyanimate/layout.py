@@ -1,7 +1,10 @@
+from __future__ import annotations
+
 import copy
 import logging
+import uuid
 from enum import Enum
-from typing import Dict
+from typing import Dict, Optional, Self
 
 from .renderer import Renderer
 from .shape import Point as P
@@ -34,6 +37,8 @@ class Object:
         self._h = height
         self.children: Dict[Object, P] = {}
         self.parent = None
+
+        self._id = uuid.uuid4()
 
     @property
     def width(self) -> int:
@@ -74,6 +79,12 @@ class Object:
 
     def __str__(self) -> str:
         return f"{type(self).__name__}({self._w}, {self._h})"
+
+    def __eq__(self, o: Self) -> bool:
+        return self._id == o._id
+
+    def __hash__(self):
+        return hash(self._id)
 
 
 class VLayout(Object):
