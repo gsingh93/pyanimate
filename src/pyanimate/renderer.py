@@ -62,7 +62,10 @@ class PILRenderer(Renderer):
         self._w = ctx.w * ctx.scale
         self._h = ctx.h * ctx.scale
 
-        self.image = Image.new("RGBA", (self._w, self._h), (255, 255, 255, 0))
+        # TODO: Make configurable
+        self.background = Color(255, 255, 255, 255)
+
+        self.image = Image.new("RGBA", (self._w, self._h), self.background)
         self.draw = ImageDraw.Draw(self.image)
         self.fonts: Dict[Tuple[str, int], FreeTypeFont] = {}
 
@@ -133,5 +136,5 @@ class PILRenderer(Renderer):
         )
 
     def clear(self) -> None:
-        self.image = Image.new("RGBA", (self._w, self._h), (255, 255, 255, 0))
+        self.image = Image.new("RGBA", (self._w, self._h), self.background)
         self.draw = ImageDraw.Draw(self.image)
