@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 FRAME_DIR = Path(".frames")
 
-ctx = RenderContext(
+default_render_ctx = RenderContext(
     1920,
     1080,
     100,
@@ -30,10 +30,10 @@ class KeyFrame:
 
 
 class Scene:
-    def __init__(self) -> None:
+    def __init__(self, render_ctx: RenderContext = default_render_ctx) -> None:
         self.keyframes: list[KeyFrame] = []
         self.cur_keyframe = None
-        self.renderer = PILRenderer(ctx)
+        self.renderer = PILRenderer(render_ctx)
         self.frame_num = 0
 
     def keyframe(self) -> Canvas:

@@ -13,14 +13,6 @@ from pyanimate.scene import Scene
 from pyanimate.shape import CYAN, GREEN, MAGENTA, RED, YELLOW
 from pyanimate.shape import Point as P
 
-ctx = RenderContext(
-    1920,
-    1080,
-    100,
-    (300, 300),
-    2,
-)
-
 style = sty.Style(padding=20, font="Roboto-Regular.ttf", font_size=32)
 sty.set_style(style)
 
@@ -36,7 +28,8 @@ def parse_args():
         type=int,
         help="The number of frames per second",
     )
-    # TODO: use this
+    parser.add_argument("-w", "--width", default=1920, type=int, help="TODO")
+    parser.add_argument("--height", default=1080, type=int, help="TODO")
     parser.add_argument("-s", "--scale", default=2, type=int, help="TODO")
     parser.add_argument("-o", "--output", default="output.png", help="TODO")
     parser.add_argument(
@@ -48,9 +41,9 @@ def parse_args():
     return parser.parse_args()
 
 
-def create_scene() -> Scene:
-    c = Canvas()
-    s = Scene(c)
+def create_scene(ctx: RenderContext) -> Scene:
+    s = Scene(ctx)
+    c = s.keyframe()
 
     ###################################################
     #                  Initial Scene                  #
@@ -124,7 +117,8 @@ def main() -> None:
         logger.error("Frame rate must be between 1 and 60, inclusive")
         sys.exit(1)
 
-    s = create_scene()
+    ctx = RenderContext(args.width, args.height, 100, (300, 300), args.scale)
+    s = create_scene(ctx)
     s.play(args.frame_rate, args.output)
 
     with Image.open(args.output) as im:
