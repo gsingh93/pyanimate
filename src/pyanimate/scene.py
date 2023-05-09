@@ -69,12 +69,9 @@ class Scene:
     def play(self, frame_rate=50, output_filename=None):
         # Validate output filename early so we can fail fast
         if output_filename:
-            # GIFs don't support alpha transparency, WebP should work but gives
-            # an error, and AVIF is not supported by PIL, so only PNG is
-            # supported
             if Path(output_filename).suffix != ".png":
-                raise ValueError(
-                    f"Invalid output file {output_filename}, only PNG files are supported"
+                logger.warning(
+                    "Note that alpha transparency is only supported for PNG files"
                 )
 
         if FRAME_DIR.exists():
@@ -108,12 +105,19 @@ class Scene:
             logger.error("No frames found")
             return
 
+        # TODO: Not sure what disposal should be, different values work better for GIF
+        # vs PNG
+        if output_filename.endswith(".gif"):
+            disposal = 2
+        else:
+            disposal = 0
         images[0].save(
             output_filename,
             save_all=True,
             append_images=images[1:],
             duration=frame_duration_ms,
-            loop=0,
+            disposal=disposal,
+            loop=1,
         )
 
         logger.info("Saved animation to %s", output_filename)
