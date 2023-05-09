@@ -402,9 +402,15 @@ class Text(Object):
             self.height = self._h or bottom
 
     def render(self, renderer: Renderer, pos=(0, 0)) -> None:
-        if self.align == "right":
+        if self.align == Align.RIGHT:
             pos = pos + P(self.width, 0)
             renderer.text(self.text, pos, self.style.clone(anchor=Anchor.TOP_RIGHT))
+        elif self.align == Align.CENTER:
+            renderer.text(
+                self.text,
+                (pos + P(self.width, self.height).floordiv(2)),
+                self.style.clone(anchor=Anchor.MIDDLE_MIDDLE),
+            )
         else:
             renderer.text(self.text, pos, self.style)
 
