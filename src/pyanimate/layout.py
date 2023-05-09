@@ -115,8 +115,12 @@ class Object:
             offx, offy = offset
             obj.render(renderer, P(x + offx, y + offy))
 
-    def clone(self):
-        return copy.deepcopy(self)
+    def clone(self, unique: bool = False):
+        c = copy.deepcopy(self)
+        if unique:
+            c._id = uuid.uuid4()
+
+        return c
 
     def __str__(self) -> str:
         return f"{type(self).__name__}({self._w}, {self._h})"
