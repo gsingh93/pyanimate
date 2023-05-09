@@ -183,9 +183,9 @@ class Rectangle(Object):
 
         x, y = pos
         renderer.rectangle(
-            (x, y),
+            pos,
             # Subtract one from width and height to account for the border
-            (x + self.width - 1, y + self.height - 1),
+            P(x + self.width - 1, y + self.height - 1),
             self.style,
         )
         super().render(renderer, pos)
@@ -391,4 +391,4 @@ class Canvas(Object):
         self.height += self.style.padding
 
         # TODO: Should we set the renderer dimensions before we call render?
-        renderer.set_dimensions((self.width, self.height))
+        renderer.set_dimensions(P(self.width, self.height))
