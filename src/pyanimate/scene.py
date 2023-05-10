@@ -60,7 +60,14 @@ class Scene:
         logger.debug("Rendering frame %d", self.frame_num)
         assert self.cur_keyframe is not None
 
+        # TODO: This is a little hacky. Rendering a canvas calls `prepare` which
+        # calculates the offsets for each object in dynamically sized layout
+        # objects. But if we call `render` twice, the offsets will be computed twice, so
+        # we need to save the original object and restore it after rendering
+        c = self.cur_keyframe.canvas.clone()
         self.cur_keyframe.canvas.render(self.renderer)
+        self.cur_keyframe.canvas = c
+
         self.renderer.crop_to_fit()
         self.renderer.output(FRAME_DIR / f"frame-{self.frame_num}.png")
         self.frame_num += 1
