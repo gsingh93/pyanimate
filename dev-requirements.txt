@@ -7,4 +7,5 @@ pyright
 pytest
 pytest-cov
 pytest-pyright
+rich
 ruff
