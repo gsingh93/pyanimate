@@ -115,6 +115,12 @@ class Object:
             offx, offy = offset
             obj.render(renderer, P(x + offx, y + offy))
 
+    def dump(self, indent: int = 0) -> None:
+        print(" " * indent, end="")
+        print(self)
+        for child in self.children:
+            child.dump(indent + 1)
+
     def clone(self, unique: bool = False):
         c = copy.deepcopy(self)
         if unique:
