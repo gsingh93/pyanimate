@@ -8,8 +8,12 @@ import pytest
 from PIL import Image
 from PIL.Image import Image as ImageT
 
+from pyanimate import style as sty
 from pyanimate.layout import Canvas
 from pyanimate.scene import Scene
+
+style = sty.Style(padding=1, font="Roboto-Regular.ttf", font_size=8)
+sty.set_style(style)
 
 
 @pytest.fixture(scope="class")

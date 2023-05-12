@@ -8,6 +8,7 @@ from PIL import Image
 from .animation import Animation, AnimationGroup
 from .layout import Canvas
 from .renderer import PILRenderer, RenderContext
+from .shape import Point as P
 
 logger = logging.getLogger(__name__)
 
@@ -64,9 +65,11 @@ class Scene:
         # calculates the offsets for each object in dynamically sized layout
         # objects. But if we call `render` twice, the offsets will be computed twice, so
         # we need to save the original object and restore it after rendering
-        c = self.cur_keyframe.canvas.clone()
+        orig = self.cur_keyframe.canvas
+        self.cur_keyframe.canvas = orig.clone()
+        self.cur_keyframe.canvas.prepare(self.renderer, P(0, 0))
         self.cur_keyframe.canvas.render(self.renderer)
-        self.cur_keyframe.canvas = c
+        self.cur_keyframe.canvas = orig
 
         self.renderer.crop_to_fit()
         self.renderer.output(FRAME_DIR / f"frame-{self.frame_num}.png")

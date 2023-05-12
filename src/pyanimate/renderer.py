@@ -77,6 +77,7 @@ class PILRenderer(Renderer):
         return self.fonts[key]
 
     def set_dimensions(self, dim: P) -> None:
+        logger.debug("Setting dimensions: %s", dim)
         self._w, self._h = map(int, dim.mul(self.ctx.scale))
 
     def show(self) -> None:
@@ -127,7 +128,7 @@ class PILRenderer(Renderer):
 
     def line(self, p1: P, p2: P, style) -> None:
         # Dotted line is too verbose
-        # logger.debug("Line: %s %s", p1, p2)
+        logger.debug("Line: %s %s", p1, p2)
         stroke_color = style.stroke_color + Color.from_alpha(style.composite_alpha)
         self.draw.line(
             [p1.mul(self.ctx.scale), p2.mul(self.ctx.scale)],

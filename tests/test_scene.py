@@ -12,9 +12,6 @@ from . import convert_to_ascii
 
 logger = logging.getLogger(__name__)
 
-style = sty.Style(padding=1, font="Roboto-Regular.ttf", font_size=8)
-sty.set_style(style)
-
 
 class TestEmptyScene:
     def test_no_file_created(self, scene) -> None:

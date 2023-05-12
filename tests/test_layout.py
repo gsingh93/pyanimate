@@ -80,3 +80,74 @@ class TestLayout:
 
         assert parent.width == 65
         assert parent.height == 45
+
+
+class TestLayoutPrepare:
+    def test_vlayout_prepare(self) -> None:
+        """
+        Test that VLayout renders children in the correct position
+        """
+        parent = VLayout(width=50)
+
+        child1 = Object(width=20, height=10)
+        child2 = Object(width=40, height=30)
+
+        parent.add(child1)
+        parent.add(child2)
+
+        parent.prepare(MockRenderer(), P(0, 0))
+
+        assert parent.width == 40
+        assert parent.height == 40
+
+        assert child1.abs_pos.get() == P(10, 0)
+        assert child2.abs_pos.get() == P(0, 10)
+
+    def test_nested_vlayout_prepare(self) -> None:
+        """
+        Test that nested VLayout renders children in the correct position
+        """
+        parent = VLayout(width=50)
+
+        nested = VLayout(width=40)
+
+        child1 = Object(width=20, height=10)
+        child2 = Object(width=40, height=30)
+
+        nested.add(child1)
+        nested.add(child2)
+
+        child3 = Object(width=25, height=15)
+        parent.add(nested)
+        parent.add(child3)
+
+        parent.prepare(MockRenderer(), P(0, 0))
+
+        assert parent.width == 40
+        assert parent.height == 55
+
+        assert nested.width == 40
+        assert nested.height == 40
+        assert nested.abs_pos.get() == P(0, 0)
+
+        assert child1.abs_pos.get() == P(10, 0)
+        assert child2.abs_pos.get() == P(0, 10)
+        assert child3.abs_pos.get() == P(8, 40)
+
+    # def test_hlayout_prepare(self) -> None:
+    #     """
+    #     Test that HLayout renders children in the correct position
+    #     """
+    #     renderer = MockRenderer()
+    #     parent = HLayout(renderer)
+
+    #     child1 = Object(width=20, height=10)
+    #     child2 = Object(width=40, height=30)
+
+    #     parent.add(child1)
+    #     parent.add(child2, P(5, 15))
+
+    #     parent.render(P(0, 0))
+
+    #     assert child1.position == P(0, 0)
+    #     assert child2.position == P(25, 15)
