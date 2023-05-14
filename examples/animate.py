@@ -7,7 +7,7 @@ from PIL import Image
 
 from pyanimate import style as sty
 from pyanimate.animation import FadeIn, RgbTransform, Translate
-from pyanimate.layout import Arrow, Canvas, TextBox, VLayout
+from pyanimate.layout import Arrow, TextBox, VLayout
 from pyanimate.renderer import RenderContext
 from pyanimate.scene import Scene
 from pyanimate.shape import CYAN, GREEN, MAGENTA, RED, YELLOW
@@ -48,16 +48,19 @@ def create_scene(ctx: RenderContext) -> Scene:
     ###################################################
     #                  Initial Scene                  #
     ###################################################
-    vlayout = VLayout()
+    vlayout = VLayout(canvas=c)
     t = TextBox(
         "prev stack frame",
+        canvas=c,
         width=250,
         height=120,
         style=style.clone(fill_color=(80, 80, 80)),
     )
     vlayout.add(t)
 
-    t = TextBox("RIP", width=250, height=50, style=style.clone(fill_color=GREEN))
+    t = TextBox(
+        "RIP", canvas=c, width=250, height=50, style=style.clone(fill_color=GREEN)
+    )
     vlayout.add(t)
 
     # t = t.clone()
@@ -66,21 +69,31 @@ def create_scene(ctx: RenderContext) -> Scene:
     # t.set_text("RBP")
     # vlayout.add(t)
 
-    t = TextBox("RBP", width=250, height=50, style=style.clone(fill_color=CYAN))
+    t = TextBox(
+        "RBP", canvas=c, width=250, height=50, style=style.clone(fill_color=CYAN)
+    )
     vlayout.add(t)
 
-    t = TextBox("canary", width=250, height=50, style=style.clone(fill_color=YELLOW))
+    t = TextBox(
+        "canary", canvas=c, width=250, height=50, style=style.clone(fill_color=YELLOW)
+    )
     vlayout.add(t)
 
     buf_tb = TextBox(
-        "char buf[16]", width=250, height=100, style=style.clone(fill_color=MAGENTA)
+        "char buf[16]",
+        canvas=c,
+        width=250,
+        height=100,
+        style=style.clone(fill_color=MAGENTA),
     )
     vlayout.add(buf_tb)
 
     c.add(vlayout)
 
-    arrow = Arrow(end=P(0, 0), start=P(100, 0))
-    c.add(arrow, P(300, vlayout.height))
+    arrow = Arrow(
+        canvas=c, end=P(buf_tb.x, buf_tb.y), start=P(buf_tb.x + 250, buf_tb.y)
+    )  # end=P(0, 0), start=P(100, 0))
+    c.add(arrow, P(300, 300))  # vlayout.height
 
     s.add(FadeIn(c))
 
@@ -88,12 +101,12 @@ def create_scene(ctx: RenderContext) -> Scene:
     #               Overflow buffer                   #
     ###################################################
 
-    s.add(
-        [
-            Translate(c, arrow, P(0, -100), relative=True),
-            RgbTransform(buf_tb, MAGENTA, RED),
-        ]
-    )
+    # s.add(
+    #     [
+    #         Translate(c, arrow, P(0, -100), relative=True),
+    #         RgbTransform(buf_tb, MAGENTA, RED),
+    #     ]
+    # )
 
     # TODO: Change content of buffer to "AAAAAAAAAAAAAAAAAA"
 

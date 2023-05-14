@@ -2,11 +2,12 @@ import logging
 import time
 from abc import ABC, abstractmethod
 
+from . import get_logger
 from .layout import Object
 from .shape import Color
 from .shape import Point as P
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class Animation(ABC):

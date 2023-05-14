@@ -3,7 +3,6 @@ from pathlib import Path
 
 import pytest
 
-import pyanimate.style as sty
 from pyanimate.animation import FadeIn, StaticAnimation
 from pyanimate.layout import Rectangle
 from pyanimate.shape import BLACK, RED, WHITE

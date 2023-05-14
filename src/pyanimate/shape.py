@@ -4,7 +4,9 @@ import copy
 import math
 from typing import Generic, Self, TypeVar, TypeVarTuple
 
-T = TypeVar("T", int, float)
+from kiwisolver import Expression, Variable
+
+T = TypeVar("T", int, float, Variable | Expression)
 S = TypeVarTuple("S")
 
 

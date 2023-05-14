@@ -6,11 +6,12 @@ from typing import Dict, Tuple
 from PIL import Image, ImageDraw, ImageFont
 from PIL.ImageFont import FreeTypeFont
 
+from . import get_logger
 from .shape import Color
 from .shape import Point as P
 from .style import Style
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class RenderContext:
@@ -100,7 +101,7 @@ class PILRenderer(Renderer):
         self.image = self.image.crop((0, 0, self._w, self._h))
 
     def rectangle(self, p1: P, p2: P, style: Style) -> None:
-        logger.debug("Rectangle: %s %s", p1, p2)
+        logger.verbose("Rectangle: %s %s", p1, p2)
         fill_color = style.fill_color + Color.from_alpha(style.composite_alpha)
         stroke_color = style.stroke_color + Color.from_alpha(style.composite_alpha)
         self.draw.rectangle(
@@ -110,7 +111,7 @@ class PILRenderer(Renderer):
         )
 
     def text(self, text, p: P, style: Style) -> None:
-        logger.debug("Text: %s %s", repr(text), p)
+        logger.verbose("Text: %s %s", repr(text), p)
         font = self._get_font(style.font, style.font_size * self.ctx.scale)
         font_color = style.font_color + Color.from_alpha(style.composite_alpha)
         self.draw.multiline_text(
@@ -128,7 +129,7 @@ class PILRenderer(Renderer):
 
     def line(self, p1: P, p2: P, style) -> None:
         # Dotted line is too verbose
-        logger.debug("Line: %s %s", p1, p2)
+        # logger.verbose("Line: %s %s", p1, p2)
         stroke_color = style.stroke_color + Color.from_alpha(style.composite_alpha)
         self.draw.line(
             [p1.mul(self.ctx.scale), p2.mul(self.ctx.scale)],

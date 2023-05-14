@@ -6,6 +6,8 @@ import os
 from argparse import ArgumentParser
 from enum import Enum
 
+from kiwisolver import UnsatisfiableConstraint
+
 import pyanimate.style
 from pyanimate.layout import (
     Align,
@@ -190,16 +192,16 @@ def bdaddr_fields():
 def create_canvas(title, fields, mode: Mode, endianness: Endianness, style) -> Canvas:
     c = Canvas()
 
-    v = VLayout(align=Align.CENTER)
+    v = VLayout(canvas=c, align=Align.CENTER)
 
     # Title
     logger.info("Laying out title")
-    v.add(Text(title, style=default_style.clone(anchor=Anchor.TOP_LEFT)))
+    v.add(TextBox(title, canvas=c, style=default_style.clone(anchor=Anchor.TOP_LEFT)))
 
     # LSB/MSB
     logger.info("Laying out LSB/MSB")
     # TODO: Find a better way of scaling all of these dimensions
-    lsb_msb = HLayout(width=1000, height=50)
+    lsb_msb = HLayout(canvas=c, width=1000, height=50)
 
     if endianness == Endianness.LITTLE:
         left_text = "LSB"
@@ -209,15 +211,15 @@ def create_canvas(title, fields, mode: Mode, endianness: Endianness, style) -> C
         right_text = "LSB"
         fields.reverse()
 
-    lsb_msb.add(Text(left_text, width=750 * ctx.scale, align=Align.LEFT))
-    lsb_msb.add(Text(right_text, width=750 * ctx.scale, align=Align.RIGHT))
+    lsb_msb.add(TextBox(left_text, canvas=c, width=750 * ctx.scale, align=Align.LEFT))
+    lsb_msb.add(TextBox(right_text, canvas=c, width=750 * ctx.scale, align=Align.RIGHT))
 
     v.add(lsb_msb)
-    v.add(Spacer())
+    v.add(Spacer(canvas=c))
 
     # Table
     logger.info("Laying out table")
-    t = Table()
+    t = Table(canvas=c)
     for field in fields:
         cell_width = ctx.bit_width * field.display_bits
         text = f"{field.name}\n({field.max})"
@@ -226,6 +228,7 @@ def create_canvas(title, fields, mode: Mode, endianness: Endianness, style) -> C
         t.add(
             TextBox(
                 text,
+                canvas=c,
                 align=Anchor.MIDDLE_MIDDLE,
                 width=cell_width,
                 height=75 * ctx.scale,
@@ -234,13 +237,13 @@ def create_canvas(title, fields, mode: Mode, endianness: Endianness, style) -> C
 
     # Labels
     logger.info("Laying out labels")
-    h = HLayout()
+    h = HLayout(canvas=c)
     current_bit = 0
     for field in fields:
         cell_width = ctx.bit_width * field.display_bits
 
         if mode == Mode.WIDTH:
-            h.add(DottedLine(end=P(0, 50 * ctx.scale)))
+            h.add(DottedLine(canvas=c, end=P(0, 50 * ctx.scale)))
 
             label = get_bit_label(field.bits, field.unit.value)
 
@@ -248,27 +251,34 @@ def create_canvas(title, fields, mode: Mode, endianness: Endianness, style) -> C
             renderer = PILRenderer(ctx)
             _, _, text_width, _ = renderer.text_bbox(label, default_style)
             arrow_length = (cell_width - text_width - (default_style.padding * 4)) // 2
-            arrow = Arrow(double_sided=True, end=P(arrow_length, 0))
+            arrow1 = Arrow(canvas=c, double_sided=True, end=P(arrow_length, 0))
+            arrow2 = arrow1.clone(True)
 
-            spacer = Spacer()
-            bit_label = HLayout()
-            bit_label.add(spacer)
-            bit_label.add(arrow, pos=P(0, 20 * ctx.scale))
-            bit_label.add(spacer)
-            bit_label.add(Text(label, width=text_width, height=50 * ctx.scale))
-            bit_label.add(spacer)
-            bit_label.add(arrow, pos=P(0, 20 * ctx.scale))
-            bit_label.add(spacer)
+            s1 = Spacer(canvas=c)
+            s2 = s1.clone(True)
+            s3 = s2.clone(True)
+            s4 = s2.clone(True)
+
+            bit_label = HLayout(canvas=c)
+            bit_label.add(s1)
+            bit_label.add(arrow1, offset=P(0, 20 * ctx.scale))
+            bit_label.add(s2)
+            bit_label.add(
+                TextBox(label, canvas=c, width=text_width, height=50 * ctx.scale)
+            )
+            bit_label.add(s3)
+            bit_label.add(arrow2, offset=P(0, 20 * ctx.scale))
+            bit_label.add(s4)
 
             h.add(bit_label)
         else:
-            h.add(Text(str(current_bit), width=cell_width, height=50 * ctx.scale))
+            h.add(TextBox(str(current_bit), width=cell_width, height=50 * ctx.scale))
 
         current_bit += field.max
-    h.add(DottedLine(end=P(0, 50 * ctx.scale)))
+    h.add(DottedLine(canvas=c, end=P(0, 50 * ctx.scale)))
 
     v.add(t)
-    v.add(h, pos=P(0, style.padding))
+    v.add(h, offset=P(0, style.padding))
 
     c.add(v)
 
@@ -317,7 +327,11 @@ def main() -> None:
 
     logger.info("Starting rendering")
     renderer = PILRenderer(ctx)
-    canvas.render(renderer)
+    try:
+        canvas.render(renderer)
+    except UnsatisfiableConstraint:
+        logger.error("\n%s", canvas.solver.dumps())
+        raise
 
     if args.crop:
         renderer.crop_to_fit()

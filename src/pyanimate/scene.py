@@ -3,14 +3,14 @@ import shutil
 from functools import singledispatchmethod
 from pathlib import Path
 
-from PIL import Image
+from PIL import GifImagePlugin, Image
 
+from . import get_logger
 from .animation import Animation, AnimationGroup
 from .layout import Canvas
 from .renderer import PILRenderer, RenderContext
-from .shape import Point as P
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 FRAME_DIR = Path(".frames")
 
@@ -61,15 +61,8 @@ class Scene:
         logger.debug("Rendering frame %d", self.frame_num)
         assert self.cur_keyframe is not None
 
-        # TODO: This is a little hacky. Rendering a canvas calls `prepare` which
-        # calculates the offsets for each object in dynamically sized layout
-        # objects. But if we call `render` twice, the offsets will be computed twice, so
-        # we need to save the original object and restore it after rendering
-        orig = self.cur_keyframe.canvas
-        self.cur_keyframe.canvas = orig.clone()
-        self.cur_keyframe.canvas.prepare(self.renderer, P(0, 0))
+        logger.verbose("Canvas:\n%s", self.cur_keyframe.canvas.dump())
         self.cur_keyframe.canvas.render(self.renderer)
-        self.cur_keyframe.canvas = orig
 
         self.renderer.crop_to_fit()
         self.renderer.output(FRAME_DIR / f"frame-{self.frame_num}.png")
@@ -119,6 +112,9 @@ class Scene:
         # vs PNG
         if output_filename.endswith(".gif"):
             disposal = 2
+            # By default the GIF will be in palette mode ("P"), and converting to this
+            # from RGB will throw an exception
+            GifImagePlugin.LOADING_STRATEGY = GifImagePlugin.LoadingStrategy.RGB_ALWAYS
         else:
             disposal = 0
         images[0].save(
