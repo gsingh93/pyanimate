@@ -21,11 +21,9 @@ class Animation(ABC):
         Attributes:
         - duration: float, the duration of the animation in seconds
         - elapsed_time: float, the elapsed time of the animation in seconds
-        - start_time: float, the start time of the animation in seconds
         """
         self.duration: float = duration
         self.elapsed_time: float = 0.0
-        self.start_time: float = 0.0
 
     @abstractmethod
     def step(self):
@@ -43,19 +41,11 @@ class Animation(ABC):
         """
         frame_duration = 1 / frame_rate
 
-        self.start_time = time.time()
-        last_frame = self.start_time - frame_duration
-
         while self.elapsed_time < self.duration:
-            cur_time = time.time()
-
-            if cur_time - last_frame >= frame_duration:
-                last_frame = cur_time
-
-                self.step()
-                # TODO: is there a better way to render other than a callback?
-                render()
-                self.elapsed_time = cur_time - self.start_time
+            self.step()
+            # TODO: is there a better way to render other than a callback?
+            render()
+            self.elapsed_time += frame_duration
 
 
 class AnimationGroup(Animation):
@@ -79,8 +69,7 @@ class AnimationGroup(Animation):
         Update the state of all child animations by calling their `step` methods.
         """
         for anim in self.animations:
-            # TODO: Is there a better way then setting this fields manually?
-            anim.start_time = self.start_time
+            # TODO: Is there a better way then setting this field manually?
             anim.elapsed_time = self.elapsed_time
             anim.step()
 

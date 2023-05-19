@@ -201,7 +201,7 @@ class Object:
         return res
 
     def clone(self, unique: bool = False):
-        logger.info("Cloning %s", self)
+        logger.debug("Cloning %s", self)
         c = deepcopy(self)
 
         if unique:
