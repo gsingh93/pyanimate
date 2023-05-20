@@ -3,6 +3,7 @@ import logging
 import sys
 from argparse import ArgumentParser
 
+import kiwisolver
 from PIL import Image
 
 from pyanimate import style as sty
@@ -10,7 +11,7 @@ from pyanimate.animation import FadeIn, RgbTransform, Translate
 from pyanimate.layout import Arrow, TextBox, VLayout
 from pyanimate.renderer import RenderContext
 from pyanimate.scene import Scene
-from pyanimate.shape import CYAN, GREEN, MAGENTA, RED, YELLOW
+from pyanimate.shape import CYAN, GREEN, MAGENTA, RED, YELLOW, Color
 from pyanimate.shape import Point as P
 
 style = sty.Style(padding=20, font="Roboto-Regular.ttf", font_size=32)
@@ -54,7 +55,7 @@ def create_scene(ctx: RenderContext) -> Scene:
         canvas=c,
         width=250,
         height=120,
-        style=style.clone(fill_color=(80, 80, 80)),
+        style=style.clone(fill_color=Color(80, 80, 80)),
     )
     vlayout.add(t)
 
@@ -95,18 +96,18 @@ def create_scene(ctx: RenderContext) -> Scene:
     )  # end=P(0, 0), start=P(100, 0))
     c.add(arrow, P(300, 300))  # vlayout.height
 
-    s.add(FadeIn(c))
+    s.add(FadeIn(c, duration=3))
 
     ###################################################
     #               Overflow buffer                   #
     ###################################################
 
-    # s.add(
-    #     [
-    #         Translate(c, arrow, P(0, -100), relative=True),
-    #         RgbTransform(buf_tb, MAGENTA, RED),
-    #     ]
-    # )
+    s.add(
+        [
+            Translate(c, arrow, P(0, -100), relative=True),
+            RgbTransform(buf_tb, MAGENTA, RED),
+        ]
+    )
 
     # TODO: Change content of buffer to "AAAAAAAAAAAAAAAAAA"
 
@@ -130,8 +131,14 @@ def main() -> None:
         sys.exit(1)
 
     ctx = RenderContext(args.width, args.height, 100, (300, 300), args.scale)
-    s = create_scene(ctx)
-    s.play(args.frame_rate, args.output)
+
+    try:
+        s = create_scene(ctx)
+        s.play(args.frame_rate, args.output)
+    except kiwisolver.UnsatisfiableConstraint as e:
+        logger.error("\n%s", s.cur_keyframe.canvas.solver.dumps())
+        logger.exception(e)
+        raise
 
     with Image.open(args.output) as im:
         im.show()

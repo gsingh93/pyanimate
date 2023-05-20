@@ -34,6 +34,10 @@ class Shape(tuple[T, ...], Generic[T, *S]):
         x = (i * other for i in self)
         return type(self)(*x)  # pyright: ignore[reportGeneralTypeIssues]
 
+    def floormul(self, other: T, /) -> Self:
+        x = (int(i * other) for i in self)
+        return type(self)(*x)  # pyright: ignore[reportGeneralTypeIssues]
+
     def __mul__(self, other: Self, /) -> Self:
         x = (i * j for i, j in zip(self, other))
         return type(self)(*x)  # pyright: ignore[reportGeneralTypeIssues]
@@ -95,7 +99,7 @@ class Point(Shape[T, T], Generic[T]):
 
 class Color(Shape[T, T, T], Generic[T]):
     def __new__(  # pylint: disable=arguments-differ
-        cls, r: T, g: T, b: T, a: T = 0
+        cls, r: T, g: T, b: T, a: T = 255
     ) -> Self:
         return tuple.__new__(cls, (r, g, b, a))
 

@@ -137,6 +137,7 @@ class Object:
                 if remove:
                     del self.children[obj]
 
+                child.parent = None
                 return child
 
         for child in self.children:
@@ -146,8 +147,8 @@ class Object:
 
         return None
 
-    def remove(self, obj: Object) -> None:
-        self.find(obj, remove=True)
+    def remove(self, obj: Object) -> bool:
+        return self.find(obj, remove=True) is not None
 
     def replace(self, obj: Object, new: Object) -> None:
         # We need to search for `obj` as we need the actual object we're going to be

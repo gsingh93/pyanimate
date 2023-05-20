@@ -1,6 +1,7 @@
 import pytest
 
-from pyanimate.shape import BLACK, BLUE, RED
+from pyanimate.layout import Rectangle
+from pyanimate.shape import BLACK, BLUE, RED, WHITE, Color
 from pyanimate.style import Anchor, Style
 
 
@@ -52,3 +53,57 @@ class TestStyle:
         assert style.fill_color == RED
         assert style.font_color == BLACK
         assert child_style.alpha == 255
+
+    def test_composite_transparent(self, canvas, style) -> None:
+        assert canvas.style.alpha == 255
+
+        r = Rectangle(canvas=canvas, width=100, height=100, style=style.clone(alpha=0))
+        canvas.add(r)
+
+        assert r.style.alpha == 0
+
+        assert canvas.style.stroke_color == BLACK
+        assert canvas.style.fill_color == WHITE
+        assert canvas.style.font_color == BLACK
+
+        # When alpha is 0, the composite color is the parent color
+        assert r.style.composite_stroke_color == BLACK
+        assert r.style.composite_fill_color == WHITE
+        assert r.style.composite_font_color == BLACK
+
+    def test_composite_opaque(self, canvas, style) -> None:
+        assert canvas.style.alpha == 255
+
+        r = Rectangle(
+            canvas=canvas, width=100, height=100, style=style.clone(alpha=255)
+        )
+        canvas.add(r)
+
+        assert r.style.alpha == 255
+
+        assert canvas.style.stroke_color == BLACK
+        assert canvas.style.fill_color == WHITE
+        assert canvas.style.font_color == BLACK
+
+        # When alpha is 255, the composite color is the child color
+        assert r.style.composite_stroke_color == BLUE
+        assert r.style.composite_fill_color == RED
+        assert r.style.composite_font_color == BLACK
+
+    def test_composite_semi_transparent(self, canvas, style) -> None:
+        assert canvas.style.alpha == 255
+
+        r = Rectangle(
+            canvas=canvas, width=100, height=100, style=style.clone(alpha=100)
+        )
+        canvas.add(r)
+
+        assert r.style.alpha == 100
+
+        assert canvas.style.stroke_color == BLACK
+        assert canvas.style.fill_color == WHITE
+        assert canvas.style.font_color == BLACK
+
+        assert r.style.composite_stroke_color == Color(0, 0, 100)
+        assert r.style.composite_fill_color == Color(255, 155, 155)
+        assert r.style.composite_font_color == BLACK

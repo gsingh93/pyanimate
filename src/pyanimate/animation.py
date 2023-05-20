@@ -49,7 +49,7 @@ class Animation(ABC):
 
 
 class AnimationGroup(Animation):
-    def __init__(self, animations: list[Animation]) -> None:
+    def __init__(self, animations: list[Animation], **kwargs) -> None:
         """
         Initialize an AnimationGroup object.
 
@@ -60,7 +60,7 @@ class AnimationGroup(Animation):
         - animations: list of Animation objects
         - duration: float, the duration of the animation in seconds (the maximum duration of all animations)
         """
-        super().__init__()
+        super().__init__(**kwargs)
         self.animations = animations
         self.duration = max(anim.duration for anim in animations)
 
@@ -75,7 +75,7 @@ class AnimationGroup(Animation):
 
 
 class StaticAnimation(Animation):
-    def __init__(self, obj: Object) -> None:
+    def __init__(self, obj: Object, **kwargs) -> None:
         """
         Initialize a StaticAnimation object.
 
@@ -85,7 +85,7 @@ class StaticAnimation(Animation):
         Attributes:
         - obj: Object, the object to animate
         """
-        super().__init__()
+        super().__init__(**kwargs)
         self.obj = obj
 
     def step(self) -> None:
@@ -93,7 +93,7 @@ class StaticAnimation(Animation):
 
 
 class Transform(Animation):
-    def __init__(self, obj, start_val, end_val) -> None:
+    def __init__(self, obj, start_val, end_val, **kwargs) -> None:
         """
         Initialize a Transform object.
 
@@ -107,7 +107,7 @@ class Transform(Animation):
         - start_val: float or tuple of floats, the start value of the transform
         - val_diff: float or tuple of floats, the difference between the end value and the start value
         """
-        super().__init__()
+        super().__init__(**kwargs)
         self.obj = obj
         self.start_val = start_val
         self.val_diff = end_val - start_val
@@ -142,7 +142,7 @@ class Transform(Animation):
 
 
 class StyleTransform(Transform):
-    def __init__(self, obj, start_val, end_val, property_name: str) -> None:
+    def __init__(self, obj, start_val, end_val, property_name: str, **kwargs) -> None:
         """
         Initialize a StyleTransform object.
 
@@ -155,18 +155,24 @@ class StyleTransform(Transform):
         Attributes:
         - obj: Object, TODO
         """
-        super().__init__(obj, start_val, end_val)
+        super().__init__(obj, start_val, end_val, **kwargs)
         self.property_name = property_name
 
     def update_val(self, val) -> None:
         # TODO: style should be immutable? but creating a new style object every
         # frame is expensive
+        logger.verbose(
+            "Updating %s.style.%s to %s",
+            self.obj.__class__.__name__,
+            self.property_name,
+            val,
+        )
         setattr(self.obj.style, self.property_name, val)
 
 
 class RgbTransform(StyleTransform):
-    def __init__(self, obj, start_color: Color, end_color: Color) -> None:
-        super().__init__(obj, start_color, end_color, "_fill_color")
+    def __init__(self, obj, start_color: Color, end_color: Color, **kwargs) -> None:
+        super().__init__(obj, start_color, end_color, "_fill_color", **kwargs)
 
     def calculate_new_val(self, progress):
         new_color = tuple(
@@ -177,33 +183,34 @@ class RgbTransform(StyleTransform):
 
 
 class AlphaTransform(StyleTransform):
-    def __init__(self, obj, start_alpha, end_alpha) -> None:
-        super().__init__(obj, start_alpha, end_alpha, "_alpha")
+    def __init__(self, obj, start_alpha, end_alpha, **kwargs) -> None:
+        super().__init__(obj, start_alpha, end_alpha, "_alpha", **kwargs)
 
 
 class FadeIn(AlphaTransform):
-    def __init__(self, obj: Object, start_alpha=0, end_alpha=255) -> None:
+    def __init__(self, obj: Object, start_alpha=0, end_alpha=255, **kwargs) -> None:
         assert start_alpha < end_alpha
-        super().__init__(obj, start_alpha, end_alpha)
+        super().__init__(obj, start_alpha, end_alpha, **kwargs)
 
 
 class FadeOut(AlphaTransform):
-    def __init__(self, obj: Object, start_alpha=255, end_alpha=0) -> None:
+    def __init__(self, obj: Object, start_alpha=255, end_alpha=0, **kwargs) -> None:
         assert start_alpha > end_alpha
-        super().__init__(obj, start_alpha, end_alpha)
+        super().__init__(obj, start_alpha, end_alpha, **kwargs)
 
 
 class Translate(Transform):
     def __init__(
-        self, parent: Object, child: Object, dest: P, *, relative=False
+        self, parent: Object, child: Object, dest: P, *, relative=False, **kwargs
     ) -> None:
-        super().__init__(child, parent.children[child], dest)
+        super().__init__(child, parent.children[child], dest, **kwargs)
         self.parent = parent
         # TODO: remove this special case
         if relative:
             self.val_diff = dest
 
     def update_val(self, val) -> None:
+        assert self.parent.remove(self.obj)
         self.parent.add(self.obj, val)
 
 

@@ -63,6 +63,17 @@ class Style:
         # This seems like a pylint bug, protected access should be fine here
         return self._parent._attr(attr_name)  # pylint: disable=protected-access
 
+    def _composite_color(self, attr) -> Color:
+        color: Color = self._attr(attr)
+
+        if self._parent_obj_style is None:
+            return color
+
+        parent_color = self._parent_obj_style._composite_color(attr)
+        alpha_ratio = self.alpha / 255
+        # print("here", attr, parent_color, color, self.alpha)
+        return parent_color.floormul(1 - alpha_ratio) + color.floormul(alpha_ratio)
+
     @property
     def parent_obj_style(self) -> Optional[Style]:
         return self._parent_obj_style
@@ -92,12 +103,24 @@ class Style:
         return self._attr("_stroke_color")
 
     @property
+    def composite_stroke_color(self) -> Color:
+        return self._composite_color("_stroke_color")
+
+    @property
     def fill_color(self) -> Color:
         return self._attr("_fill_color")
 
     @property
+    def composite_fill_color(self) -> Color:
+        return self._composite_color("_fill_color")
+
+    @property
     def font_color(self) -> Color:
         return self._attr("_font_color")
+
+    @property
+    def composite_font_color(self) -> Color:
+        return self._composite_color("_font_color")
 
     @property
     def alpha(self) -> int:

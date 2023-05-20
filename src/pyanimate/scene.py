@@ -58,7 +58,7 @@ class Scene:
         self.cur_keyframe.animations.append(AnimationGroup(animations))
 
     def render(self) -> None:
-        logger.debug("Rendering frame %d", self.frame_num)
+        logger.info("Rendering frame %d", self.frame_num)
         assert self.cur_keyframe is not None
 
         logger.verbose("Canvas:\n%s", self.cur_keyframe.canvas.dump())
