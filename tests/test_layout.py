@@ -185,22 +185,21 @@ class TestConstraints:
 
         with pytest.raises(UnsatisfiableConstraint):
             vlayout.add(obj)
-            print(vlayout.dump())
-            print(vlayout.canvas.solver._solver.dumps())
 
 
-class TestSingleFrameRectangleScene2x2:
+class TestSingleRectangle2x2:
+    @pytest.fixture(scope="class")
+    def dim(self) -> tuple[int, int]:
+        return 4, 4
+
     # TODO: Is it guaranteed that clean_dir will be called first?
     @pytest.fixture(scope="class", autouse=True)
     def setup_scene(self, c) -> None:
         r = Rectangle(canvas=c, width=2, height=2, fill_color=RED)
         c.add(r)
 
-    def test_single_frame(self, c_im) -> None:
-        assert c_im.n_frames == 1
-
-    def test_correct_image(self, c_im) -> None:
-        assert c_im.size == (4, 4)
+    def test_correct_image(self, c_im, dim) -> None:
+        assert c_im.size == dim
         assert convert_to_ascii(c_im) == [
             "wwww",
             "wbbw",
@@ -209,23 +208,44 @@ class TestSingleFrameRectangleScene2x2:
         ]
 
 
-class TestSingleFrameRectangleScene3x3:
+class TestSingleRectangle3x3:
     @pytest.fixture(scope="class", autouse=True)
     def setup_scene(self, c) -> None:
         r = Rectangle(canvas=c, width=3, height=3, fill_color=RED)
         c.add(r)
 
-    def test_single_frame(self, c_im) -> None:
-        assert c_im.n_frames == 1
-
-    def test_correct_image(self, c_im) -> None:
-        assert c_im.size == (5, 5)
+    def test_correct_image(self, c_im, dim) -> None:
+        assert c_im.size == dim
         assert convert_to_ascii(c_im) == [
             "wwwww",
             "wbbbw",
             "wbRbw",
             "wbbbw",
             "wwwww",
+        ]
+
+
+class TestRectangleConstraint:
+    @pytest.fixture(scope="class")
+    def dim(self) -> tuple[int, int]:
+        return 5, 6
+
+    @pytest.fixture(scope="class", autouse=True)
+    def setup_scene(self, c) -> None:
+        r1 = Rectangle(canvas=c, width=2, height=2)
+        r2 = Rectangle(canvas=c, width=2, height=2)
+        c.add(r1)
+        c.add(r2, P(0, r1.height + 1))
+
+    def test_correct_image(self, c_im, dim) -> None:
+        assert c_im.size == dim
+        assert convert_to_ascii(c_im) == [
+            "wwwww",
+            "wbbww",
+            "wbbww",
+            "wwwww",
+            "wbbww",
+            "wbbww",
         ]
 
 

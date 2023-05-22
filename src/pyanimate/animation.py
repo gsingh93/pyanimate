@@ -211,12 +211,9 @@ class Translate(Transform):
             self.val_diff = dest
 
     def update_val(self, val) -> None:
-        assert self.parent.remove(self.obj)
-        self.parent.canvas.solver.update()
-        print(val)
-        print(self.obj, self.obj.parent)
-        print(self.obj.canvas)
-        self.parent.add(self.obj, val)
+        logger.debug("Updating %s offset to %s", self.obj, val)
+        self.obj.clear_constraints()
+        self.parent.children[self.obj] = val
 
 
 # TODO

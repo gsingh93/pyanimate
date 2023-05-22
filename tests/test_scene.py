@@ -3,12 +3,12 @@ from pathlib import Path
 
 import pytest
 
-from pyanimate.animation import FadeIn, Translate
-from pyanimate.layout import Line, Rectangle
+from pyanimate.animation import FadeIn, StaticAnimation, Translate
+from pyanimate.layout import Line, Rectangle, TextBox
 from pyanimate.shape import BLACK, RED, WHITE
 from pyanimate.shape import Point as P
 
-from . import convert_to_ascii
+from . import AnimationTestBase, convert_to_ascii
 
 logger = logging.getLogger(__name__)
 
@@ -32,105 +32,216 @@ class TestEmptyScene:
 #             s.play(20, "output.avif")
 
 
-class TestFadeIn:
+class TestStaticAnimation5x5(AnimationTestBase):
     @pytest.fixture(scope="class", autouse=True)
     def setup_scene(self, s) -> None:
         c = s.keyframe()
         r = Rectangle(canvas=c, width=3, height=3, fill_color=RED)
         c.add(r)
-        s.add(FadeIn(r))
+        s.add(StaticAnimation(r))
 
-    def test_num_frames(self, s_im) -> None:
-        assert s_im.n_frames == 20
+    def num_frames(self) -> int:
+        return 1
 
-    def test_correct_frames(self, s_im) -> None:
-        assert s_im.size == (5, 5)
-        for i in range(s_im.n_frames):
-            s_im.seek(i)
-            assert convert_to_ascii(s_im) == [
-                "wwwww",
-                "wbbbw",
-                "wbRbw",
-                "wbbbw",
-                "wwwww",
-            ]
-
-    def test_increasing_alpha(self, s_im) -> None:
-        prev_r_alpha = -1
-        prev_b_alpha = -1
-        for i in range(s_im.n_frames):
-            already_set_b_alpha = False
-            s_im.seek(i)
-
-            for r in range(s_im.height):
-                for c in range(s_im.width):
-                    pixel = s_im.getpixel((r, c))
-                    if pixel[:3] == RED[:3]:
-                        alpha = pixel[3]
-                        assert alpha > prev_r_alpha
-                        prev_r_alpha = alpha
-
-                        assert already_set_b_alpha
-                        assert prev_r_alpha == prev_b_alpha
-                    elif pixel[:3] == BLACK[:3]:
-                        alpha = pixel[3]
-                        if already_set_b_alpha:
-                            # All black pixels should have the same alpha
-                            assert alpha == prev_b_alpha
-                        else:
-                            assert alpha > prev_b_alpha
-                            prev_b_alpha = alpha
-
-                            already_set_b_alpha = True
-                    elif pixel[:3] == WHITE[:3]:
-                        assert pixel[3] == 0
-                    else:
-                        assert False
+    def frame(self, _: int) -> list[str]:
+        return [
+            "wwwww",
+            "wbbbw",
+            "wbRbw",
+            "wbbbw",
+            "wwwww",
+        ]
 
 
-class TestTranslate:
+class TestStaticAnimation6x6(AnimationTestBase):
+    @pytest.fixture(scope="class")
+    def dim(self) -> tuple[int, int]:
+        return 6, 6
+
     @pytest.fixture(scope="class", autouse=True)
     def setup_scene(self, s) -> None:
         c = s.keyframe()
         r = Rectangle(canvas=c, width=3, height=3, fill_color=RED)
         c.add(r)
-        s.add(Translate(c, r, P(0, 100), relative=True))
+        s.add(StaticAnimation(r))
 
-    def test_num_frames(self, s_im) -> None:
-        assert s_im.n_frames == 20
+    def num_frames(self) -> int:
+        return 1
 
-    def test_correct_frames(self, s_im) -> None:
-        assert s_im.size == (5, 5)
-        for i in range(s_im.n_frames):
-            s_im.seek(i)
-            assert convert_to_ascii(s_im) == [
-                "wwwww",
-                "wbbbw",
-                "wbRbw",
-                "wbbbw",
-                "wwwww",
-            ]
+    def frame(self, _: int) -> list[str]:
+        return [
+            "wwwwww",
+            "wbbbww",
+            "wbRbww",
+            "wbbbww",
+            "wwwwww",
+            "wwwwww",
+        ]
 
 
-class TestTranslateLine:
+class TestTranslateDown(AnimationTestBase):
+    @pytest.fixture(scope="class")
+    def dim(self) -> tuple[int, int]:
+        return 6, 6
+
+    @pytest.fixture(scope="class")
+    def frame_rate(self) -> int:
+        return 2
+
     @pytest.fixture(scope="class", autouse=True)
     def setup_scene(self, s) -> None:
         c = s.keyframe()
-        l = Line(canvas=c, end=P(3, 3), fill_color=RED)
+        r = Rectangle(canvas=c, width=3, height=3, fill_color=RED)
+        c.add(r)
+        s.add(Translate(c, r, P(0, 2), relative=True))
+
+    def num_frames(self) -> int:
+        return 2
+
+    def frame(self, frame_num: int) -> list[str]:
+        if frame_num == 0:
+            return [
+                "wwwwww",
+                "wbbbww",
+                "wbRbww",
+                "wbbbww",
+                "wwwwww",
+                "wwwwww",
+            ]
+
+        assert frame_num == 1
+        return [
+            "wwwwww",
+            "wwwwww",
+            "wbbbww",
+            "wbRbww",
+            "wbbbww",
+            "wwwwww",
+        ]
+
+
+class TestTranslateUp(AnimationTestBase):
+    @pytest.fixture(scope="class")
+    def dim(self) -> tuple[int, int]:
+        return 6, 6
+
+    @pytest.fixture(scope="class")
+    def frame_rate(self) -> int:
+        return 2
+
+    @pytest.fixture(scope="class", autouse=True)
+    def setup_scene(self, s) -> None:
+        c = s.keyframe()
+        r = Rectangle(canvas=c, width=3, height=3, fill_color=RED)
+        c.add(r)
+        s.add(Translate(c, r, P(0, -2), relative=True))
+
+    def num_frames(self) -> int:
+        return 2
+
+    def frame(self, frame_num: int) -> list[str]:
+        if frame_num == 0:
+            return [
+                "wwwwww",
+                "wbbbww",
+                "wbRbww",
+                "wbbbww",
+                "wwwwww",
+                "wwwwww",
+            ]
+
+        assert frame_num == 1
+        return [
+            "wbbbww",
+            "wbRbww",
+            "wbbbww",
+            "wwwwww",
+            "wwwwww",
+            "wwwwww",
+        ]
+
+
+class TestTranslateUpConstraint(AnimationTestBase):
+    @pytest.fixture(scope="class")
+    def dim(self) -> tuple[int, int]:
+        return 6, 6
+
+    @pytest.fixture(scope="class")
+    def frame_rate(self) -> int:
+        return 2
+
+    @pytest.fixture(scope="class", autouse=True)
+    def setup_scene(self, s) -> None:
+        c = s.keyframe()
+        r1 = Rectangle(canvas=c, width=2, height=2)
+        r2 = Rectangle(canvas=c, width=2, height=2)
+        c.add(r1)
+        c.add(r2, P(r1.width, r1.height))
+        s.add(StaticAnimation(c))
+        c = s.keyframe()
+        s.add(Translate(c, r2.latest(), P(0, -2), relative=True))
+
+    def num_frames(self) -> int:
+        return 2
+
+    def frame(self, frame_num: int) -> list[str]:
+        if frame_num == 0:
+            return [
+                "wwwwww",
+                "wbbwww",
+                "wbbwww",
+                "wwwbbw",
+                "wwwbbw",
+                "wwwwww",
+            ]
+
+        assert frame_num == 1
+        return [
+            "wwwwww",
+            "wbbwww",
+            "wbbbbw",
+            "wwwbbw",
+            "wwwwww",
+            "wwwwww",
+        ]
+
+
+class TestTranslateLine(AnimationTestBase):
+    @pytest.fixture(scope="class")
+    def dim(self) -> tuple[int, int]:
+        return 6, 6
+
+    @pytest.fixture(scope="class")
+    def frame_rate(self) -> int:
+        return 2
+
+    @pytest.fixture(scope="class", autouse=True)
+    def setup_scene(self, s) -> None:
+        c = s.keyframe()
+        l = Line(canvas=c, end=P(3, 2), start=P(1, 2), fill_color=RED)
         c.add(l)
-        s.add(Translate(c, l, P(0, 100), relative=True))
+        s.add(Translate(c, l, P(0, -1), relative=True))
 
-    def test_num_frames(self, s_im) -> None:
-        assert s_im.n_frames == 20
+    def num_frames(self) -> int:
+        return 2
 
-    def test_correct_frames(self, s_im) -> None:
-        assert s_im.size == (5, 5)
-        for i in range(s_im.n_frames):
-            s_im.seek(i)
-            assert convert_to_ascii(s_im) == [
-                "wwwww",
-                "wbbbw",
-                "wbRbw",
-                "wbbbw",
-                "wwwww",
+    def frame(self, frame_num: int) -> list[str]:
+        if frame_num == 0:
+            return [
+                "wwwwww",
+                "wwwwww",
+                "wwbbbw",
+                "wwbbbw",
+                "wwbbbw",
+                "wwwwww",
             ]
+
+        assert frame_num == 1
+        return [
+            "wwwwww",
+            "wwbbbw",
+            "wwbbbw",
+            "wwbbbw",
+            "wwwwww",
+            "wwwwww",
+        ]

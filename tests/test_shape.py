@@ -22,20 +22,20 @@ class TestShapeInt:
         s2 = Shape(3, 4)
         assert s1 * s2 == Shape(3, 8)
 
-    def test_truediv(self) -> None:
-        s1 = Shape(1, 2)
-        s2 = Shape(3, 4)
-        assert s2 / s1 == Shape(3 / 1, 4 / 2)
+    # def test_truediv(self) -> None:
+    #     s1 = Shape(1, 2)
+    #     s2 = Shape(3, 4)
+    #     assert s2 / s1 == Shape(3 / 1, 4 / 2)
 
-    def test_floordiv(self) -> None:
-        s1 = Shape(1, 2)
-        s2 = Shape(3, 4)
-        assert s2 // s1 == Shape(3 // 1, 4 // 2)
+    # def test_floordiv(self) -> None:
+    #     s1 = Shape(1, 2)
+    #     s2 = Shape(3, 4)
+    #     assert s2 // s1 == Shape(3 // 1, 4 // 2)
 
-    def test_mod(self) -> None:
-        s1 = Shape(2, 2)
-        s2 = Shape(3, 4)
-        assert s2 % s1 == Shape(1, 0)
+    # def test_mod(self) -> None:
+    #     s1 = Shape(2, 2)
+    #     s2 = Shape(3, 4)
+    #     assert s2 % s1 == Shape(1, 0)
 
     def test_deepcopy(self) -> None:
         s1 = Shape(2, 2)

@@ -39,9 +39,13 @@ class Shape(tuple[T, ...], Generic[T]):
         x = (int(i * other) for i in self)
         return type(self)(*x)  # pyright: ignore[reportGeneralTypeIssues]
 
-    # def __mul__(self, other: Self, /) -> Self:
-    #     x = (i * j for i, j in zip(self, other))
-    #     return type(self)(*x)  # pyright: ignore[reportGeneralTypeIssues]
+    def __mul__(self, other: Self, /) -> Self:
+        # TODO: Could it lead to bugs if one of the shapes is not resolved? Should we
+        # require both to be resolved?
+        resolved = self.get()
+        other_resolved = other.get()
+        x = (i * j for i, j in zip(resolved, other_resolved))
+        return type(self)(*x)  # pyright: ignore[reportGeneralTypeIssues]
 
     def floordiv(self, other: T, /) -> Self:
         x = (i // other for i in self)
@@ -73,6 +77,9 @@ class Shape(tuple[T, ...], Generic[T]):
     def __rmul__(self, other: Self, /) -> Self:
         return self * other
 
+    def __str__(self) -> str:
+        return f"{type(self).__name__}{tuple(self.get())}"
+
     @overload
     def get(self: Shape[MaybeInt]) -> Shape[int]:
         ...
@@ -96,10 +103,10 @@ class Shape(tuple[T, ...], Generic[T]):
 
         if has_float:
             args = map(float, args)
-            return Shape[float](*args)
+            return type(self)(*args)
         else:
             args = map(int, args)
-            return Shape[int](*args)
+            return type(self)(*args)
 
     def __deepcopy__(
         self,
@@ -118,6 +125,9 @@ class Point(Shape[T], Generic[T]):
     @property
     def y(self) -> T:
         return self[1]
+
+    def __str__(self) -> str:
+        return f"P{tuple(self.get())}"
 
     def mag(self) -> float:
         resolved = self.get()
