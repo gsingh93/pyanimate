@@ -7,11 +7,11 @@ import kiwisolver
 from PIL import Image
 
 from pyanimate import style as sty
-from pyanimate.animation import FadeIn, RgbTransform, Translate
+from pyanimate.animation import FadeIn, Translate
 from pyanimate.layout import Arrow, TextBox, VLayout
 from pyanimate.renderer import RenderContext
 from pyanimate.scene import Scene
-from pyanimate.shape import CYAN, GREEN, MAGENTA, RED, YELLOW, Color
+from pyanimate.shape import CYAN, GREEN, MAGENTA, YELLOW, Color
 from pyanimate.shape import Point as P
 
 style = sty.Style(padding=20, font="Roboto-Regular.ttf", font_size=32)
@@ -92,22 +92,38 @@ def create_scene(ctx: RenderContext) -> Scene:
     c.add(vlayout)
 
     arrow = Arrow(
-        canvas=c, end=P(buf_tb.x, buf_tb.y), start=P(buf_tb.x + 250, buf_tb.y)
-    )  # end=P(0, 0), start=P(100, 0))
-    c.add(arrow, P(300, 300))  # vlayout.height
+        canvas=c,
+        end=P(buf_tb.x + buf_tb.width + 20, buf_tb.y + buf_tb.height),
+        start=P(buf_tb.x + buf_tb.width * 2, buf_tb.y + buf_tb.height),
+    )
+    c.add(arrow)
+    print(arrow)
+    print(arrow._width_constraint)
+    print(arrow._height_constraint)
 
-    s.add(FadeIn(c, duration=3))
+    s.add(FadeIn(c, duration=1))
 
     ###################################################
     #               Overflow buffer                   #
     ###################################################
 
-    s.add(
-        [
-            Translate(c, arrow, P(0, -100), relative=True),
-            RgbTransform(buf_tb, MAGENTA, RED),
-        ]
-    )
+    c = s.keyframe()
+    arrow = c.find(arrow)
+    assert arrow is not None
+
+    print(arrow)
+    print(arrow.constraints)
+    print(arrow._width_constraint)
+    print(arrow._height_constraint)
+
+    s.add(Translate(c, arrow.latest(), P(0, -60), relative=True))
+
+    # s.add(
+    #     [
+    #         Translate(c, arrow, P(0, -100), relative=True),
+    #         RgbTransform(buf_tb, MAGENTA, RED),
+    #     ]
+    # )
 
     # TODO: Change content of buffer to "AAAAAAAAAAAAAAAAAA"
 
@@ -136,9 +152,19 @@ def main() -> None:
         s = create_scene(ctx)
         s.play(args.frame_rate, args.output)
     except kiwisolver.UnsatisfiableConstraint as e:
-        logger.error("\n%s", s.cur_keyframe.canvas.solver.dumps())
         logger.exception(e)
-        raise
+
+        res = s.cur_keyframe.canvas.solver.analyze(e)
+        print(e)
+        for var, constraints in res:
+            print(var, var.value())
+            for c in constraints:
+                print(c.expression(), c.op(), 0)
+
+        exit(1)
+
+        # logger.error("\n%s", )
+        # raise
 
     with Image.open(args.output) as im:
         im.show()

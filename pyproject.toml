@@ -16,6 +16,7 @@ ignore = [
     "E402",
     "E501",
     "E731",
+    "E741", # Ambiguous variable name
     "F405",
     "F811",
     "F821",
@@ -107,6 +108,7 @@ disable = [
     # typecheck
     "no-member",
     "keyword-arg-before-vararg",
+    "unsubscriptable-object", # Shape class
 
     # variables
     "possibly-unused-variable",

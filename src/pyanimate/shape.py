@@ -2,17 +2,18 @@ from __future__ import annotations
 
 import copy
 import math
-from typing import Generic, Self, TypeVar, TypeVarTuple
+from typing import Generic, Self, TypeVar, overload
 
 from kiwisolver import Expression, Variable
 
-T = TypeVar("T", int, float, Variable | Expression)
-S = TypeVarTuple("S")
+MaybeInt = int | Variable | Expression
+MaybeFloat = float | Variable | Expression
+T = TypeVar("T", MaybeInt, MaybeFloat)
 
 
-class Shape(tuple[T, ...], Generic[T, *S]):
-    def __new__(cls, arg0: T, *args: *S) -> Self:
-        return tuple.__new__(cls, (arg0,) + args)
+class Shape(tuple[T, ...], Generic[T]):
+    def __new__(cls, *args: T) -> Self:
+        return tuple.__new__(cls, args)
 
     def add(self, other: T, /) -> Self:
         x = (i + other for i in self)
@@ -38,39 +39,67 @@ class Shape(tuple[T, ...], Generic[T, *S]):
         x = (int(i * other) for i in self)
         return type(self)(*x)  # pyright: ignore[reportGeneralTypeIssues]
 
-    def __mul__(self, other: Self, /) -> Self:
-        x = (i * j for i, j in zip(self, other))
-        return type(self)(*x)  # pyright: ignore[reportGeneralTypeIssues]
+    # def __mul__(self, other: Self, /) -> Self:
+    #     x = (i * j for i, j in zip(self, other))
+    #     return type(self)(*x)  # pyright: ignore[reportGeneralTypeIssues]
 
     def floordiv(self, other: T, /) -> Self:
         x = (i // other for i in self)
         return type(self)(*x)  # pyright: ignore[reportGeneralTypeIssues]
 
-    def __floordiv__(self, other: Self, /) -> Self:
-        x = (i // j for i, j in zip(self, other))
-        return type(self)(*x)  # pyright: ignore[reportGeneralTypeIssues]
+    # def __floordiv__(self, other: Self, /) -> Self:
+    #     x = (i // j for i, j in zip(self, other))
+    #     return type(self)(*x)  # pyright: ignore[reportGeneralTypeIssues]
 
-    def truediv(self, other: T, /) -> Self:
-        x = (i / other for i in self)
-        return type(self)(*x)  # pyright: ignore[reportGeneralTypeIssues]
+    # def truediv(self, other: T, /) -> Self:
+    #     x = (i / other for i in self)
+    #     return type(self)(*x)  # pyright: ignore[reportGeneralTypeIssues]
 
-    def __truediv__(self, other: Self, /) -> Self:
-        x = (i / j for i, j in zip(self, other))
-        return type(self)(*x)  # pyright: ignore[reportGeneralTypeIssues]
+    # def __truediv__(self, other: Self, /) -> Self:
+    #     x = (i / j for i, j in zip(self, other))
+    #     return type(self)(*x)  # pyright: ignore[reportGeneralTypeIssues]
 
-    def mod(self, other: T, /) -> Self:
-        x = (i % other for i in self)
-        return type(self)(*x)  # pyright: ignore[reportGeneralTypeIssues]
+    # def mod(self, other: T, /) -> Self:
+    #     x = (i % other for i in self)
+    #     return type(self)(*x)  # pyright: ignore[reportGeneralTypeIssues]
 
-    def __mod__(self, other: Self, /) -> Self:
-        x = (i % j for i, j in zip(self, other))
-        return type(self)(*x)  # pyright: ignore[reportGeneralTypeIssues]
+    # def __mod__(self, other: Self, /) -> Self:
+    #     x = (i % j for i, j in zip(self, other))
+    #     return type(self)(*x)  # pyright: ignore[reportGeneralTypeIssues]
 
     def __radd__(self, other: Self, /) -> Self:
         return self + other
 
     def __rmul__(self, other: Self, /) -> Self:
         return self * other
+
+    @overload
+    def get(self: Shape[MaybeInt]) -> Shape[int]:
+        ...
+
+    @overload
+    def get(self: Shape[MaybeFloat]) -> Shape[float]:
+        ...
+
+    def get(self) -> Shape[int] | Shape[float]:
+        args = []
+        has_float = False
+        for i in self:
+            if isinstance(i, int):
+                assert not has_float
+                args.append(i)
+            elif isinstance(i, float):
+                has_float = True
+                args.append(i)
+            else:
+                args.append(i.value())
+
+        if has_float:
+            args = map(float, args)
+            return Shape[float](*args)
+        else:
+            args = map(int, args)
+            return Shape[int](*args)
 
     def __deepcopy__(
         self,
@@ -81,7 +110,7 @@ class Shape(tuple[T, ...], Generic[T, *S]):
         return type(self)(*copy.deepcopy(tuple(self)))  # type: ignore
 
 
-class Point(Shape[T, T], Generic[T]):
+class Point(Shape[T], Generic[T]):
     @property
     def x(self) -> T:
         return self[0]
@@ -91,13 +120,15 @@ class Point(Shape[T, T], Generic[T]):
         return self[1]
 
     def mag(self) -> float:
-        return (self.x**2 + self.y**2) ** 0.5
+        resolved = self.get()
+        return (resolved.x**2 + resolved.y**2) ** 0.5
 
     def radians(self) -> float:
-        return math.atan2(self.y, self.x)
+        resolved = self.get()
+        return math.atan2(resolved.y, resolved.x)
 
 
-class Color(Shape[T, T, T], Generic[T]):
+class Color(Shape[T], Generic[T]):
     def __new__(  # pylint: disable=arguments-differ
         cls, r: T, g: T, b: T, a: T = 255
     ) -> Self:

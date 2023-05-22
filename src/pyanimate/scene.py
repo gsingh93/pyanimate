@@ -1,4 +1,3 @@
-import logging
 import shutil
 from functools import singledispatchmethod
 from pathlib import Path
@@ -25,7 +24,7 @@ default_render_ctx = RenderContext(
 
 # TODO: Probably not the right name for this class
 class KeyFrame:
-    def __init__(self, canvas) -> None:
+    def __init__(self, canvas: Canvas) -> None:
         self.canvas = canvas
         self.animations: list[Animation] = []
 
@@ -69,7 +68,9 @@ class Scene:
         self.frame_num += 1
         self.renderer.clear()
 
-    def play(self, frame_rate=50, output_filename=None):
+    def play(
+        self, frame_rate: int = 50, output_filename: str | Path | None = None
+    ) -> None:
         # Validate output filename early so we can fail fast
         if output_filename:
             if Path(output_filename).suffix != ".png":
@@ -99,7 +100,7 @@ class Scene:
         if output_filename:
             self._save(1000 / frame_rate, output_filename)
 
-    def _save(self, frame_duration_ms, output_filename) -> None:
+    def _save(self, frame_duration_ms: float, output_filename: str | Path) -> None:
         images = [
             Image.open(FRAME_DIR / f"frame-{i}.png") for i in range(0, self.frame_num)
         ]
@@ -110,7 +111,7 @@ class Scene:
 
         # TODO: Not sure what disposal should be, different values work better for GIF
         # vs PNG
-        if output_filename.endswith(".gif"):
+        if Path(output_filename).suffix == ".gif":
             disposal = 2
             # By default the GIF will be in palette mode ("P"), and converting to this
             # from RGB will throw an exception

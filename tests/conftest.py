@@ -10,6 +10,7 @@ from PIL.Image import Image as ImageT
 
 from pyanimate import style as sty
 from pyanimate.layout import Canvas
+from pyanimate.renderer import PILRenderer, RenderContext, Renderer
 from pyanimate.scene import Scene
 
 style = sty.Style(padding=1, font="Roboto-Regular.ttf", font_size=8)
@@ -17,19 +18,41 @@ sty.set_style(style)
 
 
 @pytest.fixture(scope="class")
+def render_ctx() -> RenderContext:
+    return RenderContext(100, 100, 1, (300, 300), 1)
+
+
+@pytest.fixture(scope="class", name="c")
 def canvas() -> Canvas:
     return Canvas()
 
 
+@pytest.fixture(scope="class", name="s")
+def scene(render_ctx: RenderContext) -> Scene:
+    return Scene(render_ctx)
+
+
 @pytest.fixture(scope="class")
-def scene(canvas) -> Scene:
-    return Scene(canvas)
+def renderer(render_ctx) -> Renderer:
+    return PILRenderer(render_ctx)
 
 
-@pytest.fixture(scope="class", name="im")
-def image(scene) -> Generator[ImageT, None, None]:
+@pytest.fixture(scope="class", name="c_im")
+def canvas_image(c: Canvas, renderer: Renderer) -> Generator[ImageT, None, None]:
     p = Path("output.png")
-    scene.play(20, p)
+
+    c.render(renderer)
+    renderer.crop_to_fit()
+    renderer.output(p)
+    assert p.exists(), f"File {p.absolute()} does not exist"
+    with Image.open(p) as im:
+        yield im
+
+
+@pytest.fixture(scope="class", name="s_im")
+def scene_image(s: Scene) -> Generator[ImageT, None, None]:
+    p = Path("output.png")
+    s.play(20, p)
     assert p.exists(), f"File {p.absolute()} does not exist"
     with Image.open(p) as im:
         yield im

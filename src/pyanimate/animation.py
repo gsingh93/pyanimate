@@ -1,6 +1,5 @@
-import logging
-import time
 from abc import ABC, abstractmethod
+from typing import Callable
 
 from . import get_logger
 from .layout import Object
@@ -11,7 +10,7 @@ logger = get_logger(__name__)
 
 
 class Animation(ABC):
-    def __init__(self, duration=1.0) -> None:
+    def __init__(self, duration: float = 1.0) -> None:
         """
         Initialize an Animation object.
 
@@ -26,10 +25,10 @@ class Animation(ABC):
         self.elapsed_time: float = 0.0
 
     @abstractmethod
-    def step(self):
+    def step(self) -> None:
         raise NotImplementedError()
 
-    def play(self, render, frame_rate=50) -> None:
+    def play(self, render: Callable[[], None], frame_rate: int = 50) -> None:
         """
         Play the animation.
 
@@ -93,7 +92,7 @@ class StaticAnimation(Animation):
 
 
 class Transform(Animation):
-    def __init__(self, obj, start_val, end_val, **kwargs) -> None:
+    def __init__(self, obj: Object, start_val, end_val, **kwargs) -> None:
         """
         Initialize a Transform object.
 
@@ -120,7 +119,7 @@ class Transform(Animation):
         new_val = self.calculate_new_val(progress)
         self.update_val(new_val)
 
-    def calculate_new_val(self, progress):
+    def calculate_new_val(self, progress: float):
         """
         Calculate the new value of the transform.
 
@@ -142,7 +141,9 @@ class Transform(Animation):
 
 
 class StyleTransform(Transform):
-    def __init__(self, obj, start_val, end_val, property_name: str, **kwargs) -> None:
+    def __init__(
+        self, obj: Object, start_val, end_val, property_name: str, **kwargs
+    ) -> None:
         """
         Initialize a StyleTransform object.
 
@@ -174,7 +175,7 @@ class RgbTransform(StyleTransform):
     def __init__(self, obj, start_color: Color, end_color: Color, **kwargs) -> None:
         super().__init__(obj, start_color, end_color, "_fill_color", **kwargs)
 
-    def calculate_new_val(self, progress):
+    def calculate_new_val(self, progress: float) -> Color:
         new_color = tuple(
             int(y + z)
             for y, z in zip(self.start_val, tuple(x * progress for x in self.val_diff))
@@ -183,7 +184,7 @@ class RgbTransform(StyleTransform):
 
 
 class AlphaTransform(StyleTransform):
-    def __init__(self, obj, start_alpha, end_alpha, **kwargs) -> None:
+    def __init__(self, obj: Object, start_alpha: int, end_alpha: int, **kwargs) -> None:
         super().__init__(obj, start_alpha, end_alpha, "_alpha", **kwargs)
 
 
@@ -211,6 +212,10 @@ class Translate(Transform):
 
     def update_val(self, val) -> None:
         assert self.parent.remove(self.obj)
+        self.parent.canvas.solver.update()
+        print(val)
+        print(self.obj, self.obj.parent)
+        print(self.obj.canvas)
         self.parent.add(self.obj, val)
 
 

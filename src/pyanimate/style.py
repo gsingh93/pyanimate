@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from enum import Enum
-from typing import Optional
+from typing import Any, Optional
 
 from .shape import BLACK, WHITE, Color
 
@@ -53,7 +53,7 @@ class Style:
 
         self._parent_obj_style: Optional[Style] = None
 
-    def _attr(self, attr_name: str):
+    def _attr(self, attr_name: str) -> Any:
         attr = getattr(self, attr_name)
         if attr is not None:
             return attr
@@ -63,7 +63,7 @@ class Style:
         # This seems like a pylint bug, protected access should be fine here
         return self._parent._attr(attr_name)  # pylint: disable=protected-access
 
-    def _composite_color(self, attr) -> Color:
+    def _composite_color(self, attr: str) -> Color:
         color: Color = self._attr(attr)
 
         if self._parent_obj_style is None:
@@ -87,7 +87,7 @@ class Style:
         return self._attr("_padding")
 
     @property
-    def font(self):
+    def font(self) -> str:
         return self._attr("_font")
 
     @property
@@ -133,7 +133,7 @@ class Style:
 
         return int(self._parent_obj_style.composite_alpha * self.alpha / 255)
 
-    def clone(self, **kwargs):
+    def clone(self, **kwargs) -> Style:
         return Style(parent=self, **kwargs)
 
     def __str__(self) -> str:
@@ -152,7 +152,7 @@ _default_style = Style(
 )
 
 
-def set_style(style) -> None:
+def set_style(style: Style) -> None:
     global _default_style
     _default_style = style
     # logger.debug('Default style: %s', repr(style))

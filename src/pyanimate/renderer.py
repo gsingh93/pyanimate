@@ -1,7 +1,5 @@
-import logging
 from abc import ABC, abstractmethod
 from pathlib import Path
-from typing import Dict, Tuple
 
 from PIL import Image, ImageDraw, ImageFont
 from PIL.ImageFont import FreeTypeFont
@@ -16,7 +14,7 @@ logger = get_logger(__name__)
 
 class RenderContext:
     def __init__(
-        self, width: int, height: int, bit_width: int, dpi: Tuple[int, int], scale: int
+        self, width: int, height: int, bit_width: int, dpi: tuple[int, int], scale: int
     ) -> None:
         self.scale = scale
         self.w = width
@@ -33,23 +31,39 @@ class RenderContext:
 
 class Renderer(ABC):
     @abstractmethod
-    def rectangle(self, p1, p2, style: Style):
+    def output(self, filename: str | Path) -> None:
         raise NotImplementedError()
 
     @abstractmethod
-    def text(self, text: str, p, style: Style):
+    def rectangle(self, p1: P, p2: P, style: Style) -> None:
         raise NotImplementedError()
 
     @abstractmethod
-    def text_bbox(self, text: str, style: Style) -> Tuple[int, int, int, int]:
+    def text(self, text: str, p: P, style: Style) -> None:
         raise NotImplementedError()
 
     @abstractmethod
-    def line(self, p1, p2, style: Style):
+    def text_bbox(self, text: str, style: Style) -> tuple[int, int, int, int]:
         raise NotImplementedError()
 
     @abstractmethod
-    def set_dimensions(self, dim):
+    def line(self, p1: P, p2: P, style: Style) -> None:
+        raise NotImplementedError()
+
+    @abstractmethod
+    def set_dimensions(self, dim: P) -> None:
+        raise NotImplementedError()
+
+    @abstractmethod
+    def crop_to_fit(self) -> None:
+        raise NotImplementedError()
+
+    @abstractmethod
+    def width(self) -> int:
+        raise NotImplementedError()
+
+    @abstractmethod
+    def height(self) -> int:
         raise NotImplementedError()
 
 
@@ -68,7 +82,13 @@ class PILRenderer(Renderer):
 
         self.image = Image.new("RGBA", (self._w, self._h), self.background)
         self.draw = ImageDraw.Draw(self.image)
-        self.fonts: Dict[Tuple[str, int], FreeTypeFont] = {}
+        self.fonts: dict[tuple[str, int], FreeTypeFont] = {}
+
+    def width(self) -> int:
+        return self._w
+
+    def height(self) -> int:
+        return self._h
 
     def _get_font(self, font: str, font_size: int) -> FreeTypeFont:
         key = (font, font_size)
@@ -116,7 +136,7 @@ class PILRenderer(Renderer):
             outline=stroke_color,
         )
 
-    def text(self, text, p: P, style: Style) -> None:
+    def text(self, text: str, p: P, style: Style) -> None:
         logger.verbose("Text: %s %s", repr(text), p)
         font = self._get_font(style.font, style.font_size * self.ctx.scale)
         font_color = self._composite_background(style.font_color, style.composite_alpha)
@@ -129,11 +149,11 @@ class PILRenderer(Renderer):
             align="center",
         )
 
-    def text_bbox(self, text, style) -> Tuple[int, int, int, int]:
+    def text_bbox(self, text: str, style: Style) -> tuple[int, int, int, int]:
         font = self._get_font(style.font, style.font_size * self.ctx.scale)
         return self.draw.textbbox((0, 0), text, font=font)
 
-    def line(self, p1: P, p2: P, style) -> None:
+    def line(self, p1: P, p2: P, style: Style) -> None:
         # Dotted line is too verbose
         # logger.verbose("Line: %s %s", p1, p2)
         stroke_color = self._composite_background(

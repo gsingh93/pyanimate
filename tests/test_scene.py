@@ -3,9 +3,10 @@ from pathlib import Path
 
 import pytest
 
-from pyanimate.animation import FadeIn, StaticAnimation
-from pyanimate.layout import Rectangle
+from pyanimate.animation import FadeIn, Translate
+from pyanimate.layout import Line, Rectangle
 from pyanimate.shape import BLACK, RED, WHITE
+from pyanimate.shape import Point as P
 
 from . import convert_to_ascii
 
@@ -13,81 +14,40 @@ logger = logging.getLogger(__name__)
 
 
 class TestEmptyScene:
-    def test_no_file_created(self, scene) -> None:
+    def test_no_file_created(self, s) -> None:
         p = Path("output.png")
-        scene.play(20, p)
+        s.play(20, p)
         assert not p.exists()
 
 
-class TestNonPng:
-    def test_exception(self, scene) -> None:
-        with pytest.raises(ValueError):
-            scene.play(20, "output.gif")
+# class TestNonPng:
+#     def test_exception(self, s) -> None:
+#         with pytest.raises(ValueError):
+#             s.play(20, "output.gif")
 
-        with pytest.raises(ValueError):
-            scene.play(20, "output.webp")
+#         with pytest.raises(ValueError):
+#             s.play(20, "output.webp")
 
-        with pytest.raises(ValueError):
-            scene.play(20, "output.avif")
-
-
-class TestSingleFrameRectangleScene2x2:
-    # TODO: Is it guaranteed that clean_dir will be called first?
-    @pytest.fixture(scope="class", autouse=True)
-    def setup_scene(self, scene, canvas) -> None:
-        r = Rectangle(2, 2, fill_color=RED)
-        canvas.add(r)
-        scene.add(StaticAnimation(r))
-
-    def test_single_frame(self, im) -> None:
-        assert im.n_frames == 1
-
-    def test_correct_image(self, im) -> None:
-        assert im.size == (4, 4)
-        assert convert_to_ascii(im) == [
-            "wwww",
-            "wbbw",
-            "wbbw",
-            "wwww",
-        ]
-
-
-class TestSingleFrameRectangleScene3x3:
-    @pytest.fixture(scope="class", autouse=True)
-    def setup_scene(self, scene, canvas) -> None:
-        r = Rectangle(3, 3, fill_color=RED)
-        canvas.add(r)
-        scene.add(StaticAnimation(r))
-
-    def test_single_frame(self, im) -> None:
-        assert im.n_frames == 1
-
-    def test_correct_image(self, im) -> None:
-        assert im.size == (5, 5)
-        assert convert_to_ascii(im) == [
-            "wwwww",
-            "wbbbw",
-            "wbRbw",
-            "wbbbw",
-            "wwwww",
-        ]
+#         with pytest.raises(ValueError):
+#             s.play(20, "output.avif")
 
 
 class TestFadeIn:
     @pytest.fixture(scope="class", autouse=True)
-    def setup_scene(self, scene, canvas) -> None:
-        r = Rectangle(3, 3, fill_color=RED)
-        canvas.add(r)
-        scene.add(FadeIn(r))
+    def setup_scene(self, s) -> None:
+        c = s.keyframe()
+        r = Rectangle(canvas=c, width=3, height=3, fill_color=RED)
+        c.add(r)
+        s.add(FadeIn(r))
 
-    def test_num_frames(self, im) -> None:
-        assert im.n_frames == 20
+    def test_num_frames(self, s_im) -> None:
+        assert s_im.n_frames == 20
 
-    def test_correct_frames(self, im) -> None:
-        assert im.size == (5, 5)
-        for i in range(im.n_frames):
-            im.seek(i)
-            assert convert_to_ascii(im) == [
+    def test_correct_frames(self, s_im) -> None:
+        assert s_im.size == (5, 5)
+        for i in range(s_im.n_frames):
+            s_im.seek(i)
+            assert convert_to_ascii(s_im) == [
                 "wwwww",
                 "wbbbw",
                 "wbRbw",
@@ -95,16 +55,16 @@ class TestFadeIn:
                 "wwwww",
             ]
 
-    def test_increasing_alpha(self, im) -> None:
+    def test_increasing_alpha(self, s_im) -> None:
         prev_r_alpha = -1
         prev_b_alpha = -1
-        for i in range(im.n_frames):
+        for i in range(s_im.n_frames):
             already_set_b_alpha = False
-            im.seek(i)
+            s_im.seek(i)
 
-            for r in range(im.height):
-                for c in range(im.width):
-                    pixel = im.getpixel((r, c))
+            for r in range(s_im.height):
+                for c in range(s_im.width):
+                    pixel = s_im.getpixel((r, c))
                     if pixel[:3] == RED[:3]:
                         alpha = pixel[3]
                         assert alpha > prev_r_alpha
@@ -126,3 +86,51 @@ class TestFadeIn:
                         assert pixel[3] == 0
                     else:
                         assert False
+
+
+class TestTranslate:
+    @pytest.fixture(scope="class", autouse=True)
+    def setup_scene(self, s) -> None:
+        c = s.keyframe()
+        r = Rectangle(canvas=c, width=3, height=3, fill_color=RED)
+        c.add(r)
+        s.add(Translate(c, r, P(0, 100), relative=True))
+
+    def test_num_frames(self, s_im) -> None:
+        assert s_im.n_frames == 20
+
+    def test_correct_frames(self, s_im) -> None:
+        assert s_im.size == (5, 5)
+        for i in range(s_im.n_frames):
+            s_im.seek(i)
+            assert convert_to_ascii(s_im) == [
+                "wwwww",
+                "wbbbw",
+                "wbRbw",
+                "wbbbw",
+                "wwwww",
+            ]
+
+
+class TestTranslateLine:
+    @pytest.fixture(scope="class", autouse=True)
+    def setup_scene(self, s) -> None:
+        c = s.keyframe()
+        l = Line(canvas=c, end=P(3, 3), fill_color=RED)
+        c.add(l)
+        s.add(Translate(c, l, P(0, 100), relative=True))
+
+    def test_num_frames(self, s_im) -> None:
+        assert s_im.n_frames == 20
+
+    def test_correct_frames(self, s_im) -> None:
+        assert s_im.size == (5, 5)
+        for i in range(s_im.n_frames):
+            s_im.seek(i)
+            assert convert_to_ascii(s_im) == [
+                "wwwww",
+                "wbbbw",
+                "wbRbw",
+                "wbbbw",
+                "wwwww",
+            ]

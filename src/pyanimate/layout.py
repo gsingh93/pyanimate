@@ -1,35 +1,21 @@
 from __future__ import annotations
 
-import logging
 import math
-import traceback
 import uuid
 from collections import OrderedDict
 from copy import deepcopy
 from enum import Enum
 from typing import Optional, Self
 
-from kiwisolver import Constraint, Expression, Solver, Term, Variable
+from kiwisolver import Constraint, Variable
 
 from . import get_logger
 from .renderer import Renderer
 from .shape import Point as P
+from .solver import Solver, copy_constraint
 from .style import Anchor, Style
 
-
-def copy_constraint(v: Variable, c: Constraint) -> tuple[Variable, Constraint]:
-    e = c.expression()
-    terms = []
-
-    new_var = Variable()
-    for term in e.terms():
-        if term.variable() is v:
-            terms.append(Term(new_var, term.coefficient()))
-        else:
-            terms.append(Term(term.variable(), term.coefficient()))
-
-    return new_var, Constraint(Expression(terms, e.constant()), c.op(), c.strength())
-
+# from kiwisolver import Constraint, Expression, Solver, Term, Variable
 
 logger = get_logger(__name__, indent=True)
 
@@ -43,7 +29,14 @@ class Align(str, Enum):
 
 
 class Object:
-    def __init__(self, canvas, width=None, height=None, style=None, **kwargs) -> None:
+    def __init__(
+        self,
+        canvas: Canvas,
+        width=None,
+        height=None,
+        style: Style | None = None,
+        **kwargs,
+    ) -> None:
         # Construct a new Style that inherits from the parent
         if not style:
             # This will inherit from the default style
@@ -68,65 +61,72 @@ class Object:
         self.children: OrderedDict[Object, P] = OrderedDict()
         self.parent: Optional[Object] = None
 
-        self.canvas.solver.addConstraint(self._x >= 0)
-        self.canvas.solver.addConstraint(self._y >= 0)
-        self.canvas.solver.addConstraint(self._w >= 0)
-        self.canvas.solver.addConstraint(self._h >= 0)
+        self.canvas.solver.add(self._x >= 0)
+        self.canvas.solver.add(self._y >= 0)
+        self.canvas.solver.add(self._w >= 0)
+        self.canvas.solver.add(self._h >= 0)
         if width is not None:
             self._width_constraint = self._w == width
-            self.canvas.solver.addConstraint(self._width_constraint)
+            self.canvas.solver.add(self._width_constraint)
         if height is not None:
             self._height_constraint = self._h == height
-            self.canvas.solver.addConstraint(self._height_constraint)
+            self.canvas.solver.add(self._height_constraint)
 
         self.cloned_to = None
 
+        # Contains all constraints that relate this object to its parent
+        self.constraints: list[Constraint] = []
+
     @property
     def pos(self) -> P[int]:
-        self.canvas.solver.updateVariables()
+        self.canvas.solver.update()
         return P(int(self._x.value()), int(self._y.value()))
 
     @property
     def x(self) -> Variable:
-        self.canvas.solver.updateVariables()
+        self.canvas.solver.update()
         return self._x
 
     @property
     def y(self) -> Variable:
-        self.canvas.solver.updateVariables()
+        self.canvas.solver.update()
         return self._y
 
     @property
     def width(self) -> Variable:
-        self.canvas.solver.updateVariables()
+        self.canvas.solver.update()
         return self._w
 
     @width.setter
-    def width(self, val) -> None:
+    def width(self, val: int | Variable) -> None:
         if self._width_constraint:
             assert self.canvas.solver.hasConstraint(self._width_constraint)
-            self.canvas.solver.removeConstraint(self._width_constraint)
+            self.canvas.solver.remove(self._width_constraint)
 
         self._width_constraint = self._w == val
-        self.canvas.solver.addConstraint(self._width_constraint)
+        self.canvas.solver.add(self._width_constraint)
 
     @property
     def height(self) -> Variable:
-        self.canvas.solver.updateVariables()
+        self.canvas.solver.update()
         return self._h
 
     @height.setter
-    def height(self, val) -> None:
+    def height(self, val: int | Variable) -> None:
         if self._height_constraint:
             assert self.canvas.solver.hasConstraint(self._height_constraint)
-            self.canvas.solver.removeConstraint(self._height_constraint)
+            self.canvas.solver.remove(self._height_constraint)
 
         self._height_constraint = self._h == val
-        self.canvas.solver.addConstraint(self._height_constraint)
+        self.canvas.solver.add(self._height_constraint)
 
-    def add(self, obj, offset=P(0, 0)) -> None:
+    def add(self, obj: Object, offset=P(0, 0)) -> None:
         self.children[obj] = offset
 
+        # if obj.parent is not None:
+        #     print(obj)
+        #     print(obj.parent)
+        #     print(obj.canvas.dump())
         assert obj.parent is None
         obj.parent = self
         obj.style.parent_obj_style = self.style
@@ -137,7 +137,11 @@ class Object:
                 if remove:
                     del self.children[obj]
 
-                child.parent = None
+                    child.parent = None
+                    obj.parent = None
+                    child.clear_constraints()
+                    obj.clear_constraints()
+
                 return child
 
         for child in self.children:
@@ -174,13 +178,23 @@ class Object:
             for key, value in parent.children.items()
         )
         old.parent = None
+        old.clear_constraints()
         new.parent = parent
         new.style.parent_obj_style = parent.style
 
-    def prepare_impl(self, renderer: Renderer):
+    def prepare_impl(self, _renderer: Renderer) -> None:
         for obj, offset in self.children.items():
-            self.canvas.solver.addConstraint(self.x + offset.x == obj.x)
-            self.canvas.solver.addConstraint(self.y + offset.y == obj.y)
+            c = self.x + offset.x == obj.x
+            self.canvas.solver.add(c)
+            self.canvas.solver.update()
+            print(c)
+            obj.constraints.append(c)
+
+            c = self.y + offset.y == obj.y
+            self.canvas.solver.add(c)
+            self.canvas.solver.update()
+            print(c)
+            obj.constraints.append(c)
 
     def prepare(self, renderer: Renderer):
         self.prepare_impl(renderer)
@@ -194,19 +208,20 @@ class Object:
             logger.debug("Rendering child %s %s", obj, obj.pos)
             obj.render(renderer)
 
-    def dump(self, indent: int = 0) -> str:
+    def dump(self, indent=0) -> str:
         res = " " * indent + str(self)
         for child in self.children:
             res += "\n" + child.dump(indent + 1)
 
         return res
 
-    def clone(self, unique: bool = False):
+    def clone(self, unique=False) -> Self:
         logger.debug("Cloning %s", self)
         c = deepcopy(self)
 
         if unique:
             c._id = uuid.uuid4()
+            self.cloned_to = None
 
         return c
 
@@ -215,6 +230,14 @@ class Object:
             return self.cloned_to.latest()
 
         return self
+
+    def clear_constraints(self) -> None:
+        for c in self.constraints:
+            # assert self.canvas.solver.hasConstraint(c)
+            if self.canvas.solver.hasConstraint(c):
+                self.canvas.solver.remove(c)
+
+        self.constraints.clear()
 
     def __deepcopy__(self, memo) -> Self:
         cls = self.__class__
@@ -256,7 +279,7 @@ class Object:
             v.setName(f"w.{short_id}")
             c._w = v
             c._width_constraint = constraint
-            c.canvas.solver.addConstraint(constraint)
+            c.canvas.solver.add(constraint)
         else:
             c._w = Variable(f"w.{short_id}")
 
@@ -265,24 +288,28 @@ class Object:
             v.setName(f"h.{short_id}")
             c._h = v
             c._height_constraint = constraint
-            c.canvas.solver.addConstraint(constraint)
+            c.canvas.solver.add(constraint)
         else:
             c._h = Variable(f"h.{short_id}")
 
         c._x = Variable(f"x.{short_id}")
         c._y = Variable(f"y.{short_id}")
 
-        c.canvas.solver.addConstraint(c._x >= 0)
-        c.canvas.solver.addConstraint(c._y >= 0)
-        c.canvas.solver.addConstraint(c._w >= 0)
-        c.canvas.solver.addConstraint(c._h >= 0)
+        c.canvas.solver.add(c._x >= 0)
+        c.canvas.solver.add(c._y >= 0)
+        c.canvas.solver.add(c._w >= 0)
+        c.canvas.solver.add(c._h >= 0)
 
         self.cloned_to = copy
+
+        c.constraints = []
+        for constraint in self.constraints:
+            c.constraints.append(constraint)
 
         return copy
 
     def __str__(self) -> str:
-        self.canvas.solver.updateVariables()
+        self.canvas.solver.update()
         return f"{type(self).__name__}({str(self._id)[:4]}, {self._w.value()}, {self._h.value()}) [{hex(id(self))}]"
 
     def __eq__(self, o: Self) -> bool:
@@ -303,27 +330,31 @@ class VLayout(Object):
 
         return copy
 
-    def prepare_impl(self, renderer: Renderer):
+    def prepare_impl(self, _renderer: Renderer) -> None:
         for obj, offset in self.children.items():
-            self.canvas.solver.addConstraint(
-                obj.x == self.x + (self.width / 2) - (obj.width / 2) + offset.x
-            )
-            constraint = self.width >= obj.width + offset.x
-            self.canvas.solver.addConstraint(constraint)
-            self.canvas.solver.updateVariables()
+            c = obj.x == self.x + (self.width / 2) - (obj.width / 2) + offset.x
+            self.canvas.solver.add(c)
+            obj.constraints.append(c)
+
+            c = self.width >= obj.width + offset.x
+            self.canvas.solver.add(c)
+            self.canvas.solver.update()
+            obj.constraints.append(c)
 
         children = list(self.children)
-        for i in range(len(children)):
-            obj = children[i]
+        for i, obj in enumerate(children):
             offset = self.children[obj]
             if i == 0:
-                self.canvas.solver.addConstraint(obj.y == self.y + offset.y)
+                c = obj.y == self.y + offset.y
+                self.canvas.solver.add(c)
+                obj.constraints.append(c)
             else:
                 prev_child = children[i - 1]
-                self.canvas.solver.addConstraint(
-                    obj.y == prev_child.y + prev_child.height + offset.y
-                )
+                c = obj.y == prev_child.y + prev_child.height + offset.y
+                self.canvas.solver.add(c)
+                obj.constraints.append(c)
 
+        # TODO: Add to obj constraints?
         constraint = sum(obj.height + offset.y for obj, offset in self.children.items())
         self.height = constraint
 
@@ -339,28 +370,33 @@ class HLayout(Object):
 
         return copy
 
-    def prepare_impl(self, renderer: Renderer):
+    def prepare_impl(self, _renderer: Renderer) -> None:
         for obj, offset in self.children.items():
-            self.canvas.solver.addConstraint(
-                obj.y == self.y + (self.height / 2) - (obj.height / 2) + offset.y
-            )
-            constraint = self.height >= obj.height + offset.y
-            self.canvas.solver.addConstraint(constraint)
+            c = obj.y == self.y + (self.height / 2) - (obj.height / 2) + offset.y
+            self.canvas.solver.add(c)
+            obj.constraints.append(c)
+
+            c = self.height >= obj.height + offset.y
+            self.canvas.solver.add(c)
+            self.canvas.solver.update()
+            obj.constraints.append(c)
 
         children = list(self.children)
-        for i in range(len(children)):
-            obj = children[i]
+        for i, obj in enumerate(children):
             offset = self.children[obj]
 
             if i == 0:
-                self.canvas.solver.addConstraint(obj.x == self.x + offset.x)
+                c = obj.x == self.x + offset.x
+                self.canvas.solver.add(c)
+                obj.constraints.append(c)
             else:
-                self.canvas.solver.addConstraint(
-                    obj.x == children[i - 1].x + children[i - 1].width + offset.x
-                )
+                c = obj.x == children[i - 1].x + children[i - 1].width + offset.x
+                self.canvas.solver.add(c)
+                obj.constraints.append(c)
 
-            self.canvas.solver.updateVariables()
+            self.canvas.solver.update()
 
+        # TODO: Add to obj constraints?
         self.width = sum(obj.width + offset.x for obj, offset in self.children.items())
 
 
@@ -399,8 +435,8 @@ class Line(Object):
     # self.height = self.end.y.value() - self.start.max(self.start.y, self.end.y)
 
     def render(self, renderer: Renderer) -> None:
-        start = P(self.start.x.value(), self.start.y.value())
-        end = P(self.end.x.value(), self.end.y.value())
+        start = self.start.get()
+        end = self.end.get()
 
         # renderer.line(self.start + pos, self.end + pos, self.style)
         renderer.line(start, end, self.style)
@@ -411,13 +447,13 @@ class Grid(Object):
         super().__init__(**kwargs)
         self.step_size = step_size
 
-    def prepare_impl(self, renderer: Renderer):
+    def prepare_impl(self, renderer: Renderer) -> None:
         if not self._width_constraint:
-            self.width = renderer._w
+            self.width = renderer.width()
         if not self._height_constraint:
-            self.height = renderer._h
+            self.height = renderer.height()
 
-    def render(self, renderer: Renderer):
+    def render(self, renderer: Renderer) -> None:
         for i in range(0, int(self.width.value()), self.step_size):
             renderer.line(
                 P(i + self.pos.x, self.pos.y),
@@ -433,7 +469,7 @@ class Grid(Object):
 
 
 class TextBox(Rectangle):
-    def __init__(self, text, align=Anchor.MIDDLE_MIDDLE, **kwargs) -> None:
+    def __init__(self, text: str, align=Anchor.MIDDLE_MIDDLE, **kwargs) -> None:
         super().__init__(**kwargs)
         self._text = text
 
@@ -455,7 +491,7 @@ class TextBox(Rectangle):
             if self._height_constraint is None:
                 self.height = bottom
 
-            self.canvas.solver.updateVariables()
+            self.canvas.solver.update()
 
     def render(self, renderer: Renderer) -> None:
         # We need to call super here first so the text appears on top of the box instead
@@ -478,60 +514,60 @@ class TextBox(Rectangle):
         return copy
 
     def __str__(self) -> str:
-        self.canvas.solver.updateVariables()
+        self.canvas.solver.update()
         return f"{type(self).__name__}({str(self._id)[:4]}, {repr(self.text)}, {self.width}, {self.height}) [{hex(id(self))}]"
 
 
 # TODO: Get rid of this and just use TextBox?
-class Text(Object):
-    def __init__(self, text: str, align=Align.LEFT, **kwargs) -> None:
-        super().__init__(**kwargs)
-        self._text = text
-        self.align = align
+# class Text(Object):
+#     def __init__(self, text: str, align=Align.LEFT, **kwargs) -> None:
+#         super().__init__(**kwargs)
+#         self._text = text
+#         self.align = align
 
-    def __deepcopy__(self, memo):
-        copy = super().__deepcopy__(memo)
-        copy._text = deepcopy(self._text, memo)
-        copy.align = deepcopy(self.align, memo)
-        return copy
+#     def __deepcopy__(self, memo):
+#         copy = super().__deepcopy__(memo)
+#         copy._text = deepcopy(self._text, memo)
+#         copy.align = deepcopy(self.align, memo)
+#         return copy
 
-    @property
-    def text(self):
-        return self._text
+#     @property
+#     def text(self):
+#         return self._text
 
-    @text.setter
-    def text(self, text) -> None:
-        self._text = text
+#     @text.setter
+#     def text(self, text) -> None:
+#         self._text = text
 
-    def prepare(self, renderer: Renderer) -> None:
-        if self._width_constraint is None or self._height_constraint is None:
-            _, _, right, bottom = renderer.text_bbox(self.text, self.style)
+#     def prepare(self, renderer: Renderer) -> None:
+#         if self._width_constraint is None or self._height_constraint is None:
+#             _, _, right, bottom = renderer.text_bbox(self.text, self.style)
 
-            if self._width_constraint is None:
-                self.width = right
+#             if self._width_constraint is None:
+#                 self.width = right
 
-            if self._height_constraint is None:
-                self.height = bottom
+#             if self._height_constraint is None:
+#                 self.height = bottom
 
-    def render(self, renderer: Renderer) -> None:
-        if self.align == Align.RIGHT:
-            renderer.text(
-                self.text,
-                self.pos + P(self.width, 0),
-                self.style.clone(anchor=Anchor.TOP_RIGHT),
-            )
-        elif self.align == Align.CENTER:
-            renderer.text(
-                self.text,
-                (self.pos + P(self.width.value(), self.height.value()).floordiv(2)),
-                self.style.clone(anchor=Anchor.MIDDLE_MIDDLE),
-            )
-        else:
-            renderer.text(self.text, self.pos, self.style)
+#     def render(self, renderer: Renderer) -> None:
+#         if self.align == Align.RIGHT:
+#             renderer.text(
+#                 self.text,
+#                 self.pos + P(self.width, 0),
+#                 self.style.clone(anchor=Anchor.TOP_RIGHT),
+#             )
+#         elif self.align == Align.CENTER:
+#             renderer.text(
+#                 self.text,
+#                 (self.pos + P(self.width.value(), self.height.value()).floordiv(2)),
+#                 self.style.clone(anchor=Anchor.MIDDLE_MIDDLE),
+#             )
+#         else:
+#             renderer.text(self.text, self.pos, self.style)
 
-    def __str__(self) -> str:
-        self.canvas.solver.updateVariables()
-        return f"{type(self).__name__}({str(self._id)[:4]}, {repr(self.text)}, {self.width}, {self.height}) [{hex(id(self))}]"
+#     def __str__(self) -> str:
+#         self.canvas.solver.update()
+#         return f"{type(self).__name__}({str(self._id)[:4]}, {repr(self.text)}, {self.width}, {self.height}) [{hex(id(self))}]"
 
 
 class Table(HLayout):
@@ -577,6 +613,7 @@ class Arrow(Line):
         start = P(self.start.x.value(), self.start.y.value())
         end = P(self.end.x.value(), self.end.y.value())
 
+        print(start, end)
         renderer.line(start, end, self.style)
 
         d = end - start
@@ -659,7 +696,7 @@ class Canvas(Object):
             v.setName(f"w.{short_id}")
             c._w = v
             c._width_constraint = constraint
-            c.canvas.solver.addConstraint(constraint)
+            c.canvas.solver.add(constraint)
         else:
             c._w = Variable(f"w.{short_id}")
 
@@ -668,35 +705,35 @@ class Canvas(Object):
             v.setName(f"h.{short_id}")
             c._h = v
             c._height_constraint = constraint
-            c.canvas.solver.addConstraint(constraint)
+            c.canvas.solver.add(constraint)
         else:
             c._h = Variable(f"h.{short_id}")
 
         c._x = Variable(f"x.{short_id}")
         c._y = Variable(f"y.{short_id}")
 
-        c.canvas.solver.addConstraint(c._x >= 0)
-        c.canvas.solver.addConstraint(c._y >= 0)
-        c.canvas.solver.addConstraint(c._w >= 0)
-        c.canvas.solver.addConstraint(c._h >= 0)
+        c.canvas.solver.add(c._x >= 0)
+        c.canvas.solver.add(c._y >= 0)
+        c.canvas.solver.add(c._w >= 0)
+        c.canvas.solver.add(c._h >= 0)
 
         self.cloned_to = copy
 
         return copy
 
-    def add(self, obj, offset=P(0, 0)) -> None:
+    def add(self, obj: Object, offset=P(0, 0)) -> None:
         super().add(obj, offset.add(self.style.padding))
 
     def render(self, renderer: Renderer) -> None:
-        self.solver.addConstraint(self.x == 0)
-        self.solver.addConstraint(self.y == 0)
+        self.solver.add(self.x == 0)
+        self.solver.add(self.y == 0)
 
-        self.solver.addConstraint(self.width <= renderer._w)
-        self.solver.addConstraint(self.height <= renderer._h)
+        self.solver.add(self.width <= renderer.width())
+        self.solver.add(self.height <= renderer.height())
 
         self.prepare(renderer)
 
-        self.solver.updateVariables()
+        self.solver.update()
 
         for obj in self.children:
             logger.debug(
@@ -708,8 +745,17 @@ class Canvas(Object):
             obj.render(renderer)
 
         for obj, offset in self.children.items():
-            self.solver.addConstraint(self.width >= offset.x + obj.width)
-            self.solver.addConstraint(self.height >= offset.y + obj.height)
+            c = self.width >= offset.x + obj.width
+            self.solver.add(c)
+            self.solver.update()
+            print(c)
+            obj.constraints.append(c)
+
+            c = self.height >= offset.y + obj.height
+            self.solver.add(c)
+            self.solver.update()
+            print(c)
+            obj.constraints.append(c)
 
         # TODO: How to crop consistently across all frames? Crop at the end?
         # renderer.set_dimensions(P(self.width.value() * 1.5, self.height.value() * 1.5))

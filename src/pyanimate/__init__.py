@@ -14,7 +14,7 @@ VERBOSE = logging.DEBUG - 5
 
 
 class IndentFormatter(logging.Formatter):
-    def format(self, rec):
+    def format(self, rec: logging.LogRecord) -> str:
         stack: list[inspect.FrameInfo] = inspect.stack()
         # We need to skip 8 stack frames of the logging infrastructure to get to the
         # real stack frame
@@ -34,7 +34,7 @@ class IndentFormatter(logging.Formatter):
 
 
 class AlignFormatter(logging.Formatter):
-    def format(self, rec):
+    def format(self, rec: logging.LogRecord) -> str:
         stack: list[inspect.FrameInfo] = inspect.stack()
         # We need to skip 8 stack frames of the logging infrastructure to get to the
         # real stack frame
@@ -51,14 +51,14 @@ class AlignFormatter(logging.Formatter):
 
 
 class CustomLogger(logging.getLoggerClass()):
-    def __init__(self, name, level=logging.NOTSET):
+    def __init__(self, name: str, level=logging.NOTSET):
         super().__init__(name, level)
 
         self.propagate = False
 
         logging.addLevelName(VERBOSE, "VERBOSE")
 
-    def verbose(self, msg, *args, **kwargs):
+    def verbose(self, msg: str, *args, **kwargs) -> None:
         if self.isEnabledFor(VERBOSE):
             self._log(VERBOSE, msg, args, **kwargs)
 
@@ -66,7 +66,7 @@ class CustomLogger(logging.getLoggerClass()):
 logging.setLoggerClass(CustomLogger)
 
 
-def get_logger(name: str, *, indent=False) -> CustomLogger:
+def get_logger(name: str, *, indent: bool = False) -> CustomLogger:
     log_level = os.getenv("PYANIMATE_LOG_LEVEL", None)
 
     if log_level and log_level.upper() not in logging.getLevelNamesMapping():

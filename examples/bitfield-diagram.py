@@ -17,7 +17,6 @@ from pyanimate.layout import (
     HLayout,
     Spacer,
     Table,
-    Text,
     TextBox,
     VLayout,
 )
