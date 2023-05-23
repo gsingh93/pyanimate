@@ -217,8 +217,6 @@ class TestTranslateUpConstraint(AnimationTestBase):
 
 
 class TestTranslateUpVLayoutConstraint2(AnimationTestBase):
-    show = True
-
     @pytest.fixture(scope="class")
     def dim(self) -> tuple[int, int]:
         return 7, 7
