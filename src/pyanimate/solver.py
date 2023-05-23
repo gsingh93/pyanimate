@@ -128,11 +128,14 @@ class Variable:
         return Term.from_term(term)
 
     def __deepcopy__(self, memo) -> Variable:
+        print(f"deepcopying variable {self}")
         id_ = id(self._var)
         if id_ in memo:
+            print(f"returning memo for {self}: {memo[id_]}")
             return memo[id_]
         v = Variable(self._name)
         memo[id_] = v
+        print(f"Creating new Variable for {self}: {v}")
         return v
 
     def __str__(self) -> str:
@@ -259,6 +262,13 @@ class Expression:
     @staticmethod
     def from_expression(e: kiwi.Expression) -> Expression:
         return Expression(tuple(Term.from_term(t) for t in e.terms()), e.constant())
+
+    def variables(self) -> list[Variable]:
+        variables = []
+        for t in self._terms:
+            variables.append(t._var)
+
+        return variables
 
     def __eq__(self, other: int | float | Variable | Expression) -> Constraint:
         if isinstance(other, (int, float)):

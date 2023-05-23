@@ -10,7 +10,7 @@ from typing import Optional, Self
 from . import get_logger
 from .renderer import Renderer
 from .shape import Point as P
-from .solver import Constraint, Solver, Variable
+from .solver import Constraint, Expression, Solver, Variable
 from .style import Anchor, Style
 
 logger = get_logger(__name__, indent=True)
@@ -285,16 +285,32 @@ class Object:
 
         #     copy.children[deepcopy(child, memo)] = P(x, y)
         copy.children = deepcopy(self.children, memo)
+
+        # print("old")
+        # for child, offset in self.children.items():
+        #     if isinstance(offset.x, Expression):
+        #         print(offset.x, offset.y)
+        #         print(offset.x.variables()[0], offset.y.variables()[0])
+        # print("new")
+        # for child, offset in copy.children.items():
+        #     if isinstance(offset.x, Expression):
+        #         print(offset.x, offset.y)
+        #         print(offset.x.variables()[0], print(offset.y.variables()[0]))
+
         copy.parent = deepcopy(self.parent, memo)
         copy.style = deepcopy(self.style, memo)
 
         c = copy
         # short_id = c.__class__.__name__ + "." + str(self._id)[:4]
 
+        # print(1, memo)
         c._width_constraint = deepcopy(self._width_constraint, memo)
         c._height_constraint = deepcopy(self._height_constraint, memo)
+        # print(2, memo)
         c._w = deepcopy(self._w, memo)
         c._h = deepcopy(self._h, memo)
+
+        print("c.w, c.h", c._w, c._h)
         # if c._width_constraint:
         #     c.canvas.solver.add(c._width_constraint)
         # if c._height_constraint:
@@ -743,15 +759,26 @@ class Canvas(Object):
         #     print(offset.get())
         #     copy.children[deepcopy(child, memo)] = offset
         copy.children = deepcopy(self.children, memo)
-
+        # print("old [canvas]")
+        # for child, offset in self.children.items():
+        #     if isinstance(offset.x, Expression):
+        #         print(offset.x, offset.y)
+        #         print(offset.x.variables()[0], offset.y.variables()[0])
+        # print("new [canvas]")
+        # for child, offset in copy.children.items():
+        #     if isinstance(offset.x, Expression):
+        #         print(offset.x, offset.y)
+        #         print(offset.x.variables()[0], print(offset.y.variables()[0]))
         copy.parent = deepcopy(self.parent, memo)
         copy.style = deepcopy(self.style, memo)
 
         c = copy
         # short_id = c.__class__.__name__ + "." + str(self._id)[:4]
 
+        # print(3, memo)
         c._width_constraint = deepcopy(self._width_constraint, memo)
         c._height_constraint = deepcopy(self._height_constraint, memo)
+        # print(4, memo)
         c._w = deepcopy(self._w, memo)
         c._h = deepcopy(self._h, memo)
         # if c._width_constraint:

@@ -178,7 +178,26 @@ class TestTranslateUpConstraint(AnimationTestBase):
         c.add(r1)
         c.add(r2, P(r1.width, r1.height))
         s.add(StaticAnimation(c))
+
+        p = c.children[r2]
         c = s.keyframe()
+
+        # print("w, h", r1.width, r1.height)
+        # print("latest w, h", r1.latest().width, r1.latest().height)
+
+        assert p.x.variables()[0]._var is r1.width._var
+        assert p.y.variables()[0]._var is r1.height._var
+
+        # p makes sense based on the logging output from deepcopy, but it doesn't match
+        # the latest values of r1.width and r1.height. The variables should be the same
+        # ('is' relation)
+        p = c.children[r2.latest()]
+        # print("p.x, p.y", p.x, p.y)
+        # print("p.x, p.y vars", p.x.variables()[0], p.y.variables()[0])
+
+        assert p.x.variables()[0]._var is r1.latest().width._var
+        assert p.y.variables()[0]._var is r1.latest().height._var
+
         s.add(Translate(c, r2.latest(), P(0, -2), relative=True))
 
     def num_frames(self) -> int:
