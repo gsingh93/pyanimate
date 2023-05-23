@@ -80,6 +80,7 @@ disable = [
 
     # classes
     "arguments-renamed",
+    "protected-access",
 
     # exceptions
     "broad-except",

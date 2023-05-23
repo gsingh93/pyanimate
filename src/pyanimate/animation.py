@@ -136,7 +136,7 @@ class Transform(Animation):
         return self.start_val + (self.val_diff * progress)
 
     @abstractmethod
-    def update_val(self, val):
+    def update_val(self, val) -> None:
         raise NotImplementedError()
 
 
@@ -172,7 +172,9 @@ class StyleTransform(Transform):
 
 
 class RgbTransform(StyleTransform):
-    def __init__(self, obj, start_color: Color, end_color: Color, **kwargs) -> None:
+    def __init__(
+        self, obj: Object, start_color: Color, end_color: Color, **kwargs
+    ) -> None:
         super().__init__(obj, start_color, end_color, "_fill_color", **kwargs)
 
     def calculate_new_val(self, progress: float) -> Color:

@@ -29,7 +29,7 @@ class IndentFormatter(logging.Formatter):
         first, second = first.split(" - ")
         second = second.rjust(20)
         out = first + " - " + second + "]" + "]".join(rest)
-        del rec.indent
+        del rec.indent  # pyright: ignore[reportGeneralTypeIssues]
         return out
 
 

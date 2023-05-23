@@ -196,7 +196,7 @@ class Object:
             # print(c)
             obj.constraints.append(c)
 
-    def prepare(self, renderer: Renderer):
+    def prepare(self, renderer: Renderer) -> None:
         logger.debug("Preparing %s", self)
         self.prepare_impl(renderer)
 

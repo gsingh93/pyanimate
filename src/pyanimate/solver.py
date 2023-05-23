@@ -1,37 +1,16 @@
 from __future__ import annotations
 
 from copy import deepcopy
-from typing import Literal, Optional
+from typing import Literal, Optional, TypeAlias
 
 import kiwisolver as kiwi
 from kiwisolver import UnsatisfiableConstraint
 
 from . import get_logger
 
-# def copy_expression(
-#     v: kiwi.Variable, e: kiwi.Expression
-# ) -> tuple[kiwi.Variable, kiwi.Expression]:
-#     terms = []
-
-#     new_var = kiwi.Variable()
-#     for term in e.terms():
-#         if term.variable() is v:
-#             terms.append(Term(new_var, term.coefficient()))
-#         else:
-#             terms.append(Term(term.variable(), term.coefficient()))
-
-#     return new_var, kiwi.Expression(terms, e.constant())
-
-
-# def copy_constraint(
-#     v: kiwi.Variable, c: kiwi.Constraint
-# ) -> tuple[kiwi.Variable, kiwi.Constraint]:
-#     e = c.expression()
-#     new_var, new_e = copy_expression(v, e)
-
-#     return new_var, kiwi.Constraint(new_e, c.op(), c.strength())
-
 logger = get_logger(__name__)
+
+SolverType: TypeAlias = int | float | "Variable" | "Term" | "Expression"
 
 
 class Variable:
@@ -41,9 +20,6 @@ class Variable:
             self._var = kiwi.Variable(name)
         else:
             self._var = kiwi.Variable()
-        # logger.warning(
-        #     f"Made variable {self._var} [{hex(id(self._var))}]", stack_info=True
-        # )
 
     @staticmethod
     def from_variable(variable: kiwi.Variable) -> Variable:
@@ -55,11 +31,13 @@ class Variable:
     def value(self) -> float:
         return self._var.value()
 
-    def __eq__(self, other: int | float | Variable | Expression) -> Constraint:
+    def __eq__(self, other: SolverType) -> Constraint:
         if isinstance(other, (int, float)):
             c = self._var == other
         elif isinstance(other, Variable):
             c = self._var == other._var
+        elif isinstance(other, Term):
+            c = self._var == other._term
         elif isinstance(other, Expression):
             c = self._var == other._expr
 
@@ -68,27 +46,31 @@ class Variable:
     def __hash__(self) -> int:
         return id(self._var)
 
-    def __le__(self, other: int | float | Variable | Expression) -> Constraint:
+    def __le__(self, other: SolverType) -> Constraint:
         if isinstance(other, (int, float)):
             c = self._var <= other
         elif isinstance(other, Variable):
             c = self._var <= other._var
+        elif isinstance(other, Term):
+            c = self._var <= other._term
         elif isinstance(other, Expression):
             c = self._var <= other._expr
 
         return Constraint.from_constraint(c)
 
-    def __ge__(self, other: int | float | Variable | Expression) -> Constraint:
+    def __ge__(self, other: SolverType) -> Constraint:
         if isinstance(other, (int, float)):
             c = self._var >= other
         elif isinstance(other, Variable):
             c = self._var >= other._var
+        elif isinstance(other, Term):
+            c = self._var >= other._term
         elif isinstance(other, Expression):
             c = self._var >= other._expr
 
         return Constraint.from_constraint(c)
 
-    def __add__(self, other: int | float | Variable | Term | Expression) -> Expression:
+    def __add__(self, other: SolverType) -> Expression:
         if isinstance(other, (int, float)):
             e = self._var + other
         elif isinstance(other, Variable):
@@ -102,10 +84,10 @@ class Variable:
 
         return Expression.from_expression(e)
 
-    def __radd__(self, other: int | float | Variable | Term | Expression) -> Expression:
+    def __radd__(self, other: SolverType) -> Expression:
         return self + other
 
-    def __sub__(self, other: int | float | Variable | Term | Expression) -> Expression:
+    def __sub__(self, other: SolverType) -> Expression:
         if isinstance(other, (int, float)):
             e = self._var - other
         elif isinstance(other, Variable):
@@ -119,7 +101,7 @@ class Variable:
 
         return Expression.from_expression(e)
 
-    def __rsub__(self, other: int | float | Variable | Term | Expression) -> Expression:
+    def __rsub__(self, other: SolverType) -> Expression:
         if isinstance(other, (int, float)):
             e = other - self._var
         elif isinstance(other, Variable):
@@ -133,11 +115,14 @@ class Variable:
 
         return Expression.from_expression(e)
 
-    def __mul__(self, other: int) -> Term:
+    def __mul__(self, other: int | float) -> Term:
         term = self._var * other
         return Term.from_term(term)
 
-    def __truediv__(self, other: int) -> Term:
+    def __rmul__(self, other: int | float) -> Term:
+        return self * other
+
+    def __truediv__(self, other: int | float) -> Term:
         term = self._var / other
         return Term.from_term(term)
 
@@ -166,37 +151,43 @@ class Term:
     def value(self) -> float:
         return self._term.value()
 
-    def __eq__(self, other: int | float | Variable | Expression) -> Constraint:
+    def __eq__(self, other: SolverType) -> Constraint:
         if isinstance(other, (int, float)):
             c = self._term == other
         elif isinstance(other, Variable):
             c = self._term == other._var
+        elif isinstance(other, Term):
+            c = self._term == other._term
         elif isinstance(other, Expression):
             c = self._term == other._expr
 
         return Constraint.from_constraint(c)
 
-    def __le__(self, other: int | float | Variable | Expression) -> Constraint:
+    def __le__(self, other: SolverType) -> Constraint:
         if isinstance(other, (int, float)):
             c = self._term <= other
         elif isinstance(other, Variable):
             c = self._term <= other._var
+        elif isinstance(other, Term):
+            c = self._term <= other._term
         elif isinstance(other, Expression):
             c = self._term <= other._expr
 
         return Constraint.from_constraint(c)
 
-    def __ge__(self, other: int | float | Variable | Expression) -> Constraint:
+    def __ge__(self, other: SolverType) -> Constraint:
         if isinstance(other, (int, float)):
             c = self._term >= other
         elif isinstance(other, Variable):
             c = self._term >= other._var
+        elif isinstance(other, Term):
+            c = self._term >= other._term
         elif isinstance(other, Expression):
             c = self._term >= other._expr
 
         return Constraint.from_constraint(c)
 
-    def __add__(self, other: int | float | Variable | Term | Expression) -> Expression:
+    def __add__(self, other: SolverType) -> Expression:
         if isinstance(other, (int, float)):
             e = self._term + other
         elif isinstance(other, Variable):
@@ -210,10 +201,10 @@ class Term:
 
         return Expression.from_expression(e)
 
-    def __radd__(self, other: int | float | Variable | Term | Expression) -> Expression:
+    def __radd__(self, other: SolverType) -> Expression:
         return self + other
 
-    def __sub__(self, other: int | float | Variable | Term | Expression) -> Expression:
+    def __sub__(self, other: SolverType) -> Expression:
         if isinstance(other, (int, float)):
             e = self._term - other
         elif isinstance(other, Variable):
@@ -227,7 +218,7 @@ class Term:
 
         return Expression.from_expression(e)
 
-    def __rsub__(self, other: int | float | Variable | Term | Expression) -> Expression:
+    def __rsub__(self, other: SolverType) -> Expression:
         if isinstance(other, (int, float)):
             e = other - self._term
         elif isinstance(other, Variable):
@@ -241,11 +232,14 @@ class Term:
 
         return Expression.from_expression(e)
 
-    def __mul__(self, other: int) -> Term:
+    def __mul__(self, other: int | float) -> Term:
         term = self._term * other
         return Term.from_term(term)
 
-    def __truediv__(self, other: int) -> Term:
+    def __rmul__(self, other: int | float) -> Term:
+        return self * other
+
+    def __truediv__(self, other: int | float) -> Term:
         term = self._term / other
         return Term.from_term(term)
 
@@ -281,37 +275,43 @@ class Expression:
 
         return variables
 
-    def __eq__(self, other: int | float | Variable | Expression) -> Constraint:
+    def __eq__(self, other: SolverType) -> Constraint:
         if isinstance(other, (int, float)):
             c = self._expr == other
         elif isinstance(other, Variable):
             c = self._expr == other._var
+        elif isinstance(other, Term):
+            c = self._expr == other._term
         elif isinstance(other, Expression):
             c = self._expr == other._expr
 
         return Constraint.from_constraint(c)
 
-    def __le__(self, other: int | float | Variable | Expression) -> Constraint:
+    def __le__(self, other: SolverType) -> Constraint:
         if isinstance(other, (int, float)):
             c = self._expr <= other
         elif isinstance(other, Variable):
             c = self._expr <= other._var
+        elif isinstance(other, Term):
+            c = self._expr <= other._term
         elif isinstance(other, Expression):
             c = self._expr <= other._expr
 
         return Constraint.from_constraint(c)
 
-    def __ge__(self, other: int | float | Variable | Expression) -> Constraint:
+    def __ge__(self, other: SolverType) -> Constraint:
         if isinstance(other, (int, float)):
             c = self._expr >= other
         elif isinstance(other, Variable):
             c = self._expr >= other._var
+        elif isinstance(other, Term):
+            c = self._expr >= other._term
         elif isinstance(other, Expression):
             c = self._expr >= other._expr
 
         return Constraint.from_constraint(c)
 
-    def __add__(self, other: int | float | Variable | Term | Expression) -> Expression:
+    def __add__(self, other: SolverType) -> Expression:
         if isinstance(other, (int, float)):
             e = self._expr + other
         elif isinstance(other, Variable):
@@ -325,10 +325,10 @@ class Expression:
 
         return Expression.from_expression(e)
 
-    def __radd__(self, other: int | float | Variable | Term | Expression) -> Expression:
+    def __radd__(self, other: SolverType) -> Expression:
         return self + other
 
-    def __sub__(self, other: int | float | Variable | Term | Expression) -> Expression:
+    def __sub__(self, other: SolverType) -> Expression:
         if isinstance(other, (int, float)):
             e = self._expr - other
         elif isinstance(other, Variable):
@@ -342,7 +342,7 @@ class Expression:
 
         return Expression.from_expression(e)
 
-    def __rsub__(self, other: int | float | Variable | Term | Expression) -> Expression:
+    def __rsub__(self, other: SolverType) -> Expression:
         if isinstance(other, (int, float)):
             e = other - self._expr
         elif isinstance(other, Variable):
@@ -356,11 +356,14 @@ class Expression:
 
         return Expression.from_expression(e)
 
-    def __mul__(self, other: int) -> Expression:
+    def __mul__(self, other: int | float) -> Expression:
         e = self._expr * other
         return Expression.from_expression(e)
 
-    def __truediv__(self, other: int) -> Expression:
+    def __rmul__(self, other: int | float) -> Expression:
+        return self * other
+
+    def __truediv__(self, other: int | float) -> Expression:
         e = self._expr / other
         return Expression.from_expression(e)
 

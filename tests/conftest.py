@@ -69,6 +69,7 @@ def scene_image(s: Scene, frame_rate: int) -> Generator[ImageT, None, None]:
     try:
         s.play(frame_rate, p)
     except kiwisolver.UnsatisfiableConstraint as e:
+        assert s.cur_keyframe
         res = s.cur_keyframe.canvas.solver.analyze(e)
         print("Exception analysis:")
         for var, constraints in res:

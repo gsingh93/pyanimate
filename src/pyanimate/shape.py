@@ -2,13 +2,11 @@ from __future__ import annotations
 
 import copy
 import math
-from typing import Generic, Self, TypeVar
+from typing import Generic, Self, TypeVar, cast
 
-from kiwisolver import Expression, Variable
+from .solver import Expression, Term, Variable
 
-MaybeInt = int | Variable | Expression
-MaybeFloat = float | Variable | Expression
-T = TypeVar("T", MaybeInt, MaybeFloat)
+T = TypeVar("T", bound=int | float | Expression | Variable)
 
 
 class Shape(tuple[T, ...], Generic[T]):
@@ -32,10 +30,14 @@ class Shape(tuple[T, ...], Generic[T]):
         return type(self)(*x)  # pyright: ignore[reportGeneralTypeIssues]
 
     def mul(self, other: T, /) -> Self:
+        if isinstance(other, (Term, Expression, Variable)):
+            raise TypeError("Cannot multiply a shape by an expression or variable")
         x = (i * other for i in self)
         return type(self)(*x)  # pyright: ignore[reportGeneralTypeIssues]
 
     def floormul(self, other: T, /) -> Self:
+        if isinstance(other, (Term, Expression, Variable)):
+            raise TypeError("Cannot multiply a shape by an expression or variable")
         x = (int(i * other) for i in self)
         return type(self)(*x)  # pyright: ignore[reportGeneralTypeIssues]
 
@@ -73,6 +75,9 @@ class Shape(tuple[T, ...], Generic[T]):
 
     def __radd__(self, other: Self, /) -> Self:
         return self + other
+
+    def __rsub__(self, other: Self, /) -> Self:
+        return self - other
 
     def __rmul__(self, other: Self, /) -> Self:
         return self * other
@@ -124,7 +129,7 @@ class Point(Shape[T], Generic[T]):
         return f"P{tuple(self.get())}"
 
     def mag(self) -> float:
-        resolved = self.get()
+        resolved: Point[int | float] = cast(Point[int | float], self.get())
         return (resolved.x**2 + resolved.y**2) ** 0.5
 
     def radians(self) -> float:
@@ -132,31 +137,34 @@ class Point(Shape[T], Generic[T]):
         return math.atan2(resolved.y, resolved.x)
 
 
-class Color(Shape[T], Generic[T]):
+# Colors can only have int or float values, not Expression or Variable
+S = TypeVar("S", bound=int | float)
+
+
+class Color(Shape[S], Generic[S]):
     def __new__(  # pylint: disable=arguments-differ
-        cls, r: T, g: T, b: T, a: T = 255
+        cls, r: S, g: S, b: S, a: S = 255
     ) -> Self:
         return tuple.__new__(cls, (r, g, b, a))
 
     @staticmethod
-    def from_alpha(alpha: T) -> Color[T]:
-        zero = type(alpha)(0)
-        return Color(zero, zero, zero, alpha)
+    def from_alpha(alpha: S) -> Color[S]:
+        return Color(0, 0, 0, alpha)
 
     @property
-    def r(self) -> T:
+    def r(self) -> S:
         return self[0]
 
     @property
-    def g(self) -> T:
+    def g(self) -> S:
         return self[1]
 
     @property
-    def b(self) -> T:
+    def b(self) -> S:
         return self[2]
 
     @property
-    def a(self) -> T:
+    def a(self) -> S:
         return self[3]
 
 
