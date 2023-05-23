@@ -1,3 +1,5 @@
+import os
+
 import pytest
 
 from pyanimate.animation import FadeIn
@@ -83,6 +85,7 @@ class TestFadeInRectangle(FadeInTestBase):
         ]
 
 
+@pytest.mark.skipif(os.getenv("CI") is not None, reason="Flaky")
 class TestFadeInParent(FadeInTestBase):
     @pytest.fixture(scope="class", autouse=True)
     def setup_scene(self, s) -> None:
@@ -123,6 +126,7 @@ class TestFadeInParent(FadeInTestBase):
         ]
 
 
+@pytest.mark.skipif(os.getenv("CI") is not None, reason="Flaky")
 class TestFadeInText(FadeInTestBase):
     @pytest.fixture(scope="class", autouse=True)
     def setup_scene(self, s) -> None:

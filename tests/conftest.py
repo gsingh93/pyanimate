@@ -13,7 +13,9 @@ from pyanimate.layout import Canvas
 from pyanimate.renderer import PILRenderer, RenderContext, Renderer
 from pyanimate.scene import Scene
 
-style = sty.Style(padding=1, font="Roboto-Regular.ttf", font_size=8)
+style = sty.Style(
+    padding=1, font=str(Path("./tests/Roboto-Regular.ttf").resolve()), font_size=8
+)
 sty.set_style(style)
 
 

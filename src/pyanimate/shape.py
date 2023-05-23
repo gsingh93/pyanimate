@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import copy
 import math
-from typing import Generic, Self, TypeVar, overload
+from typing import Generic, Self, TypeVar
 
 from kiwisolver import Expression, Variable
 
@@ -80,15 +80,9 @@ class Shape(tuple[T, ...], Generic[T]):
     def __str__(self) -> str:
         return f"{type(self).__name__}{tuple(self.get())}"
 
-    @overload
-    def get(self: Shape[MaybeInt]) -> Shape[int]:
-        ...
-
-    @overload
-    def get(self: Shape[MaybeFloat]) -> Shape[float]:
-        ...
-
-    def get(self) -> Shape[int] | Shape[float]:
+    # TODO: Ideally we want the return type to be `Self[int] | Self[float]`, but that
+    # would require HKT
+    def get(self) -> Self:
         args = []
         has_float = False
         for i in self:
