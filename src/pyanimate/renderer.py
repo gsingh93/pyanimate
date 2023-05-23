@@ -126,9 +126,11 @@ class PILRenderer(Renderer):
     def rectangle(self, p1: P, p2: P, style: Style) -> None:
         logger.verbose("Rectangle: %s %s", p1, p2)
 
-        fill_color = self._composite_background(style.fill_color, style.composite_alpha)
+        fill_color = self._composite_background(
+            style.composite_fill_color, style.composite_alpha
+        )
         stroke_color = self._composite_background(
-            style.stroke_color, style.composite_alpha
+            style.composite_stroke_color, style.composite_alpha
         )
         self.draw.rectangle(
             (p1.mul(self.ctx.scale), p2.mul(self.ctx.scale)),
@@ -139,7 +141,9 @@ class PILRenderer(Renderer):
     def text(self, text: str, p: P, style: Style) -> None:
         logger.verbose("Text: %s %s", repr(text), p)
         font = self._get_font(style.font, style.font_size * self.ctx.scale)
-        font_color = self._composite_background(style.font_color, style.composite_alpha)
+        font_color = self._composite_background(
+            style.composite_font_color, style.composite_alpha
+        )
         self.draw.multiline_text(
             p.mul(self.ctx.scale),
             text,
@@ -157,7 +161,7 @@ class PILRenderer(Renderer):
         # Dotted line is too verbose
         # logger.verbose("Line: %s %s", p1, p2)
         stroke_color = self._composite_background(
-            style.stroke_color, style.composite_alpha
+            style.composite_stroke_color, style.composite_alpha
         )
 
         self.draw.line(

@@ -1,8 +1,8 @@
 import pytest
 
 from pyanimate.animation import FadeIn
-from pyanimate.layout import Rectangle, TextBox, VLayout
-from pyanimate.shape import BLACK, RED, WHITE
+from pyanimate.layout import Rectangle, TextBox
+from pyanimate.shape import RED
 
 from . import AnimationTestBase
 
@@ -64,6 +64,16 @@ class TestFadeInRectangle(FadeInTestBase):
                 "wwwww",
             ]
 
+        if num < 3:
+            return [
+                "wwwww",
+                "w???w",
+                "w?w?w",
+                "w???w",
+                "wwwww",
+            ]
+
+        assert num in (3, 4)
         return [
             "wwwww",
             "w???w",
@@ -73,15 +83,13 @@ class TestFadeInRectangle(FadeInTestBase):
         ]
 
 
-class TestFadeInCanvas(FadeInTestBase):
+class TestFadeInParent(FadeInTestBase):
     @pytest.fixture(scope="class", autouse=True)
     def setup_scene(self, s) -> None:
         c = s.keyframe()
         r = TextBox(canvas=c, text="A", font_size=4)
-        vlayout = VLayout(canvas=c)
-        vlayout.add(r)
-        c.add(vlayout)
-        s.add(FadeIn(vlayout, duration=2))
+        c.add(r)
+        s.add(FadeIn(c, duration=2))
 
     def num_frames(self) -> int:
         return 11
@@ -96,12 +104,22 @@ class TestFadeInCanvas(FadeInTestBase):
                 "wwwww",
             ]
 
+        if num < 10:
+            return [
+                "wwwww",
+                "w???w",
+                "w???w",
+                "w???w",
+                "w???w",
+            ]
+
+        assert num == 10
         return [
             "wwwww",
-            "w???w",
-            "w???w",
-            "w???w",
-            "wwwww",
+            "wbbbw",
+            "wb?bw",
+            "wb?bw",
+            "wbbbw",
         ]
 
 
@@ -133,3 +151,12 @@ class TestFadeInText(FadeInTestBase):
             "w???w",
             "w???w",
         ]
+
+
+@pytest.mark.xfail
+class TestFadeOut(AnimationTestBase):
+    def num_frames(self) -> int:
+        assert False
+
+    def frame(self, num) -> list[str]:
+        assert False

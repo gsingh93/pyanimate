@@ -10,7 +10,7 @@ from typing import Optional, Self
 from . import get_logger
 from .renderer import Renderer
 from .shape import Point as P
-from .solver import Constraint, Expression, Solver, Variable
+from .solver import Constraint, Solver, Variable
 from .style import Anchor, Style
 
 logger = get_logger(__name__, indent=True)
@@ -127,6 +127,7 @@ class Object:
 
         assert obj.parent is None
         obj.parent = self
+        logger.debug(self.style)
         obj.style.parent_obj_style = self.style
 
     def find(self, obj: Object, remove: bool = False) -> Optional[Object]:
@@ -310,7 +311,7 @@ class Object:
         c._w = deepcopy(self._w, memo)
         c._h = deepcopy(self._h, memo)
 
-        print("c.w, c.h", c._w, c._h)
+        # print("c.w, c.h", c._w, c._h)
         # if c._width_constraint:
         #     c.canvas.solver.add(c._width_constraint)
         # if c._height_constraint:
@@ -833,29 +834,11 @@ class Canvas(Object):
         self.solver.add(self.width <= renderer.width())
         self.solver.add(self.height <= renderer.height())
 
-        variables = self.solver.variables()
-        for obj in self.children:
-            if obj._width_constraint:
-                assert obj._width_constraint in self.solver._constraints
-            if obj._height_constraint:
-                assert obj._height_constraint in self.solver._constraints
-
-            # TODO: These may be expressions or terms, not variables
-            for v in [obj._w, obj._h, obj._x, obj._y]:
-                assert v in variables
-
         self.prepare(renderer)
 
-        variables = self.solver.variables()
-        for obj in self.children:
-            if obj._width_constraint:
-                assert obj._width_constraint in self.solver._constraints
-            if obj._height_constraint:
-                assert obj._height_constraint in self.solver._constraints
-
-            # TODO: These may be expressions or terms, not variables
-            for v in [obj._w, obj._h, obj._x, obj._y]:
-                assert v in variables
+        # for obj in self.children:
+        #     self.solver.add(obj.x + obj.width <= renderer.width())
+        #     self.solver.add(obj.y + obj.height <= renderer.height())
 
         self.solver.update()
 

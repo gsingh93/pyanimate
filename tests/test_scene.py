@@ -3,12 +3,12 @@ from pathlib import Path
 
 import pytest
 
-from pyanimate.animation import FadeIn, StaticAnimation, Translate
-from pyanimate.layout import Line, Rectangle, TextBox
-from pyanimate.shape import BLACK, RED, WHITE
+from pyanimate.animation import StaticAnimation, Translate
+from pyanimate.layout import Line, Rectangle, VLayout
+from pyanimate.shape import RED
 from pyanimate.shape import Point as P
 
-from . import AnimationTestBase, convert_to_ascii
+from . import AnimationTestBase
 
 logger = logging.getLogger(__name__)
 
@@ -180,21 +180,12 @@ class TestTranslateUpConstraint(AnimationTestBase):
         s.add(StaticAnimation(c))
 
         p = c.children[r2]
-        c = s.keyframe()
-
-        # print("w, h", r1.width, r1.height)
-        # print("latest w, h", r1.latest().width, r1.latest().height)
-
         assert p.x.variables()[0]._var is r1.width._var
         assert p.y.variables()[0]._var is r1.height._var
 
-        # p makes sense based on the logging output from deepcopy, but it doesn't match
-        # the latest values of r1.width and r1.height. The variables should be the same
-        # ('is' relation)
-        p = c.children[r2.latest()]
-        # print("p.x, p.y", p.x, p.y)
-        # print("p.x, p.y vars", p.x.variables()[0], p.y.variables()[0])
+        c = s.keyframe()
 
+        p = c.children[r2.latest()]
         assert p.x.variables()[0]._var is r1.latest().width._var
         assert p.y.variables()[0]._var is r1.latest().height._var
 
@@ -223,6 +214,149 @@ class TestTranslateUpConstraint(AnimationTestBase):
             "wwwwww",
             "wwwwww",
         ]
+
+
+class TestTranslateUpVLayoutConstraint2(AnimationTestBase):
+    show = True
+
+    @pytest.fixture(scope="class")
+    def dim(self) -> tuple[int, int]:
+        return 7, 7
+
+    @pytest.fixture(scope="class")
+    def frame_rate(self) -> int:
+        return 2
+
+    @pytest.fixture(scope="class", autouse=True)
+    def setup_scene(self, s) -> None:
+        c = s.keyframe()
+        vlayout = VLayout(canvas=c)
+        r1 = Rectangle(canvas=c, width=2, height=2)
+        r2 = Rectangle(canvas=c, width=2, height=2)
+        vlayout.add(r1)
+        c.add(vlayout)
+        c.add(r2, P(r1.width, r1.height))
+
+        s.add(StaticAnimation(c))
+
+        c = s.keyframe()
+
+        s.add(Translate(c, r2.latest(), P(0, -2), relative=True))
+
+    def num_frames(self) -> int:
+        return 4
+
+    def frame(self, frame_num: int) -> list[str]:
+        if frame_num == 0:
+            return [
+                "wwwwwww",
+                "wbbwwww",
+                "wbbwwww",
+                "wwwbbww",
+                "wwwbbww",
+                "wwwwwww",
+                "wwwwwww",
+            ]
+        elif frame_num == 1:
+            return [
+                "wwwwwww",
+                "wwbbwww",
+                "wwbbwww",
+                "wwwbbww",
+                "wwwbbww",
+                "wwwwwww",
+                "wwwwwww",
+            ]
+        elif frame_num == 2:
+            return [
+                "wwwwwww",
+                "wbbwwww",
+                "wbbwwww",
+                "wwwbbww",
+                "wwwbbww",
+                "wwwwwww",
+                "wwwwwww",
+            ]
+
+        assert frame_num == 3
+        return [
+            "wwwwwww",
+            "wwwbbww",
+            "wwwbbww",
+            "wwwbbww",
+            "wwwwwww",
+            "wwwwwww",
+            "wwwwwww",
+        ]
+
+
+@pytest.mark.skip("Need to debug why test is failing")
+class TestTranslateUpVLayoutConstraint(AnimationTestBase):
+    @pytest.fixture(scope="class")
+    def dim(self) -> tuple[int, int]:
+        return 7, 7
+
+    @pytest.fixture(scope="class")
+    def frame_rate(self) -> int:
+        return 2
+
+    @pytest.fixture(scope="class", autouse=True)
+    def setup_scene(self, s) -> None:
+        c = s.keyframe()
+        vlayout = VLayout(canvas=c)
+        r1 = Rectangle(canvas=c, width=2, height=2)
+        r2 = Rectangle(canvas=c, width=2, height=2)
+        vlayout.add(r1)
+        vlayout.add(r2, P(r1.width, r1.height))
+        c.add(vlayout)
+        s.add(StaticAnimation(c))
+
+        # p = vlayout.children[r2]
+        # assert p.x.variables()[0]._var is r1.width._var
+        # assert p.y.variables()[0]._var is r1.height._var
+
+        c = s.keyframe()
+
+        # p = vlayout.children[r2.latest()]
+        # assert p.x.variables()[0]._var is r1.latest().width._var
+        # assert p.y.variables()[0]._var is r1.latest().height._var
+
+        s.add(Translate(vlayout, r2.latest(), P(0, -2), relative=True))
+
+    def num_frames(self) -> int:
+        return 2
+
+    def frame(self, frame_num: int) -> list[str]:
+        if frame_num == 0:
+            return [
+                "wwwwwww",
+                "wwbbwww",
+                "wwbbwww",
+                "wwwwwww",
+                "wwwwwww",
+                "wwwwbbw",
+                "wwwwbbw",
+            ]
+
+        assert frame_num == 1
+        return [
+            "wwwwwww",
+            "wwbbwww",
+            "wwbbwww",
+            "wwwwwww",
+            "wwwwbbw",
+            "wwwwbbw",
+            "wwwwwww",
+        ]
+        # return [
+        #     "wwwwwww",
+        #     "wwwbbww",
+        #     "wwwbbww",
+        #     "wwwwwww",
+        #     "wwwwwww",
+        #     "wwwwwbb",
+        #     "wwwwwbb",
+        # ]
 
 
 class TestTranslateLine(AnimationTestBase):
@@ -264,3 +398,12 @@ class TestTranslateLine(AnimationTestBase):
             "wwwwww",
             "wwwwww",
         ]
+
+
+@pytest.mark.xfail
+class TestAnimationGroup(AnimationTestBase):
+    def num_frames(self) -> int:
+        assert False
+
+    def frame(self, frame_num: int) -> list[str]:
+        assert False

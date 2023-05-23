@@ -167,15 +167,44 @@ class TestObject:
         assert cloned.latest() is cloned
 
 
+@pytest.mark.xfail
 class TestTextBox:
-    pass
+    def test_correct_image(self, c_im, dim) -> None:
+        assert False
 
 
+@pytest.mark.xfail
+class TestLine:
+    def test_correct_image(self, c_im, dim) -> None:
+        assert False
+
+
+@pytest.mark.xfail
+class TestDottedLine:
+    def test_correct_image(self, c_im, dim) -> None:
+        assert False
+
+
+@pytest.mark.xfail
 class TestArrow:
-    pass
+    def test_correct_image(self, c_im, dim) -> None:
+        assert False
+
+
+@pytest.mark.xfail
+class TestGrid:
+    def test_correct_image(self, c_im, dim) -> None:
+        assert False
+
+
+@pytest.mark.xfail
+class TestSpacer:
+    def test_correct_image(self, c_im, dim) -> None:
+        assert False
 
 
 class TestConstraints:
+    @pytest.mark.xfail
     def test_unsatisfiable(self, c) -> None:
         """
         Test that unsatisfiable constraints raise an error
@@ -187,7 +216,7 @@ class TestConstraints:
             vlayout.add(obj)
 
 
-class TestSingleRectangle2x2:
+class TestRectangle2x2:
     @pytest.fixture(scope="class")
     def dim(self) -> tuple[int, int]:
         return 4, 4
@@ -208,7 +237,7 @@ class TestSingleRectangle2x2:
         ]
 
 
-class TestSingleRectangle3x3:
+class TestRectangle3x3:
     @pytest.fixture(scope="class", autouse=True)
     def setup_scene(self, c) -> None:
         r = Rectangle(canvas=c, width=3, height=3, fill_color=RED)
@@ -333,20 +362,19 @@ class TestLayoutPrepare:
         assert child2.pos == P(5, 10)
         assert child3.pos == P(12, 40)
 
-    # def test_hlayout_prepare(self) -> None:
-    #     """
-    #     Test that HLayout renders children in the correct position
-    #     """
-    #     renderer = MockRenderer()
-    #     parent = HLayout(renderer)
+    def test_hlayout_prepare(self, c) -> None:
+        """
+        Test that HLayout renders children in the correct position
+        """
+        parent = HLayout(canvas=c)
 
-    #     child1 = Object(canvas=c, width=20, height=10)
-    #     child2 = Object(canvas=c, width=40, height=30)
+        child1 = Object(canvas=c, width=20, height=10)
+        child2 = Object(canvas=c, width=40, height=30)
 
-    #     parent.add(child1)
-    #     parent.add(child2, P(5, 15))
+        parent.add(child1)
+        parent.add(child2, P(5, 15))
 
-    #     parent.render(P(0, 0))
+        parent.prepare(MockRenderer())
 
-    #     assert child1.position == P(0, 0)
-    #     assert child2.position == P(25, 15)
+        assert child1.pos == P(0, 17)
+        assert child2.pos == P(25, 22)

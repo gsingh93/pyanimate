@@ -36,6 +36,7 @@ class Style:
         fill_color: Optional[Color[int]] = None,
         font_color: Optional[Color[int]] = None,
         alpha: Optional[int] = None,
+        parent_obj_style: Optional[Style] = None,
     ) -> None:
         if parent is None:
             parent = _default_style
@@ -51,7 +52,7 @@ class Style:
         self._font_color = font_color
         self._alpha = alpha
 
-        self._parent_obj_style: Optional[Style] = None
+        self._parent_obj_style: Optional[Style] = parent_obj_style
 
     def _attr(self, attr_name: str) -> Any:
         attr = getattr(self, attr_name)
@@ -134,7 +135,9 @@ class Style:
         return int(self._parent_obj_style.composite_alpha * self.alpha / 255)
 
     def clone(self, **kwargs) -> Style:
-        return Style(parent=self, **kwargs)
+        # TODO: Should we be passing in the parent_obj_style here, or should it
+        # automatically work if the parent is set?
+        return Style(parent=self, parent_obj_style=self._parent_obj_style, **kwargs)
 
     def __str__(self) -> str:
         return str(self.__dict__)
