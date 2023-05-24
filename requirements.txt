@@ -1,2 +1,2 @@
-Pillow
-kiwisolver
+kiwisolver==1.4.4
+Pillow==9.5.0
