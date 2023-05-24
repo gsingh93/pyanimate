@@ -98,7 +98,7 @@ class PILRenderer(Renderer):
         return self.fonts[key]
 
     def _composite_background(self, c: Color, a: int) -> Color:
-        return self.background.floormul(1 - (a / 255)) + c
+        return self.background.mul(1 - (a / 255)) + c
 
     def set_dimensions(self, dim: P) -> None:
         logger.debug("Setting dimensions: %s", dim)

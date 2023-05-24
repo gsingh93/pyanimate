@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from enum import Enum
-from typing import Any, Optional
+from typing import Any
 
 from .shape import BLACK, WHITE, Color
 
@@ -32,9 +32,9 @@ class Style:
         font: str | None = None,
         font_size: int | None = None,
         anchor: Anchor | None = None,
-        stroke_color: Optional[Color[int]] = None,
-        fill_color: Optional[Color[int]] = None,
-        font_color: Optional[Color[int]] = None,
+        stroke_color: Color | None = None,
+        fill_color: Color | None = None,
+        font_color: Color | None = None,
         alpha: int | None = None,
         parent_obj_style: Style | None = None,
     ) -> None:
@@ -73,7 +73,7 @@ class Style:
         parent_color = self._parent_obj_style._composite_color(attr)
         alpha_ratio = self.alpha / 255
         # print("here", attr, parent_color, color, self.alpha)
-        return parent_color.floormul(1 - alpha_ratio) + color.floormul(alpha_ratio)
+        return parent_color.mul(1 - alpha_ratio) + color.mul(alpha_ratio)
 
     @property
     def parent_obj_style(self) -> Style | None:

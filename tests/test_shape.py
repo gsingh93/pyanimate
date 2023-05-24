@@ -1,16 +1,16 @@
 import copy
 
 import pytest
-from kiwisolver import Variable
 
 from pyanimate.shape import Shape
+from pyanimate.solver import Variable
 
 
 class TestShapeInt:
     def test_add(self) -> None:
         s1 = Shape(1, 2)
         s2 = Shape(3, 4)
-        assert s1 + s2 == Shape(4, 6)
+        assert s1 + s2 == s2 + s1 == Shape(4, 6)
 
     def test_sub(self) -> None:
         s1 = Shape(1, 2)
@@ -20,7 +20,7 @@ class TestShapeInt:
     def test_mul(self) -> None:
         s1 = Shape(1, 2)
         s2 = Shape(3, 4)
-        assert s1 * s2 == Shape(3, 8)
+        assert s1 * s2 == s2 * s1 == Shape(3, 8)
 
     # def test_truediv(self) -> None:
     #     s1 = Shape(1, 2)
@@ -87,3 +87,89 @@ class TestShapeVariableExpression:
 
         with pytest.raises(AssertionError):
             s1.get()
+
+    def test_add(self) -> None:
+        x = Variable("x")
+        t = 2 * x
+        e = x + t + 1
+
+        s1 = Shape(x, t, e)
+
+        assert s1.add(1) == Shape(x + 1, t + 1, e + 1)
+
+    def test_add_one(self) -> None:
+        x = Variable("x")
+        t = 2 * x
+        e = x + t + 1
+
+        s1 = Shape(x, t, e)
+        s2 = Shape(1, 2, 3)
+
+        assert s1 + s2 == s2 + s1 == Shape(x + 1, t + 2, e + 3)
+
+    def test_add_both(self) -> None:
+        x = Variable("x")
+        t = 2 * x
+        e = x + t + 1
+
+        s1 = Shape(x, t, e)
+        s2 = Shape(t, e, x)
+
+        assert s1 + s2 == s2 + s1 == Shape(x + t, t + e, e + x)
+
+    def test_sub(self) -> None:
+        x = Variable("x")
+        t = 2 * x
+        e = x + t + 1
+
+        s1 = Shape(x, t, e)
+
+        assert s1.sub(1) == Shape(x - 1, t - 1, e - 1)
+
+    def test_sub_one(self) -> None:
+        x = Variable("x")
+        t = 2 * x
+        e = x + t + 1
+
+        s1 = Shape(x, t, e)
+        s2 = Shape(1, 2, 3)
+
+        assert s1 - s2 == -s2 - -s1 == Shape(x - 1, t - 2, e - 3)
+
+    def test_sub_both(self) -> None:
+        x = Variable("x")
+        t = 2 * x
+        e = x + t + 1
+
+        s1 = Shape(x, t, e)
+        s2 = Shape(t, e, x)
+
+        assert s1 - s2 == -s2 - -s1 == Shape(x - t, t - e, e - x)
+
+    def test_mul(self) -> None:
+        x = Variable("x")
+        t = 2 * x
+        e = x + t + 1
+
+        s1 = Shape(x, t, e)
+
+        assert s1.mul(2) == Shape(2 * x, 2 * t, 2 * e)
+
+    def test_mul_one(self) -> None:
+        x = Variable("x")
+        t = 2 * x
+        e = x + t + 1
+
+        s1 = Shape(x, t, e)
+        s2 = Shape(1, 2, 3)
+
+        assert s1 * s2 == s2 * s1 == Shape(1 * x, 2 * t, 3 * e)
+
+    def test_div(self) -> None:
+        x = Variable("x")
+        t = 2 * x
+        e = x + t + 1
+
+        s1 = Shape(x, t, e)
+
+        assert s1.truediv(2) == Shape(x / 2, t / 2, e / 2)

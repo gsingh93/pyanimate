@@ -2,76 +2,129 @@ from __future__ import annotations
 
 import copy
 import math
-from typing import Generic, Self, TypeVar, cast
+from typing import Generic, Never, Self, TypeAlias, TypeVar, Union, cast, overload
 
 from .solver import Expression, Term, Variable
 
-T = TypeVar("T", bound=int | float | Expression | Variable)
+T = TypeVar("T", bound=int | float | Term | Expression | Variable)
+
+# TODO: Is there a better way to do this?
+UnresolvedShape: TypeAlias = Union[
+    "Shape[Variable]",
+    "Shape[Term]",
+    "Shape[Expression]",
+    "Shape[Variable | Term]",
+    "Shape[Variable | Expression]",
+    "Shape[Term | Expression]",
+    "Shape[Variable | Term | Expression]",
+    "Shape[int | float | Variable]",
+    "Shape[int | float | Term]",
+    "Shape[int | float | Expression]",
+    "Shape[int | float | Variable | Term]",
+    "Shape[int | float | Variable | Expression]",
+    "Shape[int | float | Term | Expression]",
+    "Shape[int | float | Variable | Term | Expression]",
+]
 
 
 class Shape(tuple[T, ...], Generic[T]):
     def __new__(cls, *args: T) -> Self:
         return tuple.__new__(cls, args)
 
-    def add(self, other: T, /) -> Self:
+    def __neg__(self) -> Self:
+        """Negate each field of the shape"""
+        return self.mul(-1)
+
+    def add(self, other: int | float, /) -> Self:
+        """Add a scalar to all fields of the shape"""
         x = (i + other for i in self)
-        return type(self)(*x)  # pyright: ignore[reportGeneralTypeIssues]
+        return type(self)(*x)
 
-    def __add__(self, other: Self, /) -> Self:
+    @overload
+    def __add__(self, other: Shape[int] | Shape[float], /) -> Self:
+        """Adding a shape of floats or ints to any shape should return Self"""
+
+    @overload
+    def __add__(self: Shape[int] | Shape[float], other: Shape, /) -> Shape:
+        """Adding any shape to a shape of floats or ints should return the type of the
+        other Shape"""
+
+    def __add__(self, other: Shape, /):
         x = (i + j for i, j in zip(self, other))
-        return type(self)(*x)  # pyright: ignore[reportGeneralTypeIssues]
+        return type(self)(*x)
 
-    def sub(self, other: T, /) -> Self:
+    def sub(self, other: int | float, /) -> Self:
+        """Subtract a scalar from all fields of the shape"""
         x = (i - other for i in self)
-        return type(self)(*x)  # pyright: ignore[reportGeneralTypeIssues]
+        return type(self)(*x)
 
-    def __sub__(self, other: Self, /) -> Self:
+    @overload
+    def __sub__(self, other: Shape[int] | Shape[float], /) -> Self:
+        """Subtracting a shape of floats or ints to any shape should return Self"""
+
+    @overload
+    def __sub__(self: Shape[int] | Shape[float], other: Shape, /) -> Shape:
+        """Subtracting any shape to a shape of floats or ints should return the type of
+        the other Shape
+        """
+
+    def __sub__(self, other: Self, /):
         x = (i - j for i, j in zip(self, other))
-        return type(self)(*x)  # pyright: ignore[reportGeneralTypeIssues]
+        return type(self)(*x)
 
-    def mul(self, other: T, /) -> Self:
-        if isinstance(other, (Term, Expression, Variable)):
-            raise TypeError("Cannot multiply a shape by an expression or variable")
-        x = (i * other for i in self)
-        return type(self)(*x)  # pyright: ignore[reportGeneralTypeIssues]
+    def mul(self, other: int | float, /) -> Self:
+        """Multiply all fields of the shape by a scalar"""
+        # TODO: This is a hack to preserve the type of Self if it is a Shape[int] (which
+        # is needed for `Color`). Maybe there's a way to check the value of `T` at
+        # runtime?
+        res = []
+        int_array = True
+        for i in self:
+            if not isinstance(i, int):
+                int_array = False
+            res.append(i * other)
 
-    def floormul(self, other: T, /) -> Self:
-        if isinstance(other, (Term, Expression, Variable)):
-            raise TypeError("Cannot multiply a shape by an expression or variable")
-        x = (int(i * other) for i in self)
-        return type(self)(*x)  # pyright: ignore[reportGeneralTypeIssues]
+        if int_array:
+            res = map(int, res)
+        return type(self)(*res)
+
+    # def floormul(self: Shape[int], other: int | float, /) -> Shape:
+    #     """Multiply all fields of the shape by a scalar"""
+    #     x = (int(i * other) for i in self)
+    #     return type(self)(*x)
+
+    @overload
+    def __mul__(self, other: Shape[int] | Shape[float], /) -> Self:
+        """Multiplying a shape of floats or ints to any shape should return Self"""
+
+    @overload
+    def __mul__(self: Shape[int] | Shape[float], other: Shape, /) -> Shape:
+        """Multiplying any shape to a shape of floats or ints should return the type of
+        the other Shape
+        """
+
+    @overload
+    def __mul__(
+        self: UnresolvedShape,
+        other: UnresolvedShape,
+        /,
+    ) -> Never:
+        """Multiplying a shape containing Variables, Terms, or Expressions by another
+        shape containing Variables, Terms, or Expressions should not be allowed"""
 
     def __mul__(self, other: Self, /) -> Self:
-        # TODO: Could it lead to bugs if one of the shapes is not resolved? Should we
-        # require both to be resolved?
-        resolved = self.get()
-        other_resolved = other.get()
+        resolved = cast(Point[int | float], self.get())
+        other_resolved = cast(Point[int | float], other.get())
+
+        # Multiplying two tuples requires both to already be resolved
+        assert resolved == self and other_resolved == other
+
         x = (i * j for i, j in zip(resolved, other_resolved))
-        return type(self)(*x)  # pyright: ignore[reportGeneralTypeIssues]
+        return type(self)(*x)
 
-    def floordiv(self, other: T, /) -> Self:
-        x = (i // other for i in self)
-        return type(self)(*x)  # pyright: ignore[reportGeneralTypeIssues]
-
-    # def __floordiv__(self, other: Self, /) -> Self:
-    #     x = (i // j for i, j in zip(self, other))
-    #     return type(self)(*x)  # pyright: ignore[reportGeneralTypeIssues]
-
-    # def truediv(self, other: T, /) -> Self:
-    #     x = (i / other for i in self)
-    #     return type(self)(*x)  # pyright: ignore[reportGeneralTypeIssues]
-
-    # def __truediv__(self, other: Self, /) -> Self:
-    #     x = (i / j for i, j in zip(self, other))
-    #     return type(self)(*x)  # pyright: ignore[reportGeneralTypeIssues]
-
-    # def mod(self, other: T, /) -> Self:
-    #     x = (i % other for i in self)
-    #     return type(self)(*x)  # pyright: ignore[reportGeneralTypeIssues]
-
-    # def __mod__(self, other: Self, /) -> Self:
-    #     x = (i % j for i, j in zip(self, other))
-    #     return type(self)(*x)  # pyright: ignore[reportGeneralTypeIssues]
+    def truediv(self, other: int | float, /) -> Self:
+        x = (i / other for i in self)
+        return type(self)(*x)
 
     def __radd__(self, other: Self, /) -> Self:
         return self + other
@@ -113,7 +166,7 @@ class Shape(tuple[T, ...], Generic[T]):
     ) -> Self:
         # We need to deepcopy a tuple, not the original object, otherwise the
         # deepcopy implementation will not use the tuple's deepcopy method.
-        return type(self)(*copy.deepcopy(tuple(self), memo))  # type: ignore
+        return type(self)(*copy.deepcopy(tuple(self), memo))
 
 
 class Point(Shape[T], Generic[T]):
@@ -129,42 +182,38 @@ class Point(Shape[T], Generic[T]):
         return f"P{tuple(self.get())}"
 
     def mag(self) -> float:
-        resolved: Point[int | float] = cast(Point[int | float], self.get())
+        resolved = cast(Point[int | float], self.get())
         return (resolved.x**2 + resolved.y**2) ** 0.5
 
     def radians(self) -> float:
-        resolved = self.get()
+        resolved = cast(Point[int | float], self.get())
         return math.atan2(resolved.y, resolved.x)
 
 
-# Colors can only have int or float values, not Expression or Variable
-S = TypeVar("S", bound=int | float)
-
-
-class Color(Shape[S], Generic[S]):
+class Color(Shape[int]):
     def __new__(  # pylint: disable=arguments-differ
-        cls, r: S, g: S, b: S, a: S = 255
+        cls, r: int, g: int, b: int, a: int = 255
     ) -> Self:
         return tuple.__new__(cls, (r, g, b, a))
 
     @staticmethod
-    def from_alpha(alpha: S) -> Color[S]:
+    def from_alpha(alpha: int) -> Color:
         return Color(0, 0, 0, alpha)
 
     @property
-    def r(self) -> S:
+    def r(self) -> int:
         return self[0]
 
     @property
-    def g(self) -> S:
+    def g(self) -> int:
         return self[1]
 
     @property
-    def b(self) -> S:
+    def b(self) -> int:
         return self[2]
 
     @property
-    def a(self) -> S:
+    def a(self) -> int:
         return self[3]
 
 

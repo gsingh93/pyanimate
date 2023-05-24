@@ -5,7 +5,7 @@ import uuid
 from collections import OrderedDict
 from copy import deepcopy
 from enum import Enum
-from typing import Optional, Self
+from typing import Self
 
 from . import get_logger
 from .renderer import Renderer
@@ -121,7 +121,7 @@ class Object:
         self._height_constraint = self._h == val
         self.canvas.solver.add(self._height_constraint)
 
-    def add(self, obj: Object, offset=P(0, 0)) -> None:
+    def add(self, obj: Object, offset: P = P(0, 0)) -> None:
         logger.debug("Adding %s to %s at offset %s", obj, self, offset)
         self.children[obj] = offset
 
@@ -465,9 +465,7 @@ class Rectangle(Object):
 class Line(Object):
     # TODO: Support polar coordinates
     # TODO: Convert absolute to relative
-    def __init__(
-        self, *, end: P[float], start: P[float] = P(0, 0), relative=True, **kwargs
-    ) -> None:
+    def __init__(self, *, end: P, start: P = P(0, 0), relative=True, **kwargs) -> None:
         super().__init__(**kwargs)
         self.relative = relative
         self.start = start
@@ -566,7 +564,7 @@ class TextBox(Rectangle):
             self.text,
             (
                 self.pos
-                + P(int(self.width.value()), int(self.height.value())).floordiv(2)
+                + P(int(self.width.value()), int(self.height.value())).truediv(2)
             ),
             self.style.clone(anchor=Anchor.MIDDLE_MIDDLE),
         )
@@ -817,7 +815,7 @@ class Canvas(Object):
 
         return copy
 
-    def add(self, obj: Object, offset=P(0, 0)) -> None:
+    def add(self, obj: Object, offset: P = P(0, 0)) -> None:
         # If we're adding an Arrow with absolute coordinates, convert the absolute
         # coordinates to relative by updating offset
         if isinstance(obj, Arrow) and not obj.relative:

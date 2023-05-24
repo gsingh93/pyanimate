@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from copy import deepcopy
-from typing import Literal, Optional, TypeAlias
+from typing import Literal, TypeAlias, Union
 
 import kiwisolver as kiwi
 from kiwisolver import UnsatisfiableConstraint
@@ -10,7 +10,8 @@ from . import get_logger
 
 logger = get_logger(__name__)
 
-SolverType: TypeAlias = int | float | "Variable" | "Term" | "Expression"
+
+SolverType: TypeAlias = Union[int, float, "Variable", "Term", "Expression"]
 
 
 class Variable:
