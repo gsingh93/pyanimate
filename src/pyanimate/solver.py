@@ -14,7 +14,7 @@ SolverType: TypeAlias = int | float | "Variable" | "Term" | "Expression"
 
 
 class Variable:
-    def __init__(self, name: Optional[str] = None):
+    def __init__(self, name: str | None = None):
         self._name = name
         if name:
             self._var = kiwi.Variable(name)
@@ -417,7 +417,7 @@ class Solver:
         self._solver = kiwi.Solver()
         self._constraints = set()
 
-    def _find(self, v: str) -> tuple[Optional[Variable], set[Constraint]]:
+    def _find(self, v: str) -> tuple[Variable | None, set[Constraint]]:
         res = set()
         res_strs = set()
         var = None

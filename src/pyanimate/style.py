@@ -20,23 +20,23 @@ class Anchor(str, Enum):
     BOTTOM_RIGHT = "rd"
 
 
-_default_style: Optional[Style] = None
+_default_style: Style | None = None
 
 
 class Style:
     def __init__(
         self,
         *,
-        parent: Optional[Style] = None,
-        padding: Optional[int] = None,
-        font: Optional[str] = None,
-        font_size: Optional[int] = None,
-        anchor: Optional[Anchor] = None,
+        parent: Style | None = None,
+        padding: int | None = None,
+        font: str | None = None,
+        font_size: int | None = None,
+        anchor: Anchor | None = None,
         stroke_color: Optional[Color[int]] = None,
         fill_color: Optional[Color[int]] = None,
         font_color: Optional[Color[int]] = None,
-        alpha: Optional[int] = None,
-        parent_obj_style: Optional[Style] = None,
+        alpha: int | None = None,
+        parent_obj_style: Style | None = None,
     ) -> None:
         if parent is None:
             parent = _default_style
@@ -52,7 +52,7 @@ class Style:
         self._font_color = font_color
         self._alpha = alpha
 
-        self._parent_obj_style: Optional[Style] = parent_obj_style
+        self._parent_obj_style: Style | None = parent_obj_style
 
     def _attr(self, attr_name: str) -> Any:
         attr = getattr(self, attr_name)
@@ -76,7 +76,7 @@ class Style:
         return parent_color.floormul(1 - alpha_ratio) + color.floormul(alpha_ratio)
 
     @property
-    def parent_obj_style(self) -> Optional[Style]:
+    def parent_obj_style(self) -> Style | None:
         return self._parent_obj_style
 
     @parent_obj_style.setter

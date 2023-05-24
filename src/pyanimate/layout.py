@@ -55,7 +55,7 @@ class Object:
         self._width_constraint = None
         self._height_constraint = None
         self.children: OrderedDict[Object, P] = OrderedDict()
-        self.parent: Optional[Object] = None
+        self.parent: Object | None = None
 
         self.canvas.solver.add(self._x >= 0)
         self.canvas.solver.add(self._y >= 0)
@@ -130,7 +130,7 @@ class Object:
         logger.debug(self.style)
         obj.style.parent_obj_style = self.style
 
-    def find(self, obj: Object, remove: bool = False) -> Optional[Object]:
+    def find(self, obj: Object, remove: bool = False) -> Object | None:
         for child in self.children:
             if child == obj:
                 if remove:
