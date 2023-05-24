@@ -210,8 +210,12 @@ def create_canvas(title, fields, mode: Mode, endianness: Endianness, style) -> C
         right_text = "LSB"
         fields.reverse()
 
-    lsb_msb.add(TextBox(left_text, canvas=c, width=750 * ctx.scale, align=Align.LEFT))
-    lsb_msb.add(TextBox(right_text, canvas=c, width=750 * ctx.scale, align=Align.RIGHT))
+    lsb_msb.add(
+        TextBox(left_text, canvas=c, width=750 * ctx.scale, align=Anchor.MIDDLE_LEFT)
+    )
+    lsb_msb.add(
+        TextBox(right_text, canvas=c, width=750 * ctx.scale, align=Anchor.MIDDLE_RIGHT)
+    )
 
     v.add(lsb_msb)
     v.add(Spacer(canvas=c))

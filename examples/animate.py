@@ -145,12 +145,13 @@ def main() -> None:
 
     ctx = RenderContext(args.width, args.height, 100, (300, 300), args.scale)
 
+    s = create_scene(ctx)
     try:
-        s = create_scene(ctx)
         s.play(args.frame_rate, args.output)
     except kiwisolver.UnsatisfiableConstraint as e:
         logger.exception(e)
 
+        assert s.cur_keyframe is not None
         res = s.cur_keyframe.canvas.solver.analyze(e)
         print("Exception analysis:")
         for var, constraints in res:
@@ -159,9 +160,6 @@ def main() -> None:
                 print(c)
 
         sys.exit(1)
-
-        # logger.error("\n%s", )
-        # raise
 
     with Image.open(args.output) as im:
         im.show()
