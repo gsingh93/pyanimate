@@ -14,14 +14,17 @@ VERBOSE = logging.DEBUG - 5
 
 
 class IndentFormatter(logging.Formatter):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.base_depth = len(inspect.stack())
+
     def format(self, rec: logging.LogRecord) -> str:
         stack: list[inspect.FrameInfo] = inspect.stack()
         # We need to skip 8 stack frames of the logging infrastructure to get to the
         # real stack frame
         frame = stack[8]
 
-        # TODO: Set base stack frame in __init__ and use that here
-        rec.indent = " " * (len(stack) - 8)
+        rec.indent = " " * (len(stack) - 8 - self.base_depth)
         # TODO: Also need to update filename
         rec.funcName = frame.function
         out = logging.Formatter.format(self, rec)
@@ -91,7 +94,7 @@ def get_logger(name: str, *, indent: bool = False) -> CustomLogger:
 
     # TODO: The docs say that libraries shouldn't add handlers to their loggers, and
     # that should only be done by applications. But I don't know how to do this and
-    # still allow the use of the IndentLogger
+    # still allow the use of the IndentFormatter.
     if indent:
         formatter = IndentFormatter(
             "[{levelname:7} - {filename}:{lineno}]{indent}{funcName}(): {message}",

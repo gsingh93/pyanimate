@@ -46,6 +46,9 @@ class Animation(ABC):
             render()
             self.elapsed_time += frame_duration
 
+    def __str__(self) -> str:
+        return f"{self.__class__.__name__}(duration={self.duration})"
+
 
 class AnimationGroup(Animation):
     def __init__(self, animations: list[Animation], **kwargs) -> None:
@@ -131,6 +134,13 @@ class Transform(Animation):
         """
         # TODO: Remove this special case
         if isinstance(self.val_diff, (Color, P)):
+            logger.debug(
+                "%s %s %s %s",
+                self.start_val,
+                self.val_diff,
+                progress,
+                self.val_diff.mul(progress),
+            )
             return self.start_val + (self.val_diff.mul(progress))
 
         return self.start_val + (self.val_diff * progress)
@@ -213,7 +223,12 @@ class Translate(Transform):
             self.val_diff = dest
 
     def update_val(self, val) -> None:
-        logger.debug("Updating %s offset to %s", self.obj, val)
+        logger.debug(
+            "Updating %s offset from %s to %s",
+            self.obj,
+            self.parent.children[self.obj],
+            val,
+        )
         self.obj.clear_constraints()
         self.parent.children[self.obj] = val
 

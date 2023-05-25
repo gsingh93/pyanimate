@@ -437,6 +437,7 @@ class Solver:
         return var, res
 
     def add(self, c: Constraint) -> None:
+        logger.verbose("Adding constraint %s", c)
         self._constraints.add(c)
         self._solver.addConstraint(c._constraint)
 

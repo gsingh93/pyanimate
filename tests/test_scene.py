@@ -288,8 +288,9 @@ class TestTranslateUpVLayoutConstraint2(AnimationTestBase):
         ]
 
 
-@pytest.mark.skip("Need to debug why test is failing")
 class TestTranslateUpVLayoutConstraint(AnimationTestBase):
+    show = True
+
     @pytest.fixture(scope="class")
     def dim(self) -> tuple[int, int]:
         return 7, 7

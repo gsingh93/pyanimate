@@ -88,7 +88,9 @@ class Scene:
         for keyframe in self.keyframes:
             self.cur_keyframe = keyframe
             for anim in keyframe.animations:
+                logger.debug("Playing animation %s", anim)
                 anim.play(self.render, frame_rate)
+                logger.debug("Finished animation %s", anim)
 
         logger.info(
             "Rendered %d frames at %d fps (%s seconds)",

@@ -127,7 +127,6 @@ class Object:
 
         assert obj.parent is None
         obj.parent = self
-        logger.debug(self.style)
         obj.style.parent_obj_style = self.style
 
     def find(self, obj: Object, remove: bool = False) -> Object | None:
@@ -200,8 +199,8 @@ class Object:
         logger.debug("Preparing %s", self)
         self.prepare_impl(renderer)
 
-        for obj in self.children:
-            logger.debug("Preparing child %s %s", obj, obj.pos)
+        for obj, offset in self.children.items():
+            logger.debug("Preparing child %s %s (offset %s)", obj, obj.pos, offset)
             obj.prepare(renderer)
 
     def render(self, renderer: Renderer) -> None:
@@ -267,78 +266,18 @@ class Object:
 
         # TODO: Every time a field is added this needs to be updated, is there a better
         # way to do this?
-        # copy.children = OrderedDict()
-        # for child, offset in self.children.items():
-        #     x = offset.x
-        #     y = offset.y
-        #     new_var = None
-        #     if isinstance(x, Variable):
-        #         logger.warning("Unimplemented")
-        #     elif isinstance(x, Expression):
-        #         # TODO: all of the variables of `x` reference objects in the original,
-        #         # we want to copy this expression so that the variables reference the
-        #         # corresponding objects in the copy
-
-        #         # TODO: What if we implemented deepcopy for Variable and Expression? The
-        #         # deepcopy infrastructure should then make all the copies for us, and
-        #         # they should be already attached to the correct objects/solver.
-        #         new_var, new_e = copy_expression(x)
-
-        #     copy.children[deepcopy(child, memo)] = P(x, y)
         copy.children = deepcopy(self.children, memo)
-
-        # print("old")
-        # for child, offset in self.children.items():
-        #     if isinstance(offset.x, Expression):
-        #         print(offset.x, offset.y)
-        #         print(offset.x.variables()[0], offset.y.variables()[0])
-        # print("new")
-        # for child, offset in copy.children.items():
-        #     if isinstance(offset.x, Expression):
-        #         print(offset.x, offset.y)
-        #         print(offset.x.variables()[0], print(offset.y.variables()[0]))
-
         copy.parent = deepcopy(self.parent, memo)
         copy.style = deepcopy(self.style, memo)
 
         c = copy
-        # short_id = c.__class__.__name__ + "." + str(self._id)[:4]
 
-        # print(1, memo)
         c._width_constraint = deepcopy(self._width_constraint, memo)
         c._height_constraint = deepcopy(self._height_constraint, memo)
-        # print(2, memo)
         c._w = deepcopy(self._w, memo)
         c._h = deepcopy(self._h, memo)
-
-        # print("c.w, c.h", c._w, c._h)
-        # if c._width_constraint:
-        #     c.canvas.solver.add(c._width_constraint)
-        # if c._height_constraint:
-        #     c.canvas.solver.add(c._height_constraint)
-
-        # c._width_constraint = None
-        # c._height_constraint = None
-        # if self._width_constraint:
-        #     v, constraint = copy_constraint(self._w, self._width_constraint)
-        #     v.setName(f"w.{short_id}")
-        #     c._w = v
-        #     c._width_constraint = constraint
-        #     c.canvas.solver.add(constraint)
-        # else:
-        #     c._w = Variable(f"w.{short_id}")
-
-        # if self._height_constraint:
-        #     v, constraint = copy_constraint(self._h, self._height_constraint)
-        #     v.setName(f"h.{short_id}")
-        #     c._h = v
-        #     c._height_constraint = constraint
-        #     c.canvas.solver.add(constraint)
-        # else:
-        #     c._h = Variable(f"h.{short_id}")
-
-        c._x = deepcopy(self._x, memo)  # Variable(f"x.{short_id}")
-        c._y = deepcopy(self._y, memo)  # Variable(f"y.{short_id}")
+        c._x = deepcopy(self._x, memo)
+        c._y = deepcopy(self._y, memo)
 
         # c.canvas.solver.add(c._x >= 0)
         # c.canvas.solver.add(c._y >= 0)
@@ -747,64 +686,24 @@ class Canvas(Object):
         memo[id(self)] = copy
 
         copy.canvas = copy
-        copy.solver = deepcopy(self.solver, memo)  # Solver()
+        copy.solver = deepcopy(self.solver, memo)
 
         copy.cloned_to = None
 
         # TODO: Every time a field is added this needs to be updated, is there a better
         # way to do this?
-        # copy.children = OrderedDict()
-        # for child, offset in self.children.items():
-        #     print(offset.get())
-        #     copy.children[deepcopy(child, memo)] = offset
         copy.children = deepcopy(self.children, memo)
-        # print("old [canvas]")
-        # for child, offset in self.children.items():
-        #     if isinstance(offset.x, Expression):
-        #         print(offset.x, offset.y)
-        #         print(offset.x.variables()[0], offset.y.variables()[0])
-        # print("new [canvas]")
-        # for child, offset in copy.children.items():
-        #     if isinstance(offset.x, Expression):
-        #         print(offset.x, offset.y)
-        #         print(offset.x.variables()[0], print(offset.y.variables()[0]))
         copy.parent = deepcopy(self.parent, memo)
         copy.style = deepcopy(self.style, memo)
 
         c = copy
-        # short_id = c.__class__.__name__ + "." + str(self._id)[:4]
 
-        # print(3, memo)
         c._width_constraint = deepcopy(self._width_constraint, memo)
         c._height_constraint = deepcopy(self._height_constraint, memo)
-        # print(4, memo)
         c._w = deepcopy(self._w, memo)
         c._h = deepcopy(self._h, memo)
-        # if c._width_constraint:
-        #     c.canvas.solver.add(c._width_constraint)
-        # if c._height_constraint:
-        #     c.canvas.solver.add(c._height_constraint)
-
-        # if self._width_constraint:
-        #     v, constraint = copy_constraint(self._w, self._width_constraint)
-        #     v.setName(f"w.{short_id}")
-        #     c._w = v
-        #     c._width_constraint = constraint
-        #     c.canvas.solver.add(constraint)
-        # else:
-        #     c._w = Variable(f"w.{short_id}")
-
-        # if self._height_constraint:
-        #     v, constraint = copy_constraint(self._h, self._height_constraint)
-        #     v.setName(f"h.{short_id}")
-        #     c._h = v
-        #     c._height_constraint = constraint
-        #     c.canvas.solver.add(constraint)
-        # else:
-        #     c._h = Variable(f"h.{short_id}")
-
-        c._x = deepcopy(self._x, memo)  # Variable(f"x.{short_id}")
-        c._y = deepcopy(self._y, memo)  # Variable(f"y.{short_id}")
+        c._x = deepcopy(self._x, memo)
+        c._y = deepcopy(self._y, memo)
 
         # c.canvas.solver.add(c._x >= 0)
         # c.canvas.solver.add(c._y >= 0)
@@ -826,6 +725,7 @@ class Canvas(Object):
         super().add(obj, offset.add(self.style.padding))
 
     def render(self, renderer: Renderer) -> None:
+        print(self.solver.dumps())
         self.solver.add(self.x == 0)
         self.solver.add(self.y == 0)
 
