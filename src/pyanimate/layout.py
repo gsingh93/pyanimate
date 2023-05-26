@@ -46,6 +46,7 @@ class Object:
 
         self.style = style
         self.canvas = canvas
+        self.cloned_to = None
 
         short_id = self.__class__.__name__ + "." + str(self._id)[:4]
         self._x = Variable(f"x.{short_id}")
@@ -57,21 +58,30 @@ class Object:
         self.children: OrderedDict[Object, P] = OrderedDict()
         self.parent: Object | None = None
 
-        self.canvas.solver.add(self._x >= 0)
-        self.canvas.solver.add(self._y >= 0)
-        self.canvas.solver.add(self._w >= 0)
-        self.canvas.solver.add(self._h >= 0)
-        if width is not None:
-            self._width_constraint = self._w == width
-            self.canvas.solver.add(self._width_constraint)
-        if height is not None:
-            self._height_constraint = self._h == height
-            self.canvas.solver.add(self._height_constraint)
-
-        self.cloned_to = None
+        # self.canvas.solver.add(self._x >= 0)
+        # self.canvas.solver.add(self._y >= 0)
+        # self.canvas.solver.add(self._w >= 0)
+        # self.canvas.solver.add(self._h >= 0)
+        # if width is not None:
+        #     self._width_constraint = self._w == width
+        #     self.canvas.solver.add(self._width_constraint)
+        # if height is not None:
+        #     self._height_constraint = self._h == height
+        #     self.canvas.solver.add(self._height_constraint)
 
         # Contains all constraints that relate this object to its parent
         self.constraints: list[Constraint] = []
+
+        self.constraints.append(self._x >= 0)
+        self.constraints.append(self._y >= 0)
+        self.constraints.append(self._w >= 0)
+        self.constraints.append(self._h >= 0)
+        if width is not None:
+            self._width_constraint = self._w == width
+            self.constraints.append(self._width_constraint)
+        if height is not None:
+            self._height_constraint = self._h == height
+            self.constraints.append(self._height_constraint)
 
     @property
     def pos(self) -> P[int]:
@@ -100,8 +110,10 @@ class Object:
 
     @width.setter
     def width(self, val: int | Variable) -> None:
-        if self._width_constraint:
-            assert self.canvas.solver.hasConstraint(self._width_constraint)
+        if self._width_constraint and self.canvas.solver.hasConstraint(
+            self._width_constraint
+        ):
+            # assert self.canvas.solver.hasConstraint(self._width_constraint)
             self.canvas.solver.remove(self._width_constraint)
 
         self._width_constraint = self._w == val
@@ -183,6 +195,16 @@ class Object:
         new.style.parent_obj_style = parent.style
 
     def prepare_impl(self, _renderer: Renderer) -> None:
+        self.canvas.solver.add(self._x >= 0)
+        self.canvas.solver.add(self._y >= 0)
+        self.canvas.solver.add(self._w >= 0)
+        self.canvas.solver.add(self._h >= 0)
+
+        if self._width_constraint:
+            self.canvas.solver.add(self._width_constraint)
+        if self._height_constraint:
+            self.canvas.solver.add(self._height_constraint)
+
         for obj, offset in self.children.items():
             c = self.x + offset.x == obj.x
             self.canvas.solver.add(c)
@@ -728,6 +750,7 @@ class Canvas(Object):
         super().add(obj, offset.add(self.style.padding))
 
     def render(self, renderer: Renderer) -> None:
+        self.solver = Solver()
         print(self.solver.dumps())
         self.solver.add(self.x == 0)
         self.solver.add(self.y == 0)
