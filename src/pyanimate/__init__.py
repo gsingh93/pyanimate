@@ -16,7 +16,9 @@ VERBOSE = logging.DEBUG - 5
 class IndentFormatter(logging.Formatter):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.base_depth = len(inspect.stack())
+        print(len(inspect.stack()))
+        # self.base_depth = len(inspect.stack())
+        self.base_depth = 0
 
     def format(self, rec: logging.LogRecord) -> str:
         stack: list[inspect.FrameInfo] = inspect.stack()

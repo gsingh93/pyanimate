@@ -396,6 +396,13 @@ class Constraint:
     # def __hash__(self) -> int:
     #     return hash(self._constraint)
 
+    def variables(self) -> list[Variable]:
+        res = []
+        for t in self._expr._terms:
+            res.append(t._var)
+
+        return res
+
     def __deepcopy__(self, memo) -> Constraint:
         id_ = id(self._constraint)
         if id_ in memo:
@@ -462,8 +469,7 @@ class Solver:
     def variables(self) -> list[Variable]:
         res = []
         for c in self._constraints:
-            for t in c._expr._terms:
-                res.append(t._var)
+            res.extend(c.variables())
 
         return res
 

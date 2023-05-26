@@ -36,7 +36,7 @@ select = [
 [tool.mypy]
 strict_optional = false
 check_untyped_defs = true
-allow_untyped_globals = true
+allow_untypned_globals = true
 allow_redefinition = true
 warn_redundant_casts = true
 warn_unused_ignores = true

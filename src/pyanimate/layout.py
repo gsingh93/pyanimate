@@ -207,8 +207,6 @@ class Object:
             obj.constraints.append(c)
 
     def prepare(self, renderer: Renderer) -> None:
-        logger.debug("Preparing %s", self)
-
         self.canvas.solver.add(self._x >= 0)
         self.canvas.solver.add(self._y >= 0)
         self.canvas.solver.add(self._w >= 0)
@@ -218,6 +216,10 @@ class Object:
             self.canvas.solver.add(self._width_constraint)
         if self._height_constraint:
             self.canvas.solver.add(self._height_constraint)
+
+        self.canvas.solver.update()
+
+        logger.debug("Preparing %s", self)
 
         self.prepare_impl(renderer)
 
@@ -331,85 +333,100 @@ class Object:
         return hash(self._id)
 
 
-class VLayout(Object):
+# TODO: We can make this class handle even more logic from the subclasses
+class Layout(Object):
     def __init__(self, align=Align.CENTER, **kwargs) -> None:
         super().__init__(**kwargs)
         self.align = align
 
     def __deepcopy__(self, memo):
         copy = super().__deepcopy__(memo)
-        copy.align = deepcopy(self.align, memo)
+        copy.align = self.align
 
         return copy
 
-    def prepare_impl(self, _renderer: Renderer) -> None:
-        for obj, offset in self.children.items():
-            c = obj.x == self.x + (self.width / 2) - (obj.width / 2) + offset.x
-            self.canvas.solver.add(c)
-            obj.constraints.append(c)
+    def get_center_constraint(self, obj: Object, offset: P) -> Constraint:
+        raise NotImplementedError()
 
-            c = self.width >= obj.width + offset.x
-            self.canvas.solver.add(c)
-            self.canvas.solver.update()
-            obj.constraints.append(c)
+    def get_secondary_dim_constraint(self, obj: Object, offset: P) -> Constraint:
+        raise NotImplementedError()
 
-        children = list(self.children)
-        for i, obj in enumerate(children):
-            offset = self.children[obj]
-            if i == 0:
-                c = obj.y == self.y + offset.y
-                self.canvas.solver.add(c)
-                obj.constraints.append(c)
-            else:
-                prev_child = children[i - 1]
-                c = obj.y == prev_child.y + prev_child.height + offset.y
-                self.canvas.solver.add(c)
-                obj.constraints.append(c)
+    def set_primary_dim_constraint(self) -> None:
+        raise NotImplementedError()
 
-        # TODO: Add to obj constraints?
-        constraint = sum(obj.height + offset.y for obj, offset in self.children.items())
-        self.height = constraint
-
-
-class HLayout(Object):
-    def __init__(self, align=Align.CENTER, **kwargs) -> None:
-        super().__init__(**kwargs)
-        self.align = align
-
-    def __deepcopy__(self, memo):
-        copy = super().__deepcopy__(memo)
-        copy.align = deepcopy(self.align, memo)
-
-        return copy
+    def get_linear_constraint(
+        self, prev_obj: Object | None, obj: Object, offset: P
+    ) -> Constraint:
+        raise NotImplementedError()
 
     def prepare_impl(self, _renderer: Renderer) -> None:
         for obj, offset in self.children.items():
-            c = obj.y == self.y + (self.height / 2) - (obj.height / 2) + offset.y
+            c = self.get_center_constraint(obj, offset)
             self.canvas.solver.add(c)
             obj.constraints.append(c)
 
-            c = self.height >= obj.height + offset.y
+            c = self.get_secondary_dim_constraint(obj, offset)
             self.canvas.solver.add(c)
+            obj.constraints.append(c)
+
             self.canvas.solver.update()
+
+        prev_child = None
+        for obj, offset in self.children.items():
+            c = self.get_linear_constraint(prev_child, obj, offset)
+            self.canvas.solver.add(c)
             obj.constraints.append(c)
 
-        children = list(self.children)
-        for i, obj in enumerate(children):
-            offset = self.children[obj]
-
-            if i == 0:
-                c = obj.x == self.x + offset.x
-                self.canvas.solver.add(c)
-                obj.constraints.append(c)
-            else:
-                c = obj.x == children[i - 1].x + children[i - 1].width + offset.x
-                self.canvas.solver.add(c)
-                obj.constraints.append(c)
+            prev_child = obj
 
             self.canvas.solver.update()
 
         # TODO: Add to obj constraints?
-        self.width = sum(obj.width + offset.x for obj, offset in self.children.items())
+        self.set_primary_dim_constraint()
+
+
+class VLayout(Layout):
+    def get_center_constraint(self, obj: Object, offset: P) -> Constraint:
+        return obj.x == self.x + (self.width / 2) - (obj.width / 2) + offset.x
+
+    def get_secondary_dim_constraint(self, obj: Object, offset: P) -> Constraint:
+        return self.width >= obj.width + offset.x
+
+    def set_primary_dim_constraint(self) -> None:
+        expr = sum(obj.height + offset.y for obj, offset in self.children.items())
+        self.height = expr
+        self.canvas.solver.add(self.height == expr)
+
+    def get_linear_constraint(
+        self, prev_obj: Object | None, obj: Object, offset: P
+    ) -> Constraint:
+        if prev_obj:
+            return obj.y == prev_obj.y + prev_obj.height + offset.y
+        else:
+            return obj.y == self.y + offset.y
+
+
+class HLayout(Layout):
+    def get_center_constraint(self, obj: Object, offset: P) -> Constraint:
+        return obj.y == self.y + (self.height / 2) - (obj.height / 2) + offset.y
+
+    def get_secondary_dim_constraint(self, obj, offset) -> Constraint:
+        return self.height >= obj.height + offset.y
+
+    def set_primary_dim_constraint(self) -> None:
+        expr = sum(obj.width + offset.x for obj, offset in self.children.items())
+        # TODO: Remove this
+        self.width = expr
+
+        self.canvas.solver.add(self.width == expr)
+
+    def get_linear_constraint(
+        self, prev_obj: Object | None, obj: Object, offset: P
+    ) -> Constraint:
+        if prev_obj:
+            return obj.x == prev_obj.x + prev_obj.width + offset.x
+        else:
+            return obj.x == self.x + offset.x
 
 
 class Rectangle(Object):
@@ -637,7 +654,7 @@ class Arrow(Line):
         return copy
 
     def render(self, renderer: Renderer) -> None:
-        assert self.parent
+        assert self.parent is not None
 
         offset = self.parent.children[self].get()
         logger.info("offset: %r", offset)

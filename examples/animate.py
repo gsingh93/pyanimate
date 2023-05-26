@@ -8,8 +8,8 @@ import kiwisolver
 from PIL import Image
 
 from pyanimate import style as sty
-from pyanimate.animation import FadeIn, RgbTransform, StaticAnimation, Translate
-from pyanimate.layout import Arrow, Rectangle, TextBox, VLayout
+from pyanimate.animation import FadeIn, RgbTransform, Translate
+from pyanimate.layout import Arrow, TextBox, VLayout
 from pyanimate.renderer import RenderContext
 from pyanimate.scene import Scene
 from pyanimate.shape import CYAN, GREEN, MAGENTA, RED, YELLOW, Color
