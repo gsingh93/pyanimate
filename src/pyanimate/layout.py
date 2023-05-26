@@ -110,14 +110,14 @@ class Object:
 
     @width.setter
     def width(self, val: int | Variable) -> None:
-        if self._width_constraint and self.canvas.solver.hasConstraint(
-            self._width_constraint
-        ):
-            # assert self.canvas.solver.hasConstraint(self._width_constraint)
-            self.canvas.solver.remove(self._width_constraint)
+        # if self._width_constraint and self.canvas.solver.hasConstraint(
+        #     self._width_constraint
+        # ):
+        #     # assert self.canvas.solver.hasConstraint(self._width_constraint)
+        #     self.canvas.solver.remove(self._width_constraint)
 
         self._width_constraint = self._w == val
-        self.canvas.solver.add(self._width_constraint)
+        # self.canvas.solver.add(self._width_constraint)
 
     @property
     def height(self) -> Variable:
@@ -126,14 +126,14 @@ class Object:
 
     @height.setter
     def height(self, val: int | Variable) -> None:
-        if self._height_constraint and self.canvas.solver.hasConstraint(
-            self._height_constraint
-        ):
-            # assert self.canvas.solver.hasConstraint(self._height_constraint)
-            self.canvas.solver.remove(self._height_constraint)
+        # if self._height_constraint and self.canvas.solver.hasConstraint(
+        #     self._height_constraint
+        # ):
+        #     # assert self.canvas.solver.hasConstraint(self._height_constraint)
+        #     self.canvas.solver.remove(self._height_constraint)
 
         self._height_constraint = self._h == val
-        self.canvas.solver.add(self._height_constraint)
+        # self.canvas.solver.add(self._height_constraint)
 
     def add(self, obj: Object, offset: P = P(0, 0)) -> None:
         logger.debug("Adding %s to %s at offset %r", obj, self, offset)
@@ -195,16 +195,6 @@ class Object:
         new.style.parent_obj_style = parent.style
 
     def prepare_impl(self, _renderer: Renderer) -> None:
-        self.canvas.solver.add(self._x >= 0)
-        self.canvas.solver.add(self._y >= 0)
-        self.canvas.solver.add(self._w >= 0)
-        self.canvas.solver.add(self._h >= 0)
-
-        if self._width_constraint:
-            self.canvas.solver.add(self._width_constraint)
-        if self._height_constraint:
-            self.canvas.solver.add(self._height_constraint)
-
         for obj, offset in self.children.items():
             c = self.x + offset.x == obj.x
             self.canvas.solver.add(c)
@@ -218,6 +208,17 @@ class Object:
 
     def prepare(self, renderer: Renderer) -> None:
         logger.debug("Preparing %s", self)
+
+        self.canvas.solver.add(self._x >= 0)
+        self.canvas.solver.add(self._y >= 0)
+        self.canvas.solver.add(self._w >= 0)
+        self.canvas.solver.add(self._h >= 0)
+
+        if self._width_constraint:
+            self.canvas.solver.add(self._width_constraint)
+        if self._height_constraint:
+            self.canvas.solver.add(self._height_constraint)
+
         self.prepare_impl(renderer)
 
         for obj, offset in self.children.items():
@@ -751,7 +752,7 @@ class Canvas(Object):
 
     def render(self, renderer: Renderer) -> None:
         self.solver = Solver()
-        print(self.solver.dumps())
+
         self.solver.add(self.x == 0)
         self.solver.add(self.y == 0)
 

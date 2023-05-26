@@ -8,11 +8,11 @@ import kiwisolver
 from PIL import Image
 
 from pyanimate import style as sty
-from pyanimate.animation import StaticAnimation, Translate
+from pyanimate.animation import FadeIn, RgbTransform, StaticAnimation, Translate
 from pyanimate.layout import Arrow, Rectangle, TextBox, VLayout
 from pyanimate.renderer import RenderContext
 from pyanimate.scene import Scene
-from pyanimate.shape import MAGENTA
+from pyanimate.shape import CYAN, GREEN, MAGENTA, RED, YELLOW, Color
 from pyanimate.shape import Point as P
 
 style = sty.Style(padding=20, font="Roboto-Regular.ttf", font_size=32)
@@ -50,36 +50,36 @@ def create_scene(ctx: RenderContext) -> Scene:
     ###################################################
     #                  Initial Scene                  #
     ###################################################
-    # vlayout = VLayout(canvas=c)
-    # t = TextBox(
-    #     "prev stack frame",
-    #     canvas=c,
-    #     width=250,
-    #     height=120,
-    #     style=style.clone(fill_color=Color(80, 80, 80)),
-    # )
+    vlayout = VLayout(canvas=c)
+    t = TextBox(
+        "prev stack frame",
+        canvas=c,
+        width=250,
+        height=120,
+        style=style.clone(fill_color=Color(80, 80, 80)),
+    )
+    vlayout.add(t)
+
+    t = TextBox(
+        "RIP", canvas=c, width=250, height=50, style=style.clone(fill_color=GREEN)
+    )
+    vlayout.add(t)
+
+    # t = t.clone()
+    # # TODO: uncommenting the following line results in text fading not working
+    # #t.style = style.clone()
+    # t.set_text("RBP")
     # vlayout.add(t)
 
-    # t = TextBox(
-    #     "RIP", canvas=c, width=250, height=50, style=style.clone(fill_color=GREEN)
-    # )
-    # vlayout.add(t)
+    t = TextBox(
+        "RBP", canvas=c, width=250, height=50, style=style.clone(fill_color=CYAN)
+    )
+    vlayout.add(t)
 
-    # # t = t.clone()
-    # # # TODO: uncommenting the following line results in text fading not working
-    # # #t.style = style.clone()
-    # # t.set_text("RBP")
-    # # vlayout.add(t)
-
-    # t = TextBox(
-    #     "RBP", canvas=c, width=250, height=50, style=style.clone(fill_color=CYAN)
-    # )
-    # vlayout.add(t)
-
-    # t = TextBox(
-    #     "canary", canvas=c, width=250, height=50, style=style.clone(fill_color=YELLOW)
-    # )
-    # vlayout.add(t)
+    t = TextBox(
+        "canary", canvas=c, width=250, height=50, style=style.clone(fill_color=YELLOW)
+    )
+    vlayout.add(t)
 
     buf_tb = TextBox(
         "char buf[16]",
@@ -88,24 +88,24 @@ def create_scene(ctx: RenderContext) -> Scene:
         height=100,
         style=style.clone(fill_color=MAGENTA),
     )
-    # vlayout.add(buf_tb)
+    vlayout.add(buf_tb)
 
-    c.add(buf_tb)
-    # c.add(vlayout)
+    # c.add(buf_tb)
+    c.add(vlayout)
 
-    arrow = Rectangle(canvas=c, width=50, height=50)
-    # arrow = Arrow(
-    #     canvas=c,
-    #     end=P(buf_tb.x + buf_tb.width + 20, buf_tb.y + buf_tb.height),
-    #     start=P(buf_tb.x + buf_tb.width * 2, buf_tb.y + buf_tb.height),
-    #     relative=False,
-    # )
+    # arrow = Rectangle(canvas=c, width=50, height=50)
+    arrow = Arrow(
+        canvas=c,
+        end=P(buf_tb.x + buf_tb.width + 20, buf_tb.y + buf_tb.height),
+        start=P(buf_tb.x + buf_tb.width * 2, buf_tb.y + buf_tb.height),
+        relative=False,
+    )
     c.add(
-        arrow, P(buf_tb.x + buf_tb.width * 2, buf_tb.y + buf_tb.height)  # P(100, 100)
+        arrow,  # P(buf_tb.x + buf_tb.width * 2, buf_tb.y + buf_tb.height)  # P(100, 100)
     )
 
-    s.add(StaticAnimation(c))
-    # s.add(FadeIn(arrow, duration=2))
+    # s.add(StaticAnimation(c))
+    s.add(FadeIn(c, duration=2))
 
     ###################################################
     #               Overflow buffer                   #
@@ -113,14 +113,14 @@ def create_scene(ctx: RenderContext) -> Scene:
 
     c = s.keyframe()
 
-    s.add(Translate(c, arrow.latest(), P(0, -100), relative=True))
+    # s.add(Translate(c, arrow.latest(), P(0, -100), relative=True))
 
-    # s.add(
-    #     [
-    #         Translate(c, arrow, P(0, -100), relative=True),
-    #         RgbTransform(buf_tb, MAGENTA, RED),
-    #     ]
-    # )
+    s.add(
+        [
+            Translate(c, arrow.latest(), P(0, -100), relative=True),
+            RgbTransform(buf_tb.latest(), MAGENTA, RED),
+        ]
+    )
 
     # TODO: Change content of buffer to "AAAAAAAAAAAAAAAAAA"
 
