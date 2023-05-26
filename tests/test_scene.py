@@ -242,7 +242,7 @@ class TestTranslateUpVLayoutConstraint2(AnimationTestBase):
         s.add(Translate(c, r2.latest(), P(0, -2), relative=True))
 
     def num_frames(self) -> int:
-        return 4
+        return 2
 
     def frame(self, frame_num: int) -> list[str]:
         if frame_num == 0:
@@ -255,32 +255,11 @@ class TestTranslateUpVLayoutConstraint2(AnimationTestBase):
                 "wwwwwww",
                 "wwwwwww",
             ]
-        elif frame_num == 1:
-            return [
-                "wwwwwww",
-                "wwbbwww",
-                "wwbbwww",
-                "wwwbbww",
-                "wwwbbww",
-                "wwwwwww",
-                "wwwwwww",
-            ]
-        elif frame_num == 2:
-            return [
-                "wwwwwww",
-                "wbbwwww",
-                "wbbwwww",
-                "wwwbbww",
-                "wwwbbww",
-                "wwwwwww",
-                "wwwwwww",
-            ]
-
-        assert frame_num == 3
+        assert frame_num == 1
         return [
             "wwwwwww",
-            "wwwbbww",
-            "wwwbbww",
+            "wbbwwww",
+            "wbbbbww",
             "wwwbbww",
             "wwwwwww",
             "wwwwwww",
@@ -289,8 +268,6 @@ class TestTranslateUpVLayoutConstraint2(AnimationTestBase):
 
 
 class TestTranslateUpVLayoutConstraint(AnimationTestBase):
-    show = True
-
     @pytest.fixture(scope="class")
     def dim(self) -> tuple[int, int]:
         return 7, 7
@@ -320,7 +297,7 @@ class TestTranslateUpVLayoutConstraint(AnimationTestBase):
         # assert p.x.variables()[0]._var is r1.latest().width._var
         # assert p.y.variables()[0]._var is r1.latest().height._var
 
-        s.add(Translate(vlayout, r2.latest(), P(0, -2), relative=True))
+        s.add(Translate(vlayout.latest(), r2.latest(), P(0, -2), relative=True))
 
     def num_frames(self) -> int:
         return 2

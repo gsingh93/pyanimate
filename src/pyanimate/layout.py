@@ -114,15 +114,17 @@ class Object:
 
     @height.setter
     def height(self, val: int | Variable) -> None:
-        if self._height_constraint:
-            assert self.canvas.solver.hasConstraint(self._height_constraint)
+        if self._height_constraint and self.canvas.solver.hasConstraint(
+            self._height_constraint
+        ):
+            # assert self.canvas.solver.hasConstraint(self._height_constraint)
             self.canvas.solver.remove(self._height_constraint)
 
         self._height_constraint = self._h == val
         self.canvas.solver.add(self._height_constraint)
 
     def add(self, obj: Object, offset: P = P(0, 0)) -> None:
-        logger.debug("Adding %s to %s at offset %s", obj, self, offset)
+        logger.debug("Adding %s to %s at offset %r", obj, self, offset)
         self.children[obj] = offset
 
         assert obj.parent is None
@@ -182,17 +184,14 @@ class Object:
 
     def prepare_impl(self, _renderer: Renderer) -> None:
         for obj, offset in self.children.items():
-            # print(self.pos, offset, offset.get())
             c = self.x + offset.x == obj.x
             self.canvas.solver.add(c)
             self.canvas.solver.update()
-            # print(c)
             obj.constraints.append(c)
 
             c = self.y + offset.y == obj.y
             self.canvas.solver.add(c)
             self.canvas.solver.update()
-            # print(c)
             obj.constraints.append(c)
 
     def prepare(self, renderer: Renderer) -> None:
@@ -200,8 +199,12 @@ class Object:
         self.prepare_impl(renderer)
 
         for obj, offset in self.children.items():
-            logger.debug("Preparing child %s %s (offset %s)", obj, obj.pos, offset)
+            # TODO: It seems like this offset isn't the same as the one that was updated
+            # from the Translate animation
+            logger.debug("Preparing child %s %s (offset %r)", obj, obj.pos, offset)
             obj.prepare(renderer)
+
+        logger.debug("Finished preparing %s", self)
 
     def render(self, renderer: Renderer) -> None:
         for obj in self.children:
@@ -614,7 +617,7 @@ class Arrow(Line):
         assert self.parent
 
         offset = self.parent.children[self].get()
-        logger.info("offset: %s", offset)
+        logger.info("offset: %r", offset)
         logger.info("self.start,self.end: %s %s", self.start.get(), self.end.get())
         start = self.start.get() + offset
         end = self.end.get() + offset

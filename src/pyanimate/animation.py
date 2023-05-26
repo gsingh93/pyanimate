@@ -217,6 +217,8 @@ class Translate(Transform):
         self, parent: Object, child: Object, dest: P, *, relative=False, **kwargs
     ) -> None:
         super().__init__(child, parent.children[child], dest, **kwargs)
+        # TODO: Why are we storing the parent instead of just using the current parent
+        # in the update_val method?
         self.parent = parent
         # TODO: remove this special case
         if relative:
@@ -224,8 +226,9 @@ class Translate(Transform):
 
     def update_val(self, val) -> None:
         logger.debug(
-            "Updating %s offset from %s to %s",
+            "Updating %s offset (parent %s) from %r to %r",
             self.obj,
+            self.parent,
             self.parent.children[self.obj],
             val,
         )

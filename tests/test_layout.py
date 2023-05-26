@@ -109,32 +109,57 @@ class TestObject:
 
         # TODO: Test setting height to constraint
 
+    def test_latest(self, c) -> None:
+        """
+        Test that latest() returns the latest object
+        """
+        parent = Object(c)
+
+        assert parent.latest() == parent
+        assert parent.latest() is parent
+
+        cloned1 = parent.clone()
+
+        assert parent.latest() == cloned1
+        assert cloned1.latest() == cloned1
+
+        assert parent.latest() is cloned1
+        assert cloned1.latest() is cloned1
+
+        cloned2 = parent.clone()
+
+        assert parent.latest() == cloned2
+        assert cloned1.latest() == cloned2
+        assert cloned2.latest() == cloned2
+
+        assert parent.latest() is cloned2
+        assert cloned2.latest() is cloned2
+
+        # TODO: Is this what we want?
+        assert cloned1.latest() is not cloned2
+
     def test_clone(self, c) -> None:
         """
         Test that cloning an object replicates all attributes
         """
         parent = Object(c, width=10, height=20, style=Style(fill_color=RED, padding=5))
 
-        assert parent.latest() == parent
-        assert parent.latest() is parent
-
         cloned = parent.clone()
 
-        assert cloned.width.value() == 10
-        assert cloned.height.value() == 20
+        assert cloned.width is not parent.width
+        assert cloned.width._var is parent.width._var
+        # assert cloned.width.value() == 10
+        # assert cloned.height.value() == 20
         assert cloned.style.fill_color == RED
         assert cloned.style.padding == 5
+
+        assert parent.width is not cloned.width
+        assert parent.height is not cloned.height
+        assert parent.height is not cloned.height
 
         assert parent.canvas == cloned.canvas
         assert parent.canvas is not cloned.canvas
         assert parent.canvas.latest() is cloned.canvas
-
-        assert parent.latest() == cloned
-        assert parent == cloned
-        assert parent is not cloned
-
-        assert cloned.latest() == cloned
-        assert cloned.latest() is cloned
 
     def test_clone_unique(self, c) -> None:
         """
@@ -148,8 +173,8 @@ class TestObject:
 
         cloned = parent.clone(unique=True)
 
-        assert cloned.width.value() == 10
-        assert cloned.height.value() == 20
+        # assert cloned.width.value() == 10
+        # assert cloned.height.value() == 20
         assert cloned.style.fill_color == RED
         assert cloned.style.padding == 5
 

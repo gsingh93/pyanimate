@@ -179,7 +179,30 @@ class Point(Shape[T], Generic[T]):
         return self[1]
 
     def __str__(self) -> str:
-        return f"P{tuple(self.get())}"
+        x = None
+        y = None
+        if not isinstance(self.x, (int, float)) or not isinstance(self.y, (int, float)):
+            x, y = self.get()
+
+        s = "P("
+        if x is None:
+            s += str(self.x)
+        else:
+            s += f"{self.x} ({x})"
+
+        s += ", "
+
+        if y is None:
+            s += str(self.y)
+        else:
+            s += f"{self.y} ({y})"
+
+        s += ")"
+
+        return s
+
+    def __repr__(self) -> str:
+        return f"{self} [0x{id(self):x}]"
 
     def mag(self) -> float:
         resolved = cast(Point[int | float], self.get())

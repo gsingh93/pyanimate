@@ -9,7 +9,7 @@ from PIL import Image
 
 from pyanimate import style as sty
 from pyanimate.animation import StaticAnimation, Translate
-from pyanimate.layout import Arrow, TextBox, VLayout
+from pyanimate.layout import Arrow, Rectangle, TextBox, VLayout
 from pyanimate.renderer import RenderContext
 from pyanimate.scene import Scene
 from pyanimate.shape import MAGENTA
@@ -50,7 +50,7 @@ def create_scene(ctx: RenderContext) -> Scene:
     ###################################################
     #                  Initial Scene                  #
     ###################################################
-    vlayout = VLayout(canvas=c)
+    # vlayout = VLayout(canvas=c)
     # t = TextBox(
     #     "prev stack frame",
     #     canvas=c,
@@ -93,15 +93,15 @@ def create_scene(ctx: RenderContext) -> Scene:
     c.add(buf_tb)
     # c.add(vlayout)
 
-    # arrow = Rectangle(canvas=c, width=50, height=50)
-    arrow = Arrow(
-        canvas=c,
-        end=P(buf_tb.x + buf_tb.width + 20, buf_tb.y + buf_tb.height),
-        start=P(buf_tb.x + buf_tb.width * 2, buf_tb.y + buf_tb.height),
-        relative=False,
-    )
+    arrow = Rectangle(canvas=c, width=50, height=50)
+    # arrow = Arrow(
+    #     canvas=c,
+    #     end=P(buf_tb.x + buf_tb.width + 20, buf_tb.y + buf_tb.height),
+    #     start=P(buf_tb.x + buf_tb.width * 2, buf_tb.y + buf_tb.height),
+    #     relative=False,
+    # )
     c.add(
-        arrow,  # P(buf_tb.x + buf_tb.width * 2, buf_tb.y + buf_tb.height)  # P(100, 100)
+        arrow, P(buf_tb.x + buf_tb.width * 2, buf_tb.y + buf_tb.height)  # P(100, 100)
     )
 
     s.add(StaticAnimation(c))
