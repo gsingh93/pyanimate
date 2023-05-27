@@ -126,10 +126,31 @@ class TestDottedLine(ImageTestBase):
         assert False
 
 
-@pytest.mark.xfail
 class TestArrow(ImageTestBase):
+    @pytest.fixture(scope="class")
+    def dim(self) -> tuple[int, int]:
+        return 14, 12
+
+    @pytest.fixture(scope="class", autouse=True)
+    def setup_scene(self, c) -> None:
+        r = c.arrow(start=P(6, 0), end=P(6, 8), arrowhead_ratio=0.5)
+        c.add(r)
+
     def frame(self) -> list[str]:
-        assert False
+        return [
+            "wwwwwwwwwwwwww",
+            "wwwwwwbbbwwwww",
+            "wwwwwwbbbwwwww",
+            "wwwwwwbbbwwwww",
+            "wwwwwwbbbwwwww",
+            "wwwwwbbbbwwwww",
+            "wwwwbbbbbbwwww",
+            "wwwbbbbbbbbwww",
+            "wwwwbbbbbbwwww",
+            "wwwwwbbbbbwwww",
+            "wwwwwwbwbwwwww",
+            "wwwwwwwwwwwwww",
+        ]
 
 
 @pytest.mark.xfail
