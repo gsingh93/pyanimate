@@ -62,6 +62,12 @@ known_third_party = ["PIL"]
 source = ["src/pyanimate"]
 
 [tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "raise NotImplementedError",
+    "@(abc\\.)?abstractmethod",
+    "@property",
+]
 
 [tool.pylint.main]
 # Analyse import fallback blocks. This can be used to support both Python 2 and 3
