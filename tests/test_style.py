@@ -1,6 +1,5 @@
 import pytest
 
-from pyanimate.layout import Rectangle
 from pyanimate.shape import BLACK, BLUE, RED, WHITE, Color
 from pyanimate.style import Anchor, Style
 
@@ -57,7 +56,7 @@ class TestStyle:
     def test_composite_transparent(self, c, style) -> None:
         assert c.style.alpha == 255
 
-        r = Rectangle(canvas=c, width=100, height=100, style=style.clone(alpha=0))
+        r = c.rectangle(width=100, height=100, style=style.clone(alpha=0))
         c.add(r)
 
         assert r.style.alpha == 0
@@ -74,7 +73,7 @@ class TestStyle:
     def test_composite_opaque(self, c, style) -> None:
         assert c.style.alpha == 255
 
-        r = Rectangle(canvas=c, width=100, height=100, style=style.clone(alpha=255))
+        r = c.rectangle(width=100, height=100, style=style.clone(alpha=255))
         c.add(r)
 
         assert r.style.alpha == 255
@@ -91,7 +90,7 @@ class TestStyle:
     def test_composite_semi_transparent(self, c, style) -> None:
         assert c.style.alpha == 255
 
-        r = Rectangle(canvas=c, width=100, height=100, style=style.clone(alpha=100))
+        r = c.rectangle(width=100, height=100, style=style.clone(alpha=100))
         c.add(r)
 
         assert r.style.alpha == 100

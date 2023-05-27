@@ -37,6 +37,26 @@ class AnimationTestBase(ABC):
         raise NotImplementedError()
 
 
+class ImageTestBase(ABC):
+    show = False
+
+    @pytest.mark.dependency(name="dimensions")
+    def test_dimensions(self, c_im, dim):
+        actual = c_im.size
+        expected = dim
+        assert actual == expected
+
+    @pytest.mark.dependency(name="correct_frames", depends=["dimensions"])
+    def test_correct_frames(self, c_im) -> None:
+        actual = convert_to_ascii(c_im)
+        expected = self.frame()
+        assert actual == expected
+
+    @abstractmethod
+    def frame(self) -> list[str]:
+        raise NotImplementedError()
+
+
 def convert_to_ascii(image):
     ascii_pixels = []
 
