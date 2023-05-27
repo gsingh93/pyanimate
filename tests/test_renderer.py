@@ -40,8 +40,8 @@ class TestTextBoxDynamicSize(ImageTestBase):
             "wwwww",
             "wbbbw",
             "wb?bw",
-            "wb?b?",
-            "wbbb?",
+            "wb?b.",
+            "wbbb.",
         ]
 
 

@@ -3,6 +3,18 @@ from abc import ABC, abstractmethod
 import pytest
 
 
+def normalize_expected_output(expected: list[str], actual: list[str]) -> list[str]:
+    # A '.' in the expected image means that the pixel may vary between multiple
+    # renders, so we replace it with the actual pixel value.
+    for i, row in enumerate(expected):
+        for j, val in enumerate(row):
+            if val == ".":
+                row = row[:j] + actual[i][j] + row[j + 1 :]
+                expected[i] = row
+
+    return expected
+
+
 class AnimationTestBase(ABC):
     show = False
 
@@ -25,7 +37,7 @@ class AnimationTestBase(ABC):
         for i in range(s_im.n_frames):
             s_im.seek(i)
             actual = convert_to_ascii(s_im)
-            expected = self.frame(i)
+            expected = normalize_expected_output(self.frame(i), actual)
             assert actual == expected
 
     @abstractmethod
@@ -49,7 +61,8 @@ class ImageTestBase(ABC):
     @pytest.mark.dependency(name="correct_frames", depends=["dimensions"])
     def test_correct_frames(self, c_im) -> None:
         actual = convert_to_ascii(c_im)
-        expected = self.frame()
+        expected = normalize_expected_output(self.frame(), actual)
+
         assert actual == expected
 
     @abstractmethod
