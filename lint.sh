@@ -16,4 +16,4 @@ pyright src/pyanimate examples tests/*.py
 isort --check-only --diff ${LINT_FILES}
 black --check --diff ${LINT_FILES}
 
-pylint ${LINT_FILES} || true
+PYTHONPATH=$(pwd) pylint --load-plugins assert_checker,assign_dim_in_prepare ${LINT_FILES} || true
