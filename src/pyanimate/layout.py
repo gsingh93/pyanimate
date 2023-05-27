@@ -475,7 +475,7 @@ class HLayout(Layout):
 class Rectangle(Object):
     def render(self, renderer: Renderer) -> None:
         # Borders are mandatory at the moment, so the minimum size is 2x2
-        assert self.width >= 2 and self.height >= 2
+        assert self.width.value() >= 2 and self.height.value() >= 2
 
         x, y = self.x.value(), self.y.value()
         renderer.rectangle(

@@ -3,7 +3,6 @@ import os
 import pytest
 
 from pyanimate.animation import FadeIn
-from pyanimate.layout import Rectangle, TextBox
 from pyanimate.shape import RED
 
 from . import AnimationTestBase
@@ -90,8 +89,8 @@ class TestFadeInParent(FadeInTestBase):
     @pytest.fixture(scope="class", autouse=True)
     def setup_scene(self, s) -> None:
         c = s.keyframe()
-        r = c.textbox(text="A", font_size=4)
-        c.add(r)
+        t = c.textbox(text="A", font_size=4, width=4, height=4)
+        c.add(t)
         s.add(FadeIn(c, duration=2))
 
     def num_frames(self) -> int:
@@ -131,7 +130,7 @@ class TestFadeInText(FadeInTestBase):
     @pytest.fixture(scope="class", autouse=True)
     def setup_scene(self, s) -> None:
         c = s.keyframe()
-        t = c.textbox(text="A", font_size=4)
+        t = c.textbox(text="A", font_size=4, width=4, height=4)
         c.add(t)
         s.add(FadeIn(t))
 

@@ -1,6 +1,5 @@
 import copy
 
-from pyanimate.layout import Canvas
 from pyanimate.solver import Solver, Variable
 
 
