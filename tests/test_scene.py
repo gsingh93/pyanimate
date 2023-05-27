@@ -4,7 +4,6 @@ from pathlib import Path
 import pytest
 
 from pyanimate.animation import StaticAnimation, Translate
-from pyanimate.layout import Line, Rectangle, VLayout
 from pyanimate.shape import RED
 from pyanimate.shape import Point as P
 
@@ -36,7 +35,7 @@ class TestStaticAnimation5x5(AnimationTestBase):
     @pytest.fixture(scope="class", autouse=True)
     def setup_scene(self, s) -> None:
         c = s.keyframe()
-        r = Rectangle(canvas=c, width=3, height=3, fill_color=RED)
+        r = c.rectangle(width=3, height=3, fill_color=RED)
         c.add(r)
         s.add(StaticAnimation(r))
 
@@ -61,7 +60,7 @@ class TestStaticAnimation6x6(AnimationTestBase):
     @pytest.fixture(scope="class", autouse=True)
     def setup_scene(self, s) -> None:
         c = s.keyframe()
-        r = Rectangle(canvas=c, width=3, height=3, fill_color=RED)
+        r = c.rectangle(width=3, height=3, fill_color=RED)
         c.add(r)
         s.add(StaticAnimation(r))
 
@@ -91,9 +90,9 @@ class TestTranslateDown(AnimationTestBase):
     @pytest.fixture(scope="class", autouse=True)
     def setup_scene(self, s) -> None:
         c = s.keyframe()
-        r = Rectangle(canvas=c, width=3, height=3, fill_color=RED)
+        r = c.rectangle(width=3, height=3, fill_color=RED)
         c.add(r)
-        s.add(Translate(c, r, P(0, 2), relative=True))
+        s.add(Translate(r, P(0, 2), relative=True))
 
     def num_frames(self) -> int:
         return 2
@@ -132,9 +131,9 @@ class TestTranslateUp(AnimationTestBase):
     @pytest.fixture(scope="class", autouse=True)
     def setup_scene(self, s) -> None:
         c = s.keyframe()
-        r = Rectangle(canvas=c, width=3, height=3, fill_color=RED)
+        r = c.rectangle(width=3, height=3, fill_color=RED)
         c.add(r)
-        s.add(Translate(c, r, P(0, -2), relative=True))
+        s.add(Translate(r, P(0, -2), relative=True))
 
     def num_frames(self) -> int:
         return 2
@@ -173,23 +172,24 @@ class TestTranslateUpConstraint(AnimationTestBase):
     @pytest.fixture(scope="class", autouse=True)
     def setup_scene(self, s) -> None:
         c = s.keyframe()
-        r1 = Rectangle(canvas=c, width=2, height=2)
-        r2 = Rectangle(canvas=c, width=2, height=2)
+        r1 = c.rectangle(width=2, height=2)
+        r2 = c.rectangle(width=2, height=2)
         c.add(r1)
         c.add(r2, P(r1.width, r1.height))
         s.add(StaticAnimation(c))
 
-        p = c.children[r2]
+        # TODO: Should I overwrite getitem to work with proxies?
+        p = c.children[r2.latest()]
         assert p.x.variables()[0]._var is r1.width._var
         assert p.y.variables()[0]._var is r1.height._var
 
         c = s.keyframe()
 
         p = c.children[r2.latest()]
-        assert p.x.variables()[0]._var is r1.latest().width._var
-        assert p.y.variables()[0]._var is r1.latest().height._var
+        assert p.x.variables()[0]._var is r1.width._var
+        assert p.y.variables()[0]._var is r1.height._var
 
-        s.add(Translate(c, r2.latest(), P(0, -2), relative=True))
+        s.add(Translate(r2, P(0, -2), relative=True))
 
     def num_frames(self) -> int:
         return 2
@@ -228,9 +228,9 @@ class TestTranslateUpVLayoutConstraint2(AnimationTestBase):
     @pytest.fixture(scope="class", autouse=True)
     def setup_scene(self, s) -> None:
         c = s.keyframe()
-        vlayout = VLayout(canvas=c)
-        r1 = Rectangle(canvas=c, width=2, height=2)
-        r2 = Rectangle(canvas=c, width=2, height=2)
+        vlayout = c.vlayout()
+        r1 = c.rectangle(width=2, height=2)
+        r2 = c.rectangle(width=2, height=2)
         vlayout.add(r1)
         c.add(vlayout)
         c.add(r2, P(r1.width, r1.height))
@@ -239,7 +239,7 @@ class TestTranslateUpVLayoutConstraint2(AnimationTestBase):
 
         c = s.keyframe()
 
-        s.add(Translate(c, r2.latest(), P(0, -2), relative=True))
+        s.add(Translate(r2, P(0, -2), relative=True))
 
     def num_frames(self) -> int:
         return 2
@@ -279,9 +279,9 @@ class TestTranslateUpVLayoutConstraint(AnimationTestBase):
     @pytest.fixture(scope="class", autouse=True)
     def setup_scene(self, s) -> None:
         c = s.keyframe()
-        vlayout = VLayout(canvas=c)
-        r1 = Rectangle(canvas=c, width=2, height=2)
-        r2 = Rectangle(canvas=c, width=2, height=2)
+        vlayout = c.vlayout()
+        r1 = c.rectangle(width=2, height=2)
+        r2 = c.rectangle(width=2, height=2)
         vlayout.add(r1)
         vlayout.add(r2, P(r1.width, r1.height))
         c.add(vlayout)
@@ -293,11 +293,11 @@ class TestTranslateUpVLayoutConstraint(AnimationTestBase):
 
         c = s.keyframe()
 
-        # p = vlayout.children[r2.latest()]
-        # assert p.x.variables()[0]._var is r1.latest().width._var
-        # assert p.y.variables()[0]._var is r1.latest().height._var
+        # p = vlayout.children[r2]
+        # assert p.x.variables()[0]._var is r1.width._var
+        # assert p.y.variables()[0]._var is r1.height._var
 
-        s.add(Translate(vlayout.latest(), r2.latest(), P(0, -2), relative=True))
+        s.add(Translate(r2, P(0, -2), relative=True))
 
     def num_frames(self) -> int:
         return 2
@@ -324,15 +324,6 @@ class TestTranslateUpVLayoutConstraint(AnimationTestBase):
             "wwwwbbw",
             "wwwwwww",
         ]
-        # return [
-        #     "wwwwwww",
-        #     "wwwbbww",
-        #     "wwwbbww",
-        #     "wwwwwww",
-        #     "wwwwwww",
-        #     "wwwwwbb",
-        #     "wwwwwbb",
-        # ]
 
 
 class TestTranslateLine(AnimationTestBase):
@@ -347,9 +338,9 @@ class TestTranslateLine(AnimationTestBase):
     @pytest.fixture(scope="class", autouse=True)
     def setup_scene(self, s) -> None:
         c = s.keyframe()
-        l = Line(canvas=c, end=P(3, 2), start=P(1, 2), fill_color=RED)
+        l = c.line(end=P(3, 2), start=P(1, 2), fill_color=RED)
         c.add(l)
-        s.add(Translate(c, l, P(0, -1), relative=True))
+        s.add(Translate(l, P(0, -2), relative=True))
 
     def num_frames(self) -> int:
         return 2

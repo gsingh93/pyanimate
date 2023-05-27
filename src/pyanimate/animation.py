@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from typing import Callable
 
 from . import get_logger
-from .layout import Object
+from .layout import Object, ObjectProxy, _Proxy
 from .shape import Color
 from .shape import Point as P
 
@@ -88,14 +88,16 @@ class StaticAnimation(Animation):
         - obj: Object, the object to animate
         """
         super().__init__(**kwargs)
-        self.obj = obj
+
+        assert isinstance(obj, _Proxy)
+        self.obj: Object = obj.latest()
 
     def step(self) -> None:
         pass
 
 
 class Transform(Animation):
-    def __init__(self, obj: Object, start_val, end_val, **kwargs) -> None:
+    def __init__(self, obj: Object | ObjectProxy, start_val, end_val, **kwargs) -> None:
         """
         Initialize a Transform object.
 
@@ -110,7 +112,9 @@ class Transform(Animation):
         - val_diff: float or tuple of floats, the difference between the end value and the start value
         """
         super().__init__(**kwargs)
-        self.obj = obj
+        if isinstance(obj, _Proxy):
+            obj = obj.latest()
+        self.obj: Object = obj
         self.start_val = start_val
         self.val_diff = end_val - start_val
 
@@ -152,7 +156,12 @@ class Transform(Animation):
 
 class StyleTransform(Transform):
     def __init__(
-        self, obj: Object, start_val, end_val, property_name: str, **kwargs
+        self,
+        obj: Object | ObjectProxy,
+        start_val,
+        end_val,
+        property_name: str,
+        **kwargs,
     ) -> None:
         """
         Initialize a StyleTransform object.
@@ -166,6 +175,8 @@ class StyleTransform(Transform):
         Attributes:
         - obj: Object, TODO
         """
+        if isinstance(obj, _Proxy):
+            obj = obj.latest()
         super().__init__(obj, start_val, end_val, **kwargs)
         self.property_name = property_name
 
@@ -183,8 +194,10 @@ class StyleTransform(Transform):
 
 class RgbTransform(StyleTransform):
     def __init__(
-        self, obj: Object, start_color: Color, end_color: Color, **kwargs
+        self, obj: Object | ObjectProxy, start_color: Color, end_color: Color, **kwargs
     ) -> None:
+        if isinstance(obj, _Proxy):
+            obj = obj.latest()
         super().__init__(obj, start_color, end_color, "_fill_color", **kwargs)
 
     def calculate_new_val(self, progress: float) -> Color:
@@ -196,44 +209,58 @@ class RgbTransform(StyleTransform):
 
 
 class AlphaTransform(StyleTransform):
-    def __init__(self, obj: Object, start_alpha: int, end_alpha: int, **kwargs) -> None:
+    def __init__(
+        self, obj: Object | ObjectProxy, start_alpha: int, end_alpha: int, **kwargs
+    ) -> None:
+        if isinstance(obj, _Proxy):
+            obj = obj.latest()
         super().__init__(obj, start_alpha, end_alpha, "_alpha", **kwargs)
 
 
 class FadeIn(AlphaTransform):
-    def __init__(self, obj: Object, start_alpha=0, end_alpha=255, **kwargs) -> None:
+    def __init__(
+        self, obj: Object | ObjectProxy, start_alpha=0, end_alpha=255, **kwargs
+    ) -> None:
         assert start_alpha < end_alpha
+        if isinstance(obj, _Proxy):
+            obj = obj.latest()
         super().__init__(obj, start_alpha, end_alpha, **kwargs)
 
 
 class FadeOut(AlphaTransform):
-    def __init__(self, obj: Object, start_alpha=255, end_alpha=0, **kwargs) -> None:
+    def __init__(
+        self, obj: Object | ObjectProxy, start_alpha=255, end_alpha=0, **kwargs
+    ) -> None:
         assert start_alpha > end_alpha
+        if isinstance(obj, _Proxy):
+            obj = obj.latest()
         super().__init__(obj, start_alpha, end_alpha, **kwargs)
 
 
 class Translate(Transform):
     def __init__(
-        self, parent: Object, child: Object, dest: P, *, relative=False, **kwargs
+        self, obj: Object | ObjectProxy, dest: P, *, relative=False, **kwargs
     ) -> None:
-        super().__init__(child, parent.children[child], dest, **kwargs)
-        # TODO: Why are we storing the parent instead of just using the current parent
-        # in the update_val method?
-        self.parent = parent
+        if isinstance(obj, _Proxy):
+            obj = obj.latest()
+        assert obj.parent is not None
+        super().__init__(obj, obj.parent.children[obj], dest, **kwargs)
         # TODO: remove this special case
         if relative:
             self.val_diff = dest
 
     def update_val(self, val) -> None:
+        parent = self.obj.parent
+        assert parent is not None
         logger.debug(
             "Updating %s offset (parent %s) from %r to %r",
             self.obj,
-            self.parent,
-            self.parent.children[self.obj],
+            parent,
+            parent.children[self.obj],
             val,
         )
         self.obj.clear_constraints()
-        self.parent.children[self.obj] = val
+        parent.children[self.obj] = val
 
 
 # TODO

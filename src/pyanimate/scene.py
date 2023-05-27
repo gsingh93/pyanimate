@@ -6,7 +6,7 @@ from PIL import GifImagePlugin, Image
 
 from . import get_logger
 from .animation import Animation, AnimationGroup
-from .layout import Canvas
+from .layout import Canvas, Proxy
 from .renderer import PILRenderer, RenderContext
 
 logger = get_logger(__name__)
@@ -44,7 +44,8 @@ class Scene:
 
         self.keyframes.append(self.cur_keyframe)
 
-        return self.cur_keyframe.canvas
+        return Proxy(self.cur_keyframe.canvas)
+        # return self.cur_keyframe.canvas
 
     @singledispatchmethod
     def add(self, anim: Animation) -> None:

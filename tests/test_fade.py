@@ -49,7 +49,7 @@ class TestFadeInRectangle(FadeInTestBase):
     @pytest.fixture(scope="class", autouse=True)
     def setup_scene(self, s) -> None:
         c = s.keyframe()
-        r = Rectangle(canvas=c, width=3, height=3, fill_color=RED)
+        r = c.rectangle(width=3, height=3, fill_color=RED)
         c.add(r)
         s.add(FadeIn(r))
 
@@ -90,7 +90,7 @@ class TestFadeInParent(FadeInTestBase):
     @pytest.fixture(scope="class", autouse=True)
     def setup_scene(self, s) -> None:
         c = s.keyframe()
-        r = TextBox(canvas=c, text="A", font_size=4)
+        r = c.textbox(text="A", font_size=4)
         c.add(r)
         s.add(FadeIn(c, duration=2))
 
@@ -131,7 +131,7 @@ class TestFadeInText(FadeInTestBase):
     @pytest.fixture(scope="class", autouse=True)
     def setup_scene(self, s) -> None:
         c = s.keyframe()
-        t = TextBox(canvas=c, text="A", font_size=4)
+        t = c.textbox(text="A", font_size=4)
         c.add(t)
         s.add(FadeIn(t))
 

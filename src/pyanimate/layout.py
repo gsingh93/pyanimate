@@ -5,7 +5,7 @@ import uuid
 from collections import OrderedDict
 from copy import deepcopy
 from enum import Enum
-from typing import Self
+from typing import Generic, Self, TypeAlias, TypeVar
 
 from . import get_logger
 from .renderer import Renderer
@@ -135,7 +135,10 @@ class Object:
         self._height_constraint = self._h == val
         # self.canvas.solver.add(self._height_constraint)
 
-    def add(self, obj: Object, offset: P = P(0, 0)) -> None:
+    def add(self, obj: Object | _Proxy[Object], offset: P = P(0, 0)) -> None:
+        if isinstance(obj, _Proxy):
+            obj = obj._obj
+
         logger.debug("Adding %s to %s at offset %r", obj, self, offset)
         self.children[obj] = offset
 
@@ -333,6 +336,44 @@ class Object:
         return hash(self._id)
 
 
+T = TypeVar("T", bound=Object)
+
+
+class _Proxy(Generic[T]):
+    _obj: T
+
+    def __new__(cls, target: T):
+        return super().__new__(cls)
+
+    def __init__(self, obj: T) -> None:
+        super().__setattr__("_obj", obj)
+
+    def __getattr__(self, name: str):
+        super().__setattr__("_obj", self._obj.latest())
+        return getattr(self._obj, name)
+
+    def __setattr__(self, name: str, value) -> None:
+        super().__setattr__("_obj", self._obj.latest())
+        setattr(self._obj, name, value)
+
+    def latest(self) -> T:
+        super().__setattr__("_obj", self._obj.latest())
+        return self._obj
+
+    def __str__(self) -> str:
+        return f"Proxy[{str(self._obj)}]"
+
+
+ObjectProxy: TypeAlias = _Proxy[Object]
+
+
+def Proxy(target: T) -> T:
+    # We use a factory function because you can't lie about the return type in `__new__`
+
+    # TODO: type: ignore or cast?
+    return _Proxy(target)  # type: ignore
+
+
 # TODO: We can make this class handle even more logic from the subclasses
 class Layout(Object):
     def __init__(self, align=Align.CENTER, **kwargs) -> None:
@@ -394,8 +435,10 @@ class VLayout(Layout):
 
     def set_primary_dim_constraint(self) -> None:
         expr = sum(obj.height + offset.y for obj, offset in self.children.items())
-        self.height = expr
-        self.canvas.solver.add(self.height == expr)
+        if self._height_constraint:
+            self.canvas.solver.remove(self._height_constraint)
+        self._height_constraint = self.height == expr
+        self.canvas.solver.add(self._height_constraint)
 
     def get_linear_constraint(
         self, prev_obj: Object | None, obj: Object, offset: P
@@ -415,10 +458,10 @@ class HLayout(Layout):
 
     def set_primary_dim_constraint(self) -> None:
         expr = sum(obj.width + offset.x for obj, offset in self.children.items())
-        # TODO: Remove this
-        self.width = expr
-
-        self.canvas.solver.add(self.width == expr)
+        if self._width_constraint:
+            self.canvas.solver.remove(self._width_constraint)
+        self._width_constraint = self.width == expr
+        self.canvas.solver.add(self._width_constraint)
 
     def get_linear_constraint(
         self, prev_obj: Object | None, obj: Object, offset: P
@@ -757,15 +800,39 @@ class Canvas(Object):
 
         return copy
 
-    def add(self, obj: Object, offset: P = P(0, 0)) -> None:
+    def add(self, obj: Object | _Proxy[Object], offset: P = P(0, 0)) -> None:
         # If we're adding an Arrow with absolute coordinates, convert the absolute
         # coordinates to relative by updating offset
+        if isinstance(obj, _Proxy):
+            obj = obj._obj
+
         if isinstance(obj, Arrow) and not obj.relative:
             offset += obj.start
             obj.start -= offset
             obj.end -= offset
             obj.relative = True
         super().add(obj, offset.add(self.style.padding))
+
+    def rectangle(self, *args, **kwargs) -> Rectangle:
+        return Proxy(Rectangle(canvas=self, *args, **kwargs))
+
+    def textbox(self, *args, **kwargs) -> TextBox:
+        return Proxy(TextBox(canvas=self, *args, **kwargs))
+
+    def line(self, end: P, *args, **kwargs) -> Line:
+        return Proxy(Line(canvas=self, end=end, *args, **kwargs))
+
+    def arrow(self, *args, **kwargs) -> Arrow:
+        return Proxy(Arrow(canvas=self, *args, **kwargs))
+
+    def spacer(self, *args, **kwargs) -> Spacer:
+        return Proxy(Spacer(canvas=self, *args, **kwargs))
+
+    def vlayout(self, *args, **kwargs) -> VLayout:
+        return Proxy(VLayout(canvas=self, *args, **kwargs))
+
+    def hlayout(self, *args, **kwargs) -> HLayout:
+        return Proxy(HLayout(canvas=self, *args, **kwargs))
 
     def render(self, renderer: Renderer) -> None:
         self.solver = Solver()
@@ -788,9 +855,8 @@ class Canvas(Object):
 
         for obj in self.children:
             logger.debug(
-                "Rendering %s %s %s",
+                "Rendering %s at %s",
                 obj,
-                P(obj.width.value(), obj.height.value()),
                 obj.pos,
             )
             obj.render(renderer)
@@ -799,13 +865,11 @@ class Canvas(Object):
             c = self.width >= offset.x + obj.width
             self.solver.add(c)
             self.solver.update()
-            # print(c)
             obj.constraints.append(c)
 
             c = self.height >= offset.y + obj.height
             self.solver.add(c)
             self.solver.update()
-            # print(c)
             obj.constraints.append(c)
 
         # TODO: How to crop consistently across all frames? Crop at the end?
