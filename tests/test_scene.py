@@ -19,18 +19,6 @@ class TestEmptyScene:
         assert not p.exists()
 
 
-# class TestNonPng:
-#     def test_exception(self, s) -> None:
-#         with pytest.raises(ValueError):
-#             s.play(20, "output.gif")
-
-#         with pytest.raises(ValueError):
-#             s.play(20, "output.webp")
-
-#         with pytest.raises(ValueError):
-#             s.play(20, "output.avif")
-
-
 class TestStaticAnimation5x5(AnimationTestBase):
     @pytest.fixture(scope="class", autouse=True)
     def setup_scene(self, s) -> None:

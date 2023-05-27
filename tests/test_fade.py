@@ -1,5 +1,3 @@
-import os
-
 import pytest
 
 from pyanimate.animation import FadeIn
@@ -44,7 +42,7 @@ class FadeInTestBase(AnimationTestBase):
     #                     assert False
 
 
-class TestFadeInRectangle(FadeInTestBase):
+class RectangleTestFadeIn(FadeInTestBase):
     @pytest.fixture(scope="class", autouse=True)
     def setup_scene(self, s) -> None:
         c = s.keyframe()
@@ -84,8 +82,7 @@ class TestFadeInRectangle(FadeInTestBase):
         ]
 
 
-@pytest.mark.skipif(os.getenv("CI") is not None, reason="Flaky")
-class TestFadeInParent(FadeInTestBase):
+class TestParentFadeIn(FadeInTestBase):
     @pytest.fixture(scope="class", autouse=True)
     def setup_scene(self, s) -> None:
         c = s.keyframe()
@@ -110,7 +107,7 @@ class TestFadeInParent(FadeInTestBase):
             return [
                 "wwwww",
                 "w???.",
-                "w???.",
+                "w??..",
                 "w???.",
                 "w???.",
             ]
@@ -125,8 +122,7 @@ class TestFadeInParent(FadeInTestBase):
         ]
 
 
-@pytest.mark.skipif(os.getenv("CI") is not None, reason="Flaky")
-class TestFadeInText(FadeInTestBase):
+class TestTextFadeIn(FadeInTestBase):
     @pytest.fixture(scope="class", autouse=True)
     def setup_scene(self, s) -> None:
         c = s.keyframe()
@@ -150,7 +146,7 @@ class TestFadeInText(FadeInTestBase):
         return [
             "wwwww",
             "w???.",
-            "w???.",
+            "w??..",
             "w???.",
             "w???.",
         ]
