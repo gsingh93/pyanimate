@@ -72,13 +72,6 @@ class Scene:
     def play(
         self, frame_rate: int = 50, output_filename: str | Path | None = None
     ) -> None:
-        # Validate output filename early so we can fail fast
-        if output_filename:
-            if Path(output_filename).suffix != ".png":
-                logger.warning(
-                    "Note that alpha transparency is only supported for PNG files"
-                )
-
         if FRAME_DIR.exists():
             logger.warning('Deleting existing "%s" directory', FRAME_DIR)
             assert FRAME_DIR.is_dir()
