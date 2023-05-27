@@ -540,7 +540,7 @@ class Grid(Object):
             self._width_constraint = self.width == renderer.width
             self.canvas.solver.add(self._width_constraint)
 
-        if self._height_constraint is not None:
+        if self._height_constraint is None:
             logger.debug("New height for %s: %s", self, renderer.height)
             self._height_constraint = self.height == renderer.height
             self.canvas.solver.add(self._height_constraint)
@@ -579,13 +579,11 @@ class TextBox(Rectangle):
 
             if self._width_constraint is None:
                 logger.debug("New width for %s: %s", self, right)
-                # self.width = right
                 self._width_constraint = self.width == right
                 self.canvas.solver.add(self._width_constraint)
 
             if self._height_constraint is None:
                 logger.debug("New height for %s: %s", self, bottom)
-                # self.height = bottom
                 self._height_constraint = self.height == bottom
                 self.canvas.solver.add(self._height_constraint)
 

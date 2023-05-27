@@ -195,18 +195,31 @@ class TestDoubleSidedArrow(ImageTestBase):
         ]
 
 
-@pytest.mark.skip(reason="Not implemented")
 class TestGrid(ImageTestBase):
     @pytest.fixture(scope="class")
     def dim(self) -> tuple[int, int]:
-        return 8, 8
+        return 13, 13
 
     @pytest.fixture(scope="class", autouse=True)
-    def setup_scene(self, c) -> None:
-        c.add(c.grid(step_size=2, width=2, height=2))
+    def setup_scene(self, c, dim) -> None:
+        c.add(c.grid(step_size=4, width=dim[0] - 4, height=dim[1] - 4), P(1, 1))
 
     def frame(self) -> list[str]:
-        assert False
+        return [
+            "wwwwwwwwwwwww",
+            "wwbbbbbbbbwww",
+            "wbbbbbbbbbbbw",
+            "wbbbbbbbbbbbw",
+            "wbbbwbbbwbbbw",
+            "wbbbbbbbbbbbw",
+            "wbbbbbbbbbbbw",
+            "wbbbbbbbbbbbw",
+            "wbbbwbbbwbbbw",
+            "wbbbbbbbbbbbw",
+            "wwbbbbbbbbwww",
+            "wwbbbbbbbbwww",
+            "wwwwwwwwwwwww",
+        ]
 
 
 class TestSpacerSize1(ImageTestBase):
