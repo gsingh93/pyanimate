@@ -212,16 +212,3 @@ class TestCloneObject:
 
         assert cloned.latest() == cloned
         assert cloned.latest() is cloned
-
-
-# class TestConstraints:
-#     @pytest.mark.xfail
-#     def test_unsatisfiable(self, c) -> None:
-#         """
-#         Test that unsatisfiable constraints raise an error
-#         """
-#         vlayout = VLayout(canvas=c, width=10)
-#         obj = Object(c, width=20)
-
-#         with pytest.raises(UnsatisfiableConstraint):
-#             vlayout.add(obj)

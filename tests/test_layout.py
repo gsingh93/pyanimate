@@ -1,4 +1,5 @@
 import pytest
+from kiwisolver import UnsatisfiableConstraint
 
 from pyanimate.layout import Object, VLayout
 from pyanimate.shape import Point as P
@@ -129,3 +130,27 @@ class TestNestedVLayout:
         assert child1.pos == P(15, 0)
         assert child2.pos == P(5, 10)
         assert child3.pos == P(12, 40)
+
+
+class TestUnsatisfiableConstraint:
+    def test_vlayout_unsatisfiable(self, c, mock_renderer) -> None:
+        """
+        Test that unsatisfiable constraints raise an error
+        """
+        vlayout = c.vlayout(width=10)
+        obj = Object(c, width=20)
+        vlayout.add(obj)
+
+        with pytest.raises(UnsatisfiableConstraint):
+            vlayout.prepare(mock_renderer)
+
+    def test_hlayout_unsatisfiable(self, c, mock_renderer) -> None:
+        """
+        Test that unsatisfiable constraints raise an error
+        """
+        hlayout = c.hlayout(height=10)
+        obj = Object(c, height=20)
+        hlayout.add(obj)
+
+        with pytest.raises(UnsatisfiableConstraint):
+            hlayout.prepare(mock_renderer)
