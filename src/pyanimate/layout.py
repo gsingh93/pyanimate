@@ -573,10 +573,16 @@ class TextBox(Rectangle):
             _, _, right, bottom = renderer.text_bbox(self.text, self.style)
 
             if self._width_constraint is None:
-                self.width = right
+                logger.debug("New width for %s: %s", self, right)
+                # self.width = right
+                self._width_constraint = self.width == right
+                self.canvas.solver.add(self._width_constraint)
 
             if self._height_constraint is None:
-                self.height = bottom
+                logger.debug("New height for %s: %s", self, bottom)
+                # self.height = bottom
+                self._height_constraint = self.height == bottom
+                self.canvas.solver.add(self._height_constraint)
 
             self.canvas.solver.update()
 

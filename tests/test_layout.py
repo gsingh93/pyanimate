@@ -192,10 +192,21 @@ class TestObject:
         assert cloned.latest() is cloned
 
 
-@pytest.mark.xfail
-class TestTextBox:
+class TestTextBoxDynamicSize:
+    @pytest.fixture(scope="class", autouse=True)
+    def setup_scene(self, c) -> None:
+        r = c.textbox(text="A", font_size=4)
+        c.add(r)
+
     def test_correct_image(self, c_im, dim) -> None:
-        assert False
+        assert c_im.size == dim
+        assert convert_to_ascii(c_im) == [
+            "wwwww",
+            "wbbbw",
+            "wb?bw",
+            "wb?b?",
+            "wbbb?",
+        ]
 
 
 class TestLineRelative:
