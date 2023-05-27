@@ -42,9 +42,11 @@ class MockRenderer(Renderer):
     def crop_to_fit(self) -> None:
         raise NotImplementedError()
 
+    @property
     def width(self) -> int:
         raise NotImplementedError()
 
+    @property
     def height(self) -> int:
         raise NotImplementedError()
 

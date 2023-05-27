@@ -58,10 +58,12 @@ class Renderer(ABC):
     def crop_to_fit(self) -> None:
         raise NotImplementedError()
 
+    @property
     @abstractmethod
     def width(self) -> int:
         raise NotImplementedError()
 
+    @property
     @abstractmethod
     def height(self) -> int:
         raise NotImplementedError()
@@ -84,10 +86,11 @@ class PILRenderer(Renderer):
         self.draw = ImageDraw.Draw(self.image)
         self.fonts: dict[tuple[str, int], FreeTypeFont] = {}
 
-    # TODO: Can we make these abstract properties?
+    @property
     def width(self) -> int:
         return self._w
 
+    @property
     def height(self) -> int:
         return self._h
 
