@@ -109,19 +109,19 @@ class TestFadeInParent(FadeInTestBase):
         if num < 10:
             return [
                 "wwwww",
-                "w???w",
-                "w???w",
-                "w???w",
-                "w???w",
+                "w???.",
+                "w???.",
+                "w???.",
+                "w???.",
             ]
 
         assert num == 10
         return [
             "wwwww",
-            "wbbbw",
-            "wb?bw",
-            "wb?bw",
-            "wbbbw",
+            "wbbb.",
+            "wb?..",
+            "wb?..",
+            "wbbb.",
         ]
 
 
@@ -149,10 +149,10 @@ class TestFadeInText(FadeInTestBase):
 
         return [
             "wwwww",
-            "w???w",
-            "w???w",
-            "w???w",
-            "w???w",
+            "w???.",
+            "w???.",
+            "w???.",
+            "w???.",
         ]
 
 
@@ -161,5 +161,5 @@ class TestFadeOut(AnimationTestBase):
     def num_frames(self) -> int:
         assert False
 
-    def frame(self, num) -> list[str]:
+    def frame(self, _num) -> list[str]:
         assert False
