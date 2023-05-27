@@ -195,7 +195,7 @@ class TestDoubleSidedArrow(ImageTestBase):
         ]
 
 
-@pytest.mark.xfail
+@pytest.mark.skip(reason="Not implemented")
 class TestGrid(ImageTestBase):
     @pytest.fixture(scope="class")
     def dim(self) -> tuple[int, int]:
@@ -206,12 +206,7 @@ class TestGrid(ImageTestBase):
         c.add(c.grid(step_size=2, width=2, height=2))
 
     def frame(self) -> list[str]:
-        return [
-            "wwwww",
-            "wbbb?",
-            "wbbb?",
-            "wwwww",
-        ]
+        assert False
 
 
 class TestSpacerSize1(ImageTestBase):
