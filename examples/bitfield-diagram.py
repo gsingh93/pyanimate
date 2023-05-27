@@ -9,17 +9,7 @@ from enum import Enum
 from kiwisolver import UnsatisfiableConstraint
 
 import pyanimate.style
-from pyanimate.layout import (
-    Align,
-    Arrow,
-    Canvas,
-    DottedLine,
-    HLayout,
-    Spacer,
-    Table,
-    TextBox,
-    VLayout,
-)
+from pyanimate.layout import Align, Canvas, Table
 from pyanimate.renderer import PILRenderer, RenderContext
 from pyanimate.shape import Point as P
 from pyanimate.style import Anchor, Style
@@ -191,16 +181,15 @@ def bdaddr_fields():
 def create_canvas(title, fields, mode: Mode, endianness: Endianness, style) -> Canvas:
     c = Canvas()
 
-    v = VLayout(canvas=c, align=Align.CENTER)
+    v = c.vlayout(align=Align.CENTER)
 
     # Title
     logger.info("Laying out title")
-    v.add(TextBox(title, canvas=c, style=default_style.clone(anchor=Anchor.TOP_LEFT)))
+    v.add(c.textbox(title, style=default_style.clone(anchor=Anchor.TOP_LEFT)))
 
     # LSB/MSB
     logger.info("Laying out LSB/MSB")
-    # TODO: Find a better way of scaling all of these dimensions
-    lsb_msb = HLayout(canvas=c, width=1000, height=50)
+    lsb_msb = c.hlayout(width=1000)
 
     if endianness == Endianness.LITTLE:
         left_text = "LSB"
@@ -210,15 +199,12 @@ def create_canvas(title, fields, mode: Mode, endianness: Endianness, style) -> C
         right_text = "LSB"
         fields.reverse()
 
-    lsb_msb.add(
-        TextBox(left_text, canvas=c, width=750 * ctx.scale, align=Anchor.MIDDLE_LEFT)
-    )
-    lsb_msb.add(
-        TextBox(right_text, canvas=c, width=750 * ctx.scale, align=Anchor.MIDDLE_RIGHT)
-    )
+    # TODO: We need to get rid of the border for these and implement align
+    lsb_msb.add(c.textbox(left_text, width=750, align=Anchor.MIDDLE_LEFT))
+    lsb_msb.add(c.textbox(right_text, width=750, align=Anchor.MIDDLE_RIGHT))
 
     v.add(lsb_msb)
-    v.add(Spacer(canvas=c))
+    v.add(c.spacer())
 
     # Table
     logger.info("Laying out table")
@@ -229,56 +215,57 @@ def create_canvas(title, fields, mode: Mode, endianness: Endianness, style) -> C
         if mode == Mode.WIDTH:
             text = f"{field.name}"
         t.add(
-            TextBox(
+            c.textbox(
                 text,
-                canvas=c,
                 align=Anchor.MIDDLE_MIDDLE,
                 width=cell_width,
-                height=75 * ctx.scale,
+                height=75,
             )
         )
 
     # Labels
     logger.info("Laying out labels")
-    h = HLayout(canvas=c)
+    h = c.hlayout()
     current_bit = 0
     for field in fields:
         cell_width = ctx.bit_width * field.display_bits
 
         if mode == Mode.WIDTH:
-            h.add(DottedLine(canvas=c, end=P(0, 50 * ctx.scale)))
+            h.add(c.dotted_line(end=P(0, 50)))
 
             label = get_bit_label(field.bits, field.unit.value)
+            label_tb = c.textbox(label, height=50)
 
-            # TODO: We're cheating here to get the text width
-            renderer = PILRenderer(ctx)
-            _, _, text_width, _ = renderer.text_bbox(label, default_style)
-            arrow_length = (cell_width - text_width - (default_style.padding * 4)) // 2
-            arrow1 = Arrow(canvas=c, double_sided=True, end=P(arrow_length, 0))
-            arrow2 = arrow1.clone(True)
+            arrow_length = (
+                cell_width - label_tb.width - (default_style.padding * 4)
+            ) / 2
+            arrow1 = c.arrow(double_sided=True, end=P(label_tb.width, 0))
+            arrow2 = c.arrow(
+                double_sided=True, end=P(arrow_length, 0)
+            )  # arrow1.clone(True)
 
-            s1 = Spacer(canvas=c)
-            s2 = s1.clone(True)
-            s3 = s2.clone(True)
-            s4 = s2.clone(True)
+            # TODO: See if we can use clone here
+            s1 = c.spacer()
+            s2 = c.spacer()  # s1.clone(True)
+            s3 = c.spacer()  # s1.clone(True)
+            s4 = c.spacer()  # s1.clone(True)
 
-            bit_label = HLayout(canvas=c)
+            bit_label = c.hlayout()
             bit_label.add(s1)
-            bit_label.add(arrow1, offset=P(0, 20 * ctx.scale))
+            bit_label.add(arrow1, offset=P(0, 20))
             bit_label.add(s2)
-            bit_label.add(
-                TextBox(label, canvas=c, width=text_width, height=50 * ctx.scale)
-            )
+            bit_label.add(label_tb)
             bit_label.add(s3)
-            bit_label.add(arrow2, offset=P(0, 20 * ctx.scale))
+            bit_label.add(arrow2, offset=P(0, 20))
             bit_label.add(s4)
 
             h.add(bit_label)
         else:
-            h.add(TextBox(str(current_bit), width=cell_width, height=50 * ctx.scale))
+            h.add(c.textbox(str(current_bit), width=cell_width, height=50))
 
         current_bit += field.max
-    h.add(DottedLine(canvas=c, end=P(0, 50 * ctx.scale)))
+
+    h.add(c.dotted_line(end=P(0, 50)))
 
     v.add(t)
     v.add(h, offset=P(0, style.padding))
@@ -314,8 +301,8 @@ def main() -> None:
     # title, fields = phys_fields()
     # title, fields = packet_header_fields()
     # title, fields = payload_header_fields()
-    # title, fields = bdaddr_fields()
-    title, fields = acl_payload_format_fields()
+    title, fields = bdaddr_fields()
+    # title, fields = acl_payload_format_fields()
 
     if args.relative:
         display_bits = list(map(lambda f: f.display_bits, fields))
