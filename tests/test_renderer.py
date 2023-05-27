@@ -222,6 +222,33 @@ class TestGrid(ImageTestBase):
         ]
 
 
+class TestDynamicSizeGrid(ImageTestBase):
+    @pytest.fixture(scope="class")
+    def dim(self) -> tuple[int, int]:
+        return 13, 13
+
+    @pytest.fixture(scope="class", autouse=True)
+    def setup_scene(self, c) -> None:
+        c.add(c.grid(step_size=4))
+
+    def frame(self) -> list[str]:
+        return [
+            "wbbbbbbbbbbbb",
+            "bbbbbbbbbbbbb",
+            "bbbbbbbbbbbbb",
+            "bbbwbbbwbbbww",
+            "bbbbbbbbbbbbb",
+            "bbbbbbbbbbbbb",
+            "bbbbbbbbbbbbb",
+            "bbbwbbbwbbbww",
+            "bbbbbbbbbbbbb",
+            "bbbbbbbbbbbbb",
+            "bbbbbbbbbbbbb",
+            "bbbwbbbwbbbww",
+            "bbbwbbbwbbbww",
+        ]
+
+
 class TestSpacerSize1(ImageTestBase):
     @pytest.fixture(scope="class")
     def dim(self) -> tuple[int, int]:

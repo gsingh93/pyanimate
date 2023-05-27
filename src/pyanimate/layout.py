@@ -537,12 +537,12 @@ class Grid(Object):
     def prepare_impl(self, renderer: Renderer) -> None:
         if self._width_constraint is None:
             logger.debug("New width for %s: %s", self, renderer.width)
-            self._width_constraint = self.width == renderer.width
+            self._width_constraint = self.width == (renderer.width - 1)
             self.canvas.solver.add(self._width_constraint)
 
         if self._height_constraint is None:
             logger.debug("New height for %s: %s", self, renderer.height)
-            self._height_constraint = self.height == renderer.height
+            self._height_constraint = self.height == (renderer.height - 1)
             self.canvas.solver.add(self._height_constraint)
 
     def render(self, renderer: Renderer) -> None:
