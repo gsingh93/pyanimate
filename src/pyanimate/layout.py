@@ -845,6 +845,9 @@ class Canvas(Object):
     def hlayout(self, *args, **kwargs) -> HLayout:
         return Proxy(HLayout(canvas=self, *args, **kwargs))
 
+    def grid(self, *args, **kwargs) -> Grid:
+        return Proxy(Grid(canvas=self, *args, **kwargs))
+
     def render(self, renderer: Renderer) -> None:
         self.solver = Solver()
 

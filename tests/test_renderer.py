@@ -1,5 +1,6 @@
 import pytest
 
+from pyanimate.layout import Spacer
 from pyanimate.renderer import PILRenderer, RenderContext
 from pyanimate.shape import RED, WHITE
 from pyanimate.shape import Point as P
@@ -133,11 +134,91 @@ class TestArrow(ImageTestBase):
 
 @pytest.mark.xfail
 class TestGrid(ImageTestBase):
+    @pytest.fixture(scope="class")
+    def dim(self) -> tuple[int, int]:
+        return 8, 8
+
+    @pytest.fixture(scope="class", autouse=True)
+    def setup_scene(self, c) -> None:
+        c.add(c.grid(step_size=2, width=2, height=2))
+
     def frame(self) -> list[str]:
-        assert False
+        return [
+            "wwwww",
+            "wbbb?",
+            "wbbb?",
+            "wwwww",
+        ]
 
 
-@pytest.mark.xfail
-class TestSpacer(ImageTestBase):
+class TestSpacerSize1(ImageTestBase):
+    @pytest.fixture(scope="class")
+    def dim(self) -> tuple[int, int]:
+        return 6, 4
+
+    @pytest.fixture(scope="class", autouse=True)
+    def spacer(self, c) -> Spacer:
+        return c.spacer(width=1)
+
+    @pytest.fixture(scope="class", autouse=True)
+    def setup_scene(self, c, spacer) -> None:
+        hlayout = c.hlayout()
+
+        r1 = c.rectangle(width=2, height=2)
+        r2 = c.rectangle(width=2, height=2)
+
+        hlayout.add(r1)
+        hlayout.add(spacer)
+        hlayout.add(r2)
+
+        c.add(hlayout)
+
+    def test_spacer_size(self, spacer) -> None:
+        assert spacer.width == 1
+        assert spacer.height == 1
+
     def frame(self) -> list[str]:
-        assert False
+        return [
+            "wwwwww",
+            "wbbwbb",
+            "wbbwbb",
+            "wwwwww",
+        ]
+
+
+class TestSpacerSize2(ImageTestBase):
+    @pytest.fixture(scope="class")
+    def dim(self) -> tuple[int, int]:
+        return 4, 7
+
+    @pytest.fixture(scope="class", autouse=True)
+    def spacer(self, c) -> Spacer:
+        return c.spacer(height=2)
+
+    @pytest.fixture(scope="class", autouse=True)
+    def setup_scene(self, c) -> None:
+        vlayout = c.vlayout()
+
+        r1 = c.rectangle(width=2, height=2)
+        r2 = c.rectangle(width=2, height=2)
+
+        vlayout.add(r1)
+        vlayout.add(c.spacer(height=2))
+        vlayout.add(r2)
+
+        c.add(vlayout)
+
+    def test_spacer_size(self, spacer) -> None:
+        assert spacer.width == 1
+        assert spacer.height == 2
+
+    def frame(self) -> list[str]:
+        return [
+            "wwww",
+            "wbbw",
+            "wbbw",
+            "wwww",
+            "wwww",
+            "wbbw",
+            "wbbw",
+        ]
