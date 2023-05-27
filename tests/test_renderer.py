@@ -153,6 +153,34 @@ class TestArrow(ImageTestBase):
         ]
 
 
+class TestDoubleSidedArrow(ImageTestBase):
+    @pytest.fixture(scope="class")
+    def dim(self) -> tuple[int, int]:
+        return 14, 13
+
+    @pytest.fixture(scope="class", autouse=True)
+    def setup_scene(self, c) -> None:
+        r = c.arrow(start=P(6, 1), end=P(6, 9), arrowhead_ratio=0.5, double_sided=True)
+        c.add(r)
+
+    def frame(self) -> list[str]:
+        return [
+            "wwwwwwwwwwwwww",
+            "wwwwwwbwbwwwww",
+            "wwwwwbbbbbwwww",
+            "wwwbbbbbbbbwww",
+            "wwwwbbbbbbwwww",
+            "wwwwwbbbbwwwww",
+            "wwwwwbbbbwwwww",
+            "wwwwbbbbbbwwww",
+            "wwwbbbbbbbbwww",
+            "wwwwbbbbbbwwww",
+            "wwwwwbbbbbwwww",
+            "wwwwwwbwbwwwww",
+            "wwwwwwwwwwwwww",
+        ]
+
+
 @pytest.mark.xfail
 class TestGrid(ImageTestBase):
     @pytest.fixture(scope="class")
