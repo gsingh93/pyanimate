@@ -59,7 +59,7 @@ profile = "black"
 known_third_party = ["PIL"]
 
 [tool.coverage.run]
-source = ["."]
+source = ["src/pyanimate"]
 
 [tool.coverage.report]
 
