@@ -120,10 +120,24 @@ class TestRectangleConstraint(ImageTestBase):
         ]
 
 
-@pytest.mark.xfail
 class TestDottedLine(ImageTestBase):
+    @pytest.fixture(scope="class")
+    def dim(self) -> tuple[int, int]:
+        return 15, 5
+
+    @pytest.fixture(scope="class", autouse=True)
+    def setup_scene(self, c) -> None:
+        r = c.dotted_line(start=P(0, 2), end=P(13, 2), dash_len=4)
+        c.add(r)
+
     def frame(self) -> list[str]:
-        assert False
+        return [
+            "wwwwwwwwwwwwwww",
+            "bbbwbbbwbbbwbbb",
+            "bbbwbbbwbbbwbbb",
+            "bbbwbbbwbbbwbbb",
+            "wwwwwwwwwwwwwww",
+        ]
 
 
 class TestArrow(ImageTestBase):

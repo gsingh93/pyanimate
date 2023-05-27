@@ -684,7 +684,7 @@ class DottedLine(Line):
         ) ** 0.5
 
         if self.end.x != self.start.x:
-            u = (self.end - self.start) / length
+            u = (self.end - self.start).truediv(length)
         else:
             u = P(0, 1)
 
@@ -832,6 +832,9 @@ class Canvas(Object):
 
     def line(self, end: P, *args, **kwargs) -> Line:
         return Proxy(Line(canvas=self, end=end, *args, **kwargs))
+
+    def dotted_line(self, *args, **kwargs) -> DottedLine:
+        return Proxy(DottedLine(canvas=self, *args, **kwargs))
 
     def arrow(self, *args, **kwargs) -> Arrow:
         return Proxy(Arrow(canvas=self, *args, **kwargs))
