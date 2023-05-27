@@ -535,10 +535,15 @@ class Grid(Object):
         self.step_size = step_size
 
     def prepare_impl(self, renderer: Renderer) -> None:
-        if not self._width_constraint:
-            self.width = renderer.width()
-        if not self._height_constraint:
-            self.height = renderer.height()
+        if self._width_constraint is None:
+            logger.debug("New width for %s: %s", self, renderer.width)
+            self._width_constraint = self.width == renderer.width()
+            self.canvas.solver.add(self._width_constraint)
+
+        if self._height_constraint is not None:
+            logger.debug("New height for %s: %s", self, renderer.height)
+            self._height_constraint = self.height == renderer.height()
+            self.canvas.solver.add(self._height_constraint)
 
     def render(self, renderer: Renderer) -> None:
         for i in range(0, int(self.width.value()), self.step_size):

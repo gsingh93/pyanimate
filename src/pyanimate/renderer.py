@@ -84,6 +84,7 @@ class PILRenderer(Renderer):
         self.draw = ImageDraw.Draw(self.image)
         self.fonts: dict[tuple[str, int], FreeTypeFont] = {}
 
+    # TODO: Can we make these abstract properties?
     def width(self) -> int:
         return self._w
 

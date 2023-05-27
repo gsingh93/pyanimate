@@ -1,42 +1,12 @@
 import pytest
 from kiwisolver import UnsatisfiableConstraint
 
-from pyanimate.layout import HLayout, Line, Object, Rectangle, VLayout
-from pyanimate.renderer import Renderer
+from pyanimate.layout import Line, Object, VLayout
 from pyanimate.shape import RED
 from pyanimate.shape import Point as P
 from pyanimate.style import Style
 
 from . import convert_to_ascii
-
-
-class MockRenderer(Renderer):
-    def output(self, filename) -> None:
-        raise NotImplementedError()
-
-    def rectangle(self, p1, p2, style: Style) -> None:
-        raise NotImplementedError()
-
-    def text(self, text: str, p, style: Style) -> None:
-        raise NotImplementedError()
-
-    def text_bbox(self, text: str, style: Style) -> tuple[int, int, int, int]:
-        raise NotImplementedError()
-
-    def line(self, p1, p2, style: Style) -> None:
-        raise NotImplementedError()
-
-    def set_dimensions(self, dim) -> None:
-        raise NotImplementedError()
-
-    def crop_to_fit(self) -> None:
-        raise NotImplementedError()
-
-    def width(self) -> int:
-        raise NotImplementedError()
-
-    def height(self) -> int:
-        raise NotImplementedError()
 
 
 class TestObject:
@@ -91,23 +61,27 @@ class TestObject:
     def test_replace(self, c) -> None:
         pass
 
-    # def test_width(self, c) -> None:
-    #     obj = Object(c, width=10)
-    #     assert obj.width.value() == 10
+    def test_width(self, c, mock_renderer) -> None:
+        obj = Object(c, width=10)
+        obj.prepare(mock_renderer)
+        assert obj.width.value() == 10
 
-    #     obj.width = 20
-    #     assert obj.width.value() == 20
+        obj = Object(c, width=10)
+        obj.width = 20
+        obj.prepare(mock_renderer)
+        assert obj.width.value() == 20
 
-    #     # TODO: Test setting width to constraint
+        # TODO: Test setting width to constraint
 
-    # def test_height(self, c) -> None:
-    #     obj = Object(c, height=10)
-    #     assert obj.height.value() == 10
+    def test_height(self, c, mock_renderer) -> None:
+        obj = Object(c, height=10)
+        obj.prepare(mock_renderer)
+        assert obj.height.value() == 10
 
-    #     obj.height = 20
-    #     assert obj.height.value() == 20
-
-    #     # TODO: Test setting height to constraint
+        obj = Object(c, height=10)
+        obj.height = 20
+        obj.prepare(mock_renderer)
+        assert obj.height.value() == 20
 
     def test_latest(self, c) -> None:
         """
@@ -271,7 +245,7 @@ class TestRectangle2x2:
     # TODO: Is it guaranteed that clean_dir will be called first?
     @pytest.fixture(scope="class", autouse=True)
     def setup_scene(self, c) -> None:
-        r = Rectangle(canvas=c, width=2, height=2, fill_color=RED)
+        r = c.rectangle(width=2, height=2, fill_color=RED)
         c.add(r)
 
     def test_correct_image(self, c_im, dim) -> None:
@@ -287,7 +261,7 @@ class TestRectangle2x2:
 class TestRectangle3x3:
     @pytest.fixture(scope="class", autouse=True)
     def setup_scene(self, c) -> None:
-        r = Rectangle(canvas=c, width=3, height=3, fill_color=RED)
+        r = c.rectangle(width=3, height=3, fill_color=RED)
         c.add(r)
 
     def test_correct_image(self, c_im, dim) -> None:
@@ -308,8 +282,8 @@ class TestRectangleConstraint:
 
     @pytest.fixture(scope="class", autouse=True)
     def setup_scene(self, c) -> None:
-        r1 = Rectangle(canvas=c, width=2, height=2)
-        r2 = Rectangle(canvas=c, width=2, height=2)
+        r1 = c.rectangle(width=2, height=2)
+        r2 = c.rectangle(width=2, height=2)
         c.add(r1)
         c.add(r2, P(0, r1.height + 1))
 
@@ -326,11 +300,11 @@ class TestRectangleConstraint:
 
 
 class TestLayout:
-    def test_vlayout_dimensions(self, c) -> None:
+    def test_vlayout_dimensions(self, c, mock_renderer) -> None:
         """
         Test that VLayout dimensions are properly calculated
         """
-        parent = VLayout(canvas=c)
+        parent = c.vlayout()
 
         child1 = Object(canvas=c, width=20, height=10)
         child2 = Object(canvas=c, width=40, height=30)
@@ -338,14 +312,16 @@ class TestLayout:
         parent.add(child1)
         parent.add(child2, P(5, 15))
 
-        assert parent.width == 45
-        assert parent.height == 55
+        parent.prepare(mock_renderer)
 
-    def test_hlayout_dimensions(self, c) -> None:
+        assert parent.width.value() == 45
+        assert parent.height.value() == 55
+
+    def test_hlayout_dimensions(self, c, mock_renderer) -> None:
         """
         Test that HLayout dimensions are properly calculated
         """
-        parent = HLayout(canvas=c)
+        parent = c.hlayout()
 
         child1 = Object(canvas=c, width=20, height=10)
         child2 = Object(canvas=c, width=40, height=30)
@@ -353,16 +329,18 @@ class TestLayout:
         parent.add(child1)
         parent.add(child2, P(5, 15))
 
-        assert parent.width == 65
-        assert parent.height == 45
+        parent.prepare(mock_renderer)
+
+        assert parent.width.value() == 65
+        assert parent.height.value() == 45
 
 
 class TestLayoutPrepare:
-    def test_vlayout_prepare(self, c) -> None:
+    def test_vlayout_prepare(self, c, mock_renderer) -> None:
         """
         Test that VLayout renders children in the correct position
         """
-        parent = VLayout(canvas=c, width=50)
+        parent = c.vlayout(width=50)
 
         child1 = Object(canvas=c, width=20, height=10)
         child2 = Object(canvas=c, width=40, height=30)
@@ -370,7 +348,7 @@ class TestLayoutPrepare:
         parent.add(child1)
         parent.add(child2)
 
-        parent.prepare(MockRenderer())
+        parent.prepare(mock_renderer)
 
         assert parent.width.value() == 50
         assert parent.height.value() == 40
@@ -378,13 +356,13 @@ class TestLayoutPrepare:
         assert child1.pos == P(15, 0)
         assert child2.pos == P(5, 10)
 
-    def test_nested_vlayout_prepare(self, c) -> None:
+    def test_nested_vlayout_prepare(self, c, mock_renderer) -> None:
         """
         Test that nested VLayout renders children in the correct position
         """
-        parent = VLayout(canvas=c, width=50)
+        parent = c.vlayout(width=50)
 
-        nested = VLayout(canvas=c)
+        nested = c.vlayout()
 
         child1 = Object(canvas=c, width=20, height=10)
         child2 = Object(canvas=c, width=40, height=30)
@@ -396,7 +374,7 @@ class TestLayoutPrepare:
         parent.add(nested)
         parent.add(child3)
 
-        parent.prepare(MockRenderer())
+        parent.prepare(mock_renderer)
 
         assert parent.width.value() == 50
         assert parent.height.value() == 55
@@ -409,11 +387,11 @@ class TestLayoutPrepare:
         assert child2.pos == P(5, 10)
         assert child3.pos == P(12, 40)
 
-    def test_hlayout_prepare(self, c) -> None:
+    def test_hlayout_prepare(self, c, mock_renderer) -> None:
         """
         Test that HLayout renders children in the correct position
         """
-        parent = HLayout(canvas=c)
+        parent = c.hlayout()
 
         child1 = Object(canvas=c, width=20, height=10)
         child2 = Object(canvas=c, width=40, height=30)
@@ -421,7 +399,7 @@ class TestLayoutPrepare:
         parent.add(child1)
         parent.add(child2, P(5, 15))
 
-        parent.prepare(MockRenderer())
+        parent.prepare(mock_renderer)
 
         assert child1.pos == P(0, 17)
         assert child2.pos == P(25, 22)

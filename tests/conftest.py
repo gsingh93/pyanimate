@@ -12,11 +12,41 @@ from pyanimate import style as sty
 from pyanimate.layout import Canvas
 from pyanimate.renderer import PILRenderer, RenderContext, Renderer
 from pyanimate.scene import Scene
+from pyanimate.style import Style
 
-style = sty.Style(
+style = Style(
     padding=1, font=str(Path("./tests/Roboto-Regular.ttf").resolve()), font_size=8
 )
 sty.set_style(style)
+
+
+class MockRenderer(Renderer):
+    def output(self, filename) -> None:
+        raise NotImplementedError()
+
+    def rectangle(self, p1, p2, style: Style) -> None:
+        raise NotImplementedError()
+
+    def text(self, text: str, p, style: Style) -> None:
+        raise NotImplementedError()
+
+    def text_bbox(self, text: str, style: Style) -> tuple[int, int, int, int]:
+        raise NotImplementedError()
+
+    def line(self, p1, p2, style: Style) -> None:
+        raise NotImplementedError()
+
+    def set_dimensions(self, dim) -> None:
+        raise NotImplementedError()
+
+    def crop_to_fit(self) -> None:
+        raise NotImplementedError()
+
+    def width(self) -> int:
+        raise NotImplementedError()
+
+    def height(self) -> int:
+        raise NotImplementedError()
 
 
 @pytest.fixture(scope="class")
@@ -42,6 +72,11 @@ def scene(render_ctx: RenderContext) -> Scene:
 @pytest.fixture(scope="class")
 def renderer(render_ctx) -> Renderer:
     return PILRenderer(render_ctx)
+
+
+@pytest.fixture(scope="class")
+def mock_renderer() -> Renderer:
+    return MockRenderer()
 
 
 @pytest.fixture(scope="class", name="c_im")
