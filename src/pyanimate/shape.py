@@ -88,11 +88,6 @@ class Shape(tuple[T, ...], Generic[T]):
             res = map(int, res)
         return type(self)(*res)
 
-    # def floormul(self: Shape[int], other: int | float, /) -> Shape:
-    #     """Multiply all fields of the shape by a scalar"""
-    #     x = (int(i * other) for i in self)
-    #     return type(self)(*x)
-
     @overload
     def __mul__(self, other: Shape[int] | Shape[float], /) -> Self:
         """Multiplying a shape of floats or ints to any shape should return Self"""
@@ -120,6 +115,10 @@ class Shape(tuple[T, ...], Generic[T]):
         assert resolved == self and other_resolved == other
 
         x = (i * j for i, j in zip(resolved, other_resolved))
+        return type(self)(*x)
+
+    def __truediv__(self, other: Shape[int] | Shape[float], /) -> Self:
+        x = (i / j for i, j in zip(self, other))
         return type(self)(*x)
 
     def truediv(self, other: int | float, /) -> Self:
