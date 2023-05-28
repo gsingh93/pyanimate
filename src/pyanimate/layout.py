@@ -474,13 +474,10 @@ class HLayout(Layout):
 
 class Rectangle(Object):
     def render(self, renderer: Renderer) -> None:
-        # Borders are mandatory at the moment, so the minimum size is 2x2
-        assert self.width.value() >= 2 and self.height.value() >= 2
-
         x, y = self.x.value(), self.y.value()
         renderer.rectangle(
             P(x, y),
-            # Subtract one from width and height to account for the border
+            # TODO: Should we be subtracting self.style.stroke_width?
             P(x + self.width.value() - 1, y + self.height.value() - 1),
             self.style,
         )

@@ -317,7 +317,7 @@ class TestTranslateUpVLayoutConstraint(AnimationTestBase):
 class TestTranslateLine(AnimationTestBase):
     @pytest.fixture(scope="class")
     def dim(self) -> tuple[int, int]:
-        return 6, 6
+        return 7, 5
 
     @pytest.fixture(scope="class")
     def frame_rate(self) -> int:
@@ -326,7 +326,7 @@ class TestTranslateLine(AnimationTestBase):
     @pytest.fixture(scope="class", autouse=True)
     def setup_scene(self, s) -> None:
         c = s.keyframe()
-        l = c.line(end=P(3, 2), start=P(1, 2), fill_color=RED)
+        l = c.line(end=P(3, 1), start=P(1, 1), fill_color=RED)
         c.add(l)
         s.add(Translate(l, P(0, -2), relative=True))
 
@@ -336,22 +336,20 @@ class TestTranslateLine(AnimationTestBase):
     def frame(self, frame_num: int) -> list[str]:
         if frame_num == 0:
             return [
-                "wwwwww",
-                "wwwwww",
-                "wwbbbw",
-                "wwbbbw",
-                "wwbbbw",
-                "wwwwww",
+                "wwwwwww",
+                "wwwwwww",
+                "wwbbbww",
+                "wwwwwww",
+                "wwwwwww",
             ]
 
         assert frame_num == 1
         return [
-            "wwwwww",
-            "wwbbbw",
-            "wwbbbw",
-            "wwbbbw",
-            "wwwwww",
-            "wwwwww",
+            "wwwwwww",
+            "wwbbbww",
+            "wwwwwww",
+            "wwwwwww",
+            "wwwwwww",
         ]
 
 

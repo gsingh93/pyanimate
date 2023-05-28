@@ -33,6 +33,7 @@ class Style:
         font_size: int | None = None,
         anchor: Anchor | None = None,
         stroke_color: Color | None = None,
+        stroke_width: int | None = None,
         fill_color: Color | None = None,
         font_color: Color | None = None,
         alpha: int | None = None,
@@ -48,6 +49,7 @@ class Style:
         self._font_size = font_size
         self._anchor = anchor
         self._stroke_color = stroke_color
+        self._stroke_width = stroke_width
         self._fill_color = fill_color
         self._font_color = font_color
         self._alpha = alpha
@@ -72,7 +74,6 @@ class Style:
 
         parent_color = self._parent_obj_style._composite_color(attr)
         alpha_ratio = self.alpha / 255
-        # print("here", attr, parent_color, color, self.alpha)
         return parent_color.mul(1 - alpha_ratio) + color.mul(alpha_ratio)
 
     @property
@@ -102,6 +103,10 @@ class Style:
     @property
     def stroke_color(self) -> Color:
         return self._attr("_stroke_color")
+
+    @property
+    def stroke_width(self) -> int:
+        return self._attr("_stroke_width")
 
     @property
     def composite_stroke_color(self) -> Color:
@@ -149,6 +154,7 @@ _default_style = Style(
     font_size=32,
     anchor=Anchor.TOP_LEFT,
     stroke_color=BLACK,
+    stroke_width=1,
     fill_color=WHITE,
     font_color=BLACK,
     alpha=255,

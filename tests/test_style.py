@@ -14,6 +14,7 @@ class TestStyle:
             font_size=24,
             anchor=Anchor.TOP_LEFT,
             stroke_color=BLUE,
+            stroke_width=2,
             fill_color=RED,
             font_color=BLACK,
             alpha=255,
@@ -25,19 +26,22 @@ class TestStyle:
         assert style.font_size == 24
         assert style.anchor == Anchor.TOP_LEFT
         assert style.stroke_color == BLUE
+        assert style.stroke_width == 2
         assert style.fill_color == RED
         assert style.font_color == BLACK
         assert style.alpha == 255
 
     def test_parent_style(self, style) -> None:
         child_style = style.clone()
+
         assert child_style.padding == 5
         assert child_style.font == "Roboto-Regular.ttf"
         assert child_style.font_size == 24
         assert child_style.anchor == Anchor.TOP_LEFT
-        assert style.stroke_color == BLUE
-        assert style.fill_color == RED
-        assert style.font_color == BLACK
+        assert child_style.stroke_color == BLUE
+        assert child_style.stroke_width == 2
+        assert child_style.fill_color == RED
+        assert child_style.font_color == BLACK
         assert child_style.alpha == 255
 
     def test_parent_style_override(self, style) -> None:
@@ -48,10 +52,11 @@ class TestStyle:
         assert child_style.font == "Roboto-Regular.ttf"
         assert child_style.font_size == 24
         assert child_style.anchor == Anchor.TOP_LEFT
-        assert style.stroke_color == BLUE
-        assert style.fill_color == RED
-        assert style.font_color == BLACK
         assert child_style.alpha == 255
+        assert child_style.stroke_color == BLUE
+        assert child_style.stroke_width == 2
+        assert child_style.fill_color == RED
+        assert child_style.font_color == BLACK
 
     def test_composite_transparent(self, c, style) -> None:
         assert c.style.alpha == 255

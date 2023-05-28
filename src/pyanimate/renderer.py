@@ -140,6 +140,7 @@ class PILRenderer(Renderer):
             (p1.mul(self.ctx.scale), p2.mul(self.ctx.scale)),
             fill=fill_color,
             outline=stroke_color,
+            width=int(style.stroke_width * self.ctx.scale),
         )
 
     def text(self, text: str, p: P, style: Style) -> None:
@@ -171,7 +172,7 @@ class PILRenderer(Renderer):
         self.draw.line(
             [p1.mul(self.ctx.scale), p2.mul(self.ctx.scale)],
             fill=stroke_color,
-            width=3,  # TODO: Make configurable
+            width=int(style.stroke_width * self.ctx.scale),
         )
 
     def clear(self) -> None:

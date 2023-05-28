@@ -45,22 +45,6 @@ class TestTextBoxDynamicSize(ImageTestBase):
         ]
 
 
-class TestLineRelative(ImageTestBase):
-    @pytest.fixture(scope="class", autouse=True)
-    def setup_scene(self, c) -> None:
-        r = c.line(start=P(0, 1), end=P(2, 1))
-        c.add(r)
-
-    def frame(self) -> list[str]:
-        return [
-            "wwwww",
-            "wbbbw",
-            "wbbbw",
-            "wbbbw",
-            "wwwww",
-        ]
-
-
 class TestRectangle2x2(ImageTestBase):
     @pytest.fixture(scope="class")
     def dim(self) -> tuple[int, int]:
@@ -97,6 +81,22 @@ class TestRectangle3x3(ImageTestBase):
         ]
 
 
+class TestRectangleNoBorder3x3(ImageTestBase):
+    @pytest.fixture(scope="class", autouse=True)
+    def setup_scene(self, c) -> None:
+        r = c.rectangle(width=3, height=3, fill_color=RED, stroke_width=0)
+        c.add(r)
+
+    def frame(self) -> list[str]:
+        return [
+            "wwwww",
+            "wRRRw",
+            "wRRRw",
+            "wRRRw",
+            "wwwww",
+        ]
+
+
 class TestRectangleConstraint(ImageTestBase):
     @pytest.fixture(scope="class")
     def dim(self) -> tuple[int, int]:
@@ -120,6 +120,22 @@ class TestRectangleConstraint(ImageTestBase):
         ]
 
 
+class TestLineRelative(ImageTestBase):
+    @pytest.fixture(scope="class", autouse=True)
+    def setup_scene(self, c) -> None:
+        r = c.line(start=P(0, 1), end=P(2, 1))
+        c.add(r)
+
+    def frame(self) -> list[str]:
+        return [
+            "wwwww",
+            "wwwww",
+            "wbbbw",
+            "wwwww",
+            "wwwww",
+        ]
+
+
 class TestDottedLine(ImageTestBase):
     @pytest.fixture(scope="class")
     def dim(self) -> tuple[int, int]:
@@ -133,9 +149,9 @@ class TestDottedLine(ImageTestBase):
     def frame(self) -> list[str]:
         return [
             "wwwwwwwwwwwwwww",
+            "wwwwwwwwwwwwwww",
             "bbbwbbbwbbbwbbb",
-            "bbbwbbbwbbbwbbb",
-            "bbbwbbbwbbbwbbb",
+            "wwwwwwwwwwwwwww",
             "wwwwwwwwwwwwwww",
         ]
 
@@ -143,55 +159,52 @@ class TestDottedLine(ImageTestBase):
 class TestArrow(ImageTestBase):
     @pytest.fixture(scope="class")
     def dim(self) -> tuple[int, int]:
-        return 14, 12
+        return 12, 11
 
     @pytest.fixture(scope="class", autouse=True)
     def setup_scene(self, c) -> None:
-        r = c.arrow(start=P(6, 0), end=P(6, 8), arrowhead_ratio=0.5)
+        r = c.arrow(start=P(5, 0), end=P(5, 8), arrowhead_ratio=0.5)
         c.add(r)
 
     def frame(self) -> list[str]:
         return [
-            "wwwwwwwwwwwwww",
-            "wwwwwwbbbwwwww",
-            "wwwwwwbbbwwwww",
-            "wwwwwwbbbwwwww",
-            "wwwwwwbbbwwwww",
-            "wwwwwbbbbwwwww",
-            "wwwwbbbbbbwwww",
-            "wwwbbbbbbbbwww",
-            "wwwwbbbbbbwwww",
-            "wwwwwbbbbbwwww",
-            "wwwwwwbwbwwwww",
-            "wwwwwwwwwwwwww",
+            "wwwwwwwwwwww",
+            "wwwwwwbwwwww",
+            "wwwwwwbwwwww",
+            "wwwwwwbwwwww",
+            "wwwwwwbwwwww",
+            "wwwwwwbwwwww",
+            "wwwbwwbwbwww",
+            "wwwwbwbbwwww",
+            "wwwwwbbbwwww",
+            "wwwwwwbwwwww",
+            "wwwwwwwwwwww",
         ]
 
 
 class TestDoubleSidedArrow(ImageTestBase):
     @pytest.fixture(scope="class")
     def dim(self) -> tuple[int, int]:
-        return 14, 13
+        return 12, 11
 
     @pytest.fixture(scope="class", autouse=True)
     def setup_scene(self, c) -> None:
-        r = c.arrow(start=P(6, 1), end=P(6, 9), arrowhead_ratio=0.5, double_sided=True)
+        r = c.arrow(start=P(5, 0), end=P(5, 8), arrowhead_ratio=0.5, double_sided=True)
         c.add(r)
 
     def frame(self) -> list[str]:
         return [
-            "wwwwwwwwwwwwww",
-            "wwwwwwbwbwwwww",
-            "wwwwwbbbbbwwww",
-            "wwwbbbbbbbbwww",
-            "wwwwbbbbbbwwww",
-            "wwwwwbbbbwwwww",
-            "wwwwwbbbbwwwww",
-            "wwwwbbbbbbwwww",
-            "wwwbbbbbbbbwww",
-            "wwwwbbbbbbwwww",
-            "wwwwwbbbbbwwww",
-            "wwwwwwbwbwwwww",
-            "wwwwwwwwwwwwww",
+            "wwwwwwwwwwww",
+            "wwwwwwbwwwww",
+            "wwwwbbbbwwww",
+            "wwwbwwbwbwww",
+            "wwwwwwbwwwww",
+            "wwwwwwbwwwww",
+            "wwwbwwbwbwww",
+            "wwwwbwbbwwww",
+            "wwwwwbbbwwww",
+            "wwwwwwbwwwww",
+            "wwwwwwwwwwww",
         ]
 
 
@@ -207,17 +220,17 @@ class TestGrid(ImageTestBase):
     def frame(self) -> list[str]:
         return [
             "wwwwwwwwwwwww",
+            "wwwwwwwwwwwww",
+            "wwbbbbbbbbbww",
+            "wwbwwwbwwwbww",
+            "wwbwwwbwwwbww",
+            "wwbwwwbwwwbww",
+            "wwbbbbbbbbbww",
+            "wwbwwwbwwwbww",
+            "wwbwwwbwwwbww",
+            "wwbwwwbwwwbww",
             "wwbbbbbbbbwww",
-            "wbbbbbbbbbbbw",
-            "wbbbbbbbbbbbw",
-            "wbbbwbbbwbbbw",
-            "wbbbbbbbbbbbw",
-            "wbbbbbbbbbbbw",
-            "wbbbbbbbbbbbw",
-            "wbbbwbbbwbbbw",
-            "wbbbbbbbbbbbw",
-            "wwbbbbbbbbwww",
-            "wwbbbbbbbbwww",
+            "wwwwwwwwwwwww",
             "wwwwwwwwwwwww",
         ]
 
@@ -233,19 +246,19 @@ class TestDynamicSizeGrid(ImageTestBase):
 
     def frame(self) -> list[str]:
         return [
+            "wwwwwwwwwwwww",
             "wbbbbbbbbbbbb",
-            "bbbbbbbbbbbbb",
-            "bbbbbbbbbbbbb",
-            "bbbwbbbwbbbww",
-            "bbbbbbbbbbbbb",
-            "bbbbbbbbbbbbb",
-            "bbbbbbbbbbbbb",
-            "bbbwbbbwbbbww",
-            "bbbbbbbbbbbbb",
-            "bbbbbbbbbbbbb",
-            "bbbbbbbbbbbbb",
-            "bbbwbbbwbbbww",
-            "bbbwbbbwbbbww",
+            "wbwwwbwwwbwww",
+            "wbwwwbwwwbwww",
+            "wbwwwbwwwbwww",
+            "wbbbbbbbbbbbb",
+            "wbwwwbwwwbwww",
+            "wbwwwbwwwbwww",
+            "wbwwwbwwwbwww",
+            "wbbbbbbbbbbbb",
+            "wbwwwbwwwbwww",
+            "wbwwwbwwwbwww",
+            "wbwwwbwwwbwww",
         ]
 
 
