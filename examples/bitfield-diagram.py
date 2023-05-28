@@ -199,9 +199,8 @@ def create_canvas(title, fields, mode: Mode, endianness: Endianness, style) -> C
         right_text = "LSB"
         fields.reverse()
 
-    # TODO: We need to get rid of the border for these and implement align
-    lsb_msb.add(c.textbox(left_text, width=750, align=Anchor.MIDDLE_LEFT))
-    lsb_msb.add(c.textbox(right_text, width=750, align=Anchor.MIDDLE_RIGHT))
+    lsb_msb.add(c.textbox(left_text, width=750, align=Align.LEFT, stroke_width=0))
+    lsb_msb.add(c.textbox(right_text, width=750, align=Align.RIGHT, stroke_width=0))
 
     v.add(lsb_msb)
     v.add(c.spacer())

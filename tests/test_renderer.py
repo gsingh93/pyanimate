@@ -1,6 +1,6 @@
 import pytest
 
-from pyanimate.layout import Spacer
+from pyanimate.layout import Align, Spacer
 from pyanimate.renderer import PILRenderer, RenderContext
 from pyanimate.shape import RED, WHITE
 from pyanimate.shape import Point as P
@@ -29,11 +29,71 @@ class TestRenderer:
         assert renderer.image.size == (20, 40)
 
 
+class TestTextBox(ImageTestBase):
+    @pytest.fixture(scope="class")
+    def dim(self) -> tuple[int, int]:
+        return 10, 5
+
+    @pytest.fixture(scope="class", autouse=True)
+    def setup_scene(self, c, dim) -> None:
+        t = c.textbox(text="A", font_size=4, width=dim[0] - 1, align=Align.LEFT)
+        c.add(t)
+
+    def frame(self) -> list[str]:
+        return [
+            "wwwwwwwwww",
+            "wbbbbbbbbb",
+            "wb?wwwwwwb",
+            "wb??wwwwwb",
+            "wbbbbbbbbb",
+        ]
+
+
+class TestTextBoxAlignRight(ImageTestBase):
+    @pytest.fixture(scope="class")
+    def dim(self) -> tuple[int, int]:
+        return 10, 5
+
+    @pytest.fixture(scope="class", autouse=True)
+    def setup_scene(self, c, dim) -> None:
+        t = c.textbox(text="A", font_size=4, width=dim[0] - 1, align=Align.RIGHT)
+        c.add(t)
+
+    def frame(self) -> list[str]:
+        return [
+            "wwwwwwwwww",
+            "wbbbbbbbbb",
+            "wbwwwww??b",
+            "wbwwwww??b",
+            "wbbbbbbbbb",
+        ]
+
+
+class TestTextBoxAlignCenter(ImageTestBase):
+    @pytest.fixture(scope="class")
+    def dim(self) -> tuple[int, int]:
+        return 11, 5
+
+    @pytest.fixture(scope="class", autouse=True)
+    def setup_scene(self, c, dim) -> None:
+        t = c.textbox(text="A", font_size=4, width=dim[0] - 1, align=Align.CENTER)
+        c.add(t)
+
+    def frame(self) -> list[str]:
+        return [
+            "wwwwwwwwwww",
+            "wbbbbbbbbbb",
+            "wbwww??wwwb",
+            "wbwww???wwb",
+            "wbbbbbbbbbb",
+        ]
+
+
 class TestTextBoxDynamicSize(ImageTestBase):
     @pytest.fixture(scope="class", autouse=True)
     def setup_scene(self, c) -> None:
-        r = c.textbox(text="A", font_size=4)
-        c.add(r)
+        t = c.textbox(text="A", font_size=4)
+        c.add(t)
 
     def frame(self) -> list[str]:
         return [

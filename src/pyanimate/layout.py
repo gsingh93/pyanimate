@@ -558,9 +558,10 @@ class Grid(Object):
 
 
 class TextBox(Rectangle):
-    def __init__(self, text: str, align=Anchor.MIDDLE_MIDDLE, **kwargs) -> None:
+    def __init__(self, text: str, align=Align.CENTER, **kwargs) -> None:
         super().__init__(**kwargs)
         self._text = text
+        self._align = align
 
     @property
     def text(self) -> str:
@@ -569,6 +570,10 @@ class TextBox(Rectangle):
     @text.setter
     def text(self, value: str) -> None:
         self._text = value
+
+    @property
+    def align(self) -> str:
+        return self._align
 
     def prepare_impl(self, renderer: Renderer) -> None:
         if self._width_constraint is None or self._height_constraint is None:
@@ -591,76 +596,34 @@ class TextBox(Rectangle):
         # of behind it
         super().render(renderer)
 
-        renderer.text(
-            self.text,
-            (
-                self.pos
-                + P(int(self.width.value()), int(self.height.value())).truediv(2)
-            ),
-            self.style.clone(anchor=Anchor.MIDDLE_MIDDLE),
-        )
+        if self.align == Align.RIGHT:
+            renderer.text(
+                self.text,
+                self.pos + P(int(self.width.value()), 0),
+                self.style.clone(anchor=Anchor.TOP_RIGHT),
+            )
+        elif self.align == Align.CENTER:
+            renderer.text(
+                self.text,
+                (
+                    self.pos
+                    + P(int(self.width.value()), int(self.height.value())).truediv(2)
+                ),
+                self.style.clone(anchor=Anchor.MIDDLE_MIDDLE),
+            )
+        else:
+            renderer.text(self.text, self.pos, self.style)
 
     def __deepcopy__(self, memo):
         copy = super().__deepcopy__(memo)
         copy._text = self._text
+        copy._align = self._align
 
         return copy
 
     def __str__(self) -> str:
         self.canvas.solver.update()
         return f"{type(self).__name__}({str(self._id)[:4]}, {repr(self.text)}, {self.dim}) [{hex(id(self))}]"
-
-
-# TODO: Get rid of this and just use TextBox?
-# class Text(Object):
-#     def __init__(self, text: str, align=Align.LEFT, **kwargs) -> None:
-#         super().__init__(**kwargs)
-#         self._text = text
-#         self.align = align
-
-#     def __deepcopy__(self, memo):
-#         copy = super().__deepcopy__(memo)
-#         copy._text = deepcopy(self._text, memo)
-#         copy.align = deepcopy(self.align, memo)
-#         return copy
-
-#     @property
-#     def text(self):
-#         return self._text
-
-#     @text.setter
-#     def text(self, text) -> None:
-#         self._text = text
-
-#     def prepare(self, renderer: Renderer) -> None:
-#         if self._width_constraint is None or self._height_constraint is None:
-#             _, _, right, bottom = renderer.text_bbox(self.text, self.style)
-
-#             if self._width_constraint is None:
-#                 self.width = right
-
-#             if self._height_constraint is None:
-#                 self.height = bottom
-
-#     def render(self, renderer: Renderer) -> None:
-#         if self.align == Align.RIGHT:
-#             renderer.text(
-#                 self.text,
-#                 self.pos + P(self.width, 0),
-#                 self.style.clone(anchor=Anchor.TOP_RIGHT),
-#             )
-#         elif self.align == Align.CENTER:
-#             renderer.text(
-#                 self.text,
-#                 (self.pos + P(self.width.value(), self.height.value()).floordiv(2)),
-#                 self.style.clone(anchor=Anchor.MIDDLE_MIDDLE),
-#             )
-#         else:
-#             renderer.text(self.text, self.pos, self.style)
-
-#     def __str__(self) -> str:
-#         self.canvas.solver.update()
-#         return f"{type(self).__name__}({str(self._id)[:4]}, {repr(self.text)}, {self.width}, {self.height}) [{hex(id(self))}]"
 
 
 class Table(HLayout):
