@@ -9,8 +9,8 @@ try:
 except ImportError:
     pass
 
-
 VERBOSE = logging.DEBUG - 5
+logging.VERBOSE = VERBOSE  # type: ignore[attr-defined]
 
 
 class IndentFormatter(logging.Formatter):

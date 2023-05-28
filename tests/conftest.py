@@ -20,6 +20,11 @@ style = Style(
 sty.set_style(style)
 
 
+def pytest_configure(config: pytest.Config):
+    if os.getenv("CI") == "true":
+        config.option.log_cli_level = "verbose"
+
+
 class MockRenderer(Renderer):
     def output(self, filename) -> None:
         raise NotImplementedError()
