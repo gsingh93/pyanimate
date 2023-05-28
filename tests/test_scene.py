@@ -326,8 +326,12 @@ class TestTranslateLine(AnimationTestBase):
     @pytest.fixture(scope="class", autouse=True)
     def setup_scene(self, s) -> None:
         c = s.keyframe()
-        l = c.line(end=P(3, 1), start=P(1, 1), fill_color=RED)
-        c.add(l)
+
+        end = P(3, 1)
+        start = P(1, 1)
+        l = c.line(vec=end - start, fill_color=RED)
+        c.add(l, start)
+
         s.add(Translate(l, P(0, -2), relative=True))
 
     def num_frames(self) -> int:

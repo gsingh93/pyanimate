@@ -83,12 +83,12 @@ def create_scene(ctx: RenderContext) -> Scene:
 
     c.add(vlayout)
 
-    arrow = c.arrow(
-        end=P(buf_tb.x + buf_tb.width + 20, buf_tb.y + buf_tb.height),
-        start=P(buf_tb.x + buf_tb.width * 2, buf_tb.y + buf_tb.height),
-        relative=False,
-    )
-    c.add(arrow)
+    start = P(buf_tb.x + buf_tb.width * 2, buf_tb.y + buf_tb.height)
+    end = P(buf_tb.x + buf_tb.width + 20, buf_tb.y + buf_tb.height)
+    vec = end - start
+
+    arrow = c.arrow(vec=vec)
+    c.add(arrow, offset=start)
 
     s.add(FadeIn(c, duration=2))
 

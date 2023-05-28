@@ -180,11 +180,13 @@ class TestRectangleConstraint(ImageTestBase):
         ]
 
 
-class TestLineRelative(ImageTestBase):
+class TestLine(ImageTestBase):
     @pytest.fixture(scope="class", autouse=True)
     def setup_scene(self, c) -> None:
-        r = c.line(start=P(0, 1), end=P(2, 1))
-        c.add(r)
+        start = P(0, 1)
+        end = P(2, 1)
+        r = c.line(vec=end - start)
+        c.add(r, start)
 
     def frame(self) -> list[str]:
         return [
@@ -199,20 +201,22 @@ class TestLineRelative(ImageTestBase):
 class TestDottedLine(ImageTestBase):
     @pytest.fixture(scope="class")
     def dim(self) -> tuple[int, int]:
-        return 15, 5
+        return 17, 5
 
     @pytest.fixture(scope="class", autouse=True)
     def setup_scene(self, c) -> None:
-        r = c.dotted_line(start=P(0, 2), end=P(13, 2), dash_len=4)
-        c.add(r)
+        start = P(0, 1)
+        end = P(13, 1)
+        r = c.dotted_line(vec=end - start, dash_len=4)
+        c.add(r, start)
 
     def frame(self) -> list[str]:
         return [
-            "wwwwwwwwwwwwwww",
-            "wwwwwwwwwwwwwww",
-            "bbbwbbbwbbbwbbb",
-            "wwwwwwwwwwwwwww",
-            "wwwwwwwwwwwwwww",
+            "wwwwwwwwwwwwwwwww",
+            "wwwwwwwwwwwwwwwww",
+            "wbbbwbbbwbbbwbbbw",
+            "wwwwwwwwwwwwwwwww",
+            "wwwwwwwwwwwwwwwww",
         ]
 
 
@@ -223,8 +227,10 @@ class TestArrow(ImageTestBase):
 
     @pytest.fixture(scope="class", autouse=True)
     def setup_scene(self, c) -> None:
-        r = c.arrow(start=P(5, 0), end=P(5, 8), arrowhead_ratio=0.5)
-        c.add(r)
+        start = P(5, 0)
+        end = P(5, 8)
+        r = c.arrow(vec=end - start, arrowhead_ratio=0.5)
+        c.add(r, start)
 
     def frame(self) -> list[str]:
         return [
@@ -249,8 +255,10 @@ class TestDoubleSidedArrow(ImageTestBase):
 
     @pytest.fixture(scope="class", autouse=True)
     def setup_scene(self, c) -> None:
-        r = c.arrow(start=P(5, 0), end=P(5, 8), arrowhead_ratio=0.5, double_sided=True)
-        c.add(r)
+        start = P(5, 0)
+        end = P(5, 8)
+        r = c.arrow(vec=end - start, arrowhead_ratio=0.5, double_sided=True)
+        c.add(r, start)
 
     def frame(self) -> list[str]:
         return [

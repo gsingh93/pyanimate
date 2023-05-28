@@ -484,48 +484,6 @@ class Rectangle(Object):
         super().render(renderer)
 
 
-class Line(Object):
-    # TODO: Support polar coordinates
-    # TODO: Convert absolute to relative
-    def __init__(self, *, end: P, start: P = P(0, 0), relative=True, **kwargs) -> None:
-        super().__init__(**kwargs)
-        self.relative = relative
-        self.start = start
-        self.end = end
-
-        # self._x = self.start.x
-        # self._y = self.start.y
-
-    def __deepcopy__(self, memo):
-        copy = super().__deepcopy__(memo)
-
-        copy.start = self.start
-        copy.end = self.end
-        copy.relative = self.relative
-
-        return copy
-
-    # def prepare_impl(self, renderer: Renderer):
-    #     # The user passed in absolute coordinates, we need to convert them to relative
-    #     if not self.relative:
-    #         self.start = self.parent.
-    # self.width = self.end - self.start
-    # self.height = self.end.y.value() - self.start.max(self.start.y, self.end.y)
-
-    def render(self, renderer: Renderer) -> None:
-        assert self.parent
-
-        offset = self.parent.children[self].get()
-        start = self.start.get() + offset
-        end = self.end.get() + offset
-        if not self.relative:
-            start = start - self.parent.pos
-            end = end - self.parent.pos
-
-        # renderer.line(self.start + pos, self.end + pos, self.style)
-        renderer.line(start, end, self.style)
-
-
 class Grid(Object):
     def __init__(self, step_size=100, **kwargs) -> None:
         super().__init__(**kwargs)
@@ -631,26 +589,50 @@ class Table(HLayout):
         super().__init__(**kwargs)
 
 
+class Line(Object):
+    def __init__(self, *, vec: P, **kwargs) -> None:
+        super().__init__(**kwargs)
+        self._vec = vec
+
+    @classmethod
+    def from_polar(cls, mag: float, angle: float, **kwargs) -> Line:
+        vec = P.from_polar(mag, angle)
+        return cls(vec=vec, **kwargs)
+
+    def __deepcopy__(self, memo):
+        copy = super().__deepcopy__(memo)
+
+        copy._vec = deepcopy(self._vec, memo)
+
+        return copy
+
+    def render(self, renderer: Renderer) -> None:
+        start = self.pos
+        end = start + self._vec.get()
+        renderer.line(start, end, self.style)
+
+
 class DottedLine(Line):
     def __init__(self, dash_len=10, **kwargs) -> None:
         super().__init__(**kwargs)
-        self.dash_len = dash_len
+        self._dash_len = dash_len
 
-    def render(self, renderer: Renderer, pos=P(0, 0)) -> None:
-        length = (
-            (self.end.x - self.start.x) ** 2 + (self.end.y - self.start.y) ** 2
-        ) ** 0.5
+    def __deepcopy__(self, memo):
+        copy = super().__deepcopy__(memo)
 
-        if self.end.x != self.start.x:
-            u = (self.end - self.start).truediv(length)
-        else:
-            u = P(0, 1)
+        copy._dash_len = self._dash_len
 
-        xy1 = self.start + pos
-        for _ in range(0, int(length), self.dash_len):
-            xy2 = xy1 + u.mul(self.dash_len // 2)
+        return copy
+
+    def render(self, renderer: Renderer) -> None:
+        length = int(self._vec.mag())
+        u = self._vec.unit()
+
+        xy1 = self.pos
+        for _ in range(0, length, self._dash_len):
+            xy2 = xy1 + u.mul(self._dash_len // 2)
             renderer.line(xy1, xy2, self.style)
-            xy1 = xy1 + u.mul(self.dash_len)
+            xy1 = xy1 + u.mul(self._dash_len)
 
 
 class Arrow(Line):
@@ -666,20 +648,10 @@ class Arrow(Line):
         return copy
 
     def render(self, renderer: Renderer) -> None:
-        assert self.parent is not None
+        super().render(renderer)
 
-        offset = self.parent.children[self].get()
-        logger.info("offset: %r", offset)
-        logger.info("self.start,self.end: %s %s", self.start.get(), self.end.get())
-        start = self.start.get() + offset
-        end = self.end.get() + offset
-        logger.info("start,end: %s %s", start, end)
-        if not self.relative:
-            logger.info("relative (%s): %s %s", self.parent.pos, start, end)
-            start = start - self.parent.pos
-            end = end - self.parent.pos
-
-        renderer.line(start, end, self.style)
+        start = self.pos
+        end = start + self._vec.get()
 
         d = end - start
         length = d.mag()
@@ -775,11 +747,6 @@ class Canvas(Object):
         if isinstance(obj, _Proxy):
             obj = obj._obj
 
-        if isinstance(obj, Arrow) and not obj.relative:
-            offset += obj.start
-            obj.start -= offset
-            obj.end -= offset
-            obj.relative = True
         super().add(obj, offset.add(self.style.padding))
 
     def rectangle(self, *args, **kwargs) -> Rectangle:
@@ -788,8 +755,8 @@ class Canvas(Object):
     def textbox(self, *args, **kwargs) -> TextBox:
         return Proxy(TextBox(canvas=self, *args, **kwargs))
 
-    def line(self, end: P, *args, **kwargs) -> Line:
-        return Proxy(Line(canvas=self, end=end, *args, **kwargs))
+    def line(self, *args, **kwargs) -> Line:
+        return Proxy(Line(canvas=self, *args, **kwargs))
 
     def dotted_line(self, *args, **kwargs) -> DottedLine:
         return Proxy(DottedLine(canvas=self, *args, **kwargs))

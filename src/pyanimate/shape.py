@@ -178,6 +178,22 @@ class Point(Shape[T], Generic[T]):
     def y(self) -> T:
         return self[1]
 
+    @classmethod
+    def from_polar(cls, mag: float, radians: float) -> Point[T]:
+        return cls(mag * math.cos(radians), mag * math.sin(radians))
+
+    def mag(self) -> float:
+        resolved = cast(Point[int | float], self.get())
+        return (resolved.x**2 + resolved.y**2) ** 0.5
+
+    def radians(self) -> float:
+        resolved = cast(Point[int | float], self.get())
+        return math.atan2(resolved.y, resolved.x)
+
+    def unit(self) -> Point[T]:
+        assert self.mag() != 0
+        return self.truediv(self.mag())
+
     def __str__(self) -> str:
         x = None
         y = None
@@ -204,14 +220,6 @@ class Point(Shape[T], Generic[T]):
     def __repr__(self) -> str:
         return f"{self} [0x{id(self):x}]"
 
-    def mag(self) -> float:
-        resolved = cast(Point[int | float], self.get())
-        return (resolved.x**2 + resolved.y**2) ** 0.5
-
-    def radians(self) -> float:
-        resolved = cast(Point[int | float], self.get())
-        return math.atan2(resolved.y, resolved.x)
-
 
 class Color(Shape[int]):
     def __new__(  # pylint: disable=arguments-differ
@@ -219,9 +227,9 @@ class Color(Shape[int]):
     ) -> Self:
         return tuple.__new__(cls, (r, g, b, a))
 
-    @staticmethod
-    def from_alpha(alpha: int) -> Color:
-        return Color(0, 0, 0, alpha)
+    @classmethod
+    def from_alpha(cls, alpha: int) -> Color:
+        return cls(0, 0, 0, alpha)
 
     @property
     def r(self) -> int:
