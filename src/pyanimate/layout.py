@@ -755,8 +755,8 @@ class Canvas(Object):
     def textbox(self, *args, **kwargs) -> TextBox:
         return Proxy(TextBox(canvas=self, *args, **kwargs))
 
-    def line(self, *args, **kwargs) -> Line:
-        return Proxy(Line(canvas=self, *args, **kwargs))
+    def line(self, vec: P, *args, **kwargs) -> Line:
+        return Proxy(Line(canvas=self, vec=vec, *args, **kwargs))
 
     def dotted_line(self, *args, **kwargs) -> DottedLine:
         return Proxy(DottedLine(canvas=self, *args, **kwargs))
