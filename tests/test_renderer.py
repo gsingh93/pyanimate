@@ -72,7 +72,7 @@ class TestTextBoxAlignRight(ImageTestBase):
 class TestTextBoxAlignCenter(ImageTestBase):
     @pytest.fixture(scope="class")
     def dim(self) -> tuple[int, int]:
-        return 11, 5
+        return 10, 5
 
     @pytest.fixture(scope="class", autouse=True)
     def setup_scene(self, c, dim) -> None:
@@ -81,11 +81,11 @@ class TestTextBoxAlignCenter(ImageTestBase):
 
     def frame(self) -> list[str]:
         return [
-            "wwwwwwwwwww",
-            "wbbbbbbbbbb",
-            "wbwww??wwwb",
-            "wbwww???wwb",
-            "wbbbbbbbbbb",
+            "wwwwwwwwww",
+            "wbbbbbbbbb",
+            "wbww.?.wwb",
+            "wbww.??.wb",
+            "wbbbbbbbbb",
         ]
 
 
