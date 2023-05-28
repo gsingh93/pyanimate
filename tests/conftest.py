@@ -20,9 +20,24 @@ style = Style(
 sty.set_style(style)
 
 
+def is_ci() -> bool:
+    return os.getenv("CI") == "true"
+
+
 def pytest_configure(config: pytest.Config):
-    if os.getenv("CI") == "true":
+    if is_ci():
         config.option.log_cli_level = "verbose"
+
+
+@pytest.fixture(autouse=True)
+def no_output(capsys):
+    yield
+
+    # Verify that no output was printed to stdout when running tests on CI
+    if is_ci():
+        out, _ = capsys.readouterr()
+        if out:
+            pytest.fail(f"Output captured: {out}")
 
 
 class MockRenderer(Renderer):
