@@ -182,17 +182,19 @@ class Point(Shape[T], Generic[T]):
     def from_polar(cls, mag: float, radians: float) -> Point[T]:
         return cls(mag * math.cos(radians), mag * math.sin(radians))
 
+    @property
     def mag(self) -> float:
         resolved = cast(Point[int | float], self.get())
         return (resolved.x**2 + resolved.y**2) ** 0.5
 
+    @property
     def radians(self) -> float:
         resolved = cast(Point[int | float], self.get())
         return math.atan2(resolved.y, resolved.x)
 
     def unit(self) -> Point[T]:
-        assert self.mag() != 0
-        return self.truediv(self.mag())
+        assert self.mag != 0
+        return self.truediv(self.mag)
 
     def __str__(self) -> str:
         x = None

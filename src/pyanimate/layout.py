@@ -625,7 +625,7 @@ class DottedLine(Line):
         return copy
 
     def render(self, renderer: Renderer) -> None:
-        length = int(self._vec.mag())
+        length = int(self._vec.mag)
         u = self._vec.unit()
 
         xy1 = self.pos
@@ -654,8 +654,8 @@ class Arrow(Line):
         end = start + self._vec.get()
 
         d = end - start
-        length = d.mag()
-        angle = d.radians()
+        length = d.mag
+        angle = d.radians
 
         head_length = length * self.aratio
         head_angle = math.pi / 4  # 45 degrees in radians

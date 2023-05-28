@@ -1,8 +1,9 @@
 import copy
+import math
 
 import pytest
 
-from pyanimate.shape import Shape
+from pyanimate.shape import Point, Shape
 from pyanimate.solver import Variable
 
 
@@ -173,3 +174,36 @@ class TestShapeVariableExpression:
         s1 = Shape(x, t, e)
 
         assert s1.truediv(2) == Shape(x / 2, t / 2, e / 2)
+
+
+class TestPoint:
+    def test_xy(self):
+        p = Point(1, 2)
+        assert p.x == 1
+        assert p.y == 2
+
+    def test_from_polar(self):
+        p = Point.from_polar(math.sqrt(25 + 25), math.pi / 4)
+        assert math.isclose(p.x, 5)
+        assert math.isclose(p.y, 5)
+
+    def test_mag(self):
+        p = Point(3, 4)
+        assert math.isclose(p.mag, 5)
+
+    def test_radians(self):
+        p = Point(5, 5)
+        assert math.isclose(p.radians, math.pi / 4)
+
+    def test_unit(self):
+        for i in [-1, 0, 1]:
+            for j in [-1, 0, 1]:
+                if i == 0 and j == 0:
+                    continue
+
+                p = Point(i, j)
+                u = p.unit()
+                assert math.isclose(u.mag, 1)
+
+                if i == 0 or j == 0:
+                    assert p == u
