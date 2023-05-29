@@ -85,49 +85,115 @@ class TestUnresolvedShape:
         with pytest.raises(AssertionError):
             s1.get()
 
-    def test_add(self, x, t, e, s1) -> None:
+    def test_add(
+        self,
+        x: Variable,
+        t: Term,
+        e: Expression,
+        s1: Shape[Variable | Term | Expression],
+    ) -> None:
         s2 = Shape(1, 2, 3)
 
         assert s1 + s2 == s2 + s1 == Shape(x + 1, t + 2, e + 3)
 
-    def test_sub(self, x, t, e, s1) -> None:
+    def test_sub(
+        self,
+        x: Variable,
+        t: Term,
+        e: Expression,
+        s1: Shape[Variable | Term | Expression],
+    ) -> None:
         s2 = Shape(1, 2, 3)
 
         assert s1 - s2 == -s2 - -s1 == Shape(x - 1, t - 2, e - 3)
 
-    def test_mul(self, x, t, e, s1) -> None:
+    def test_mul(
+        self,
+        x: Variable,
+        t: Term,
+        e: Expression,
+        s1: Shape[Variable | Term | Expression],
+    ) -> None:
         s2 = Shape(1, 2, 3)
 
         assert s1 * s2 == s2 * s1 == Shape(1 * x, 2 * t, 3 * e)
 
-    def test_div(self, x, t, e, s1) -> None:
+    def test_div(
+        self,
+        x: Variable,
+        t: Term,
+        e: Expression,
+        s1: Shape[Variable | Term | Expression],
+    ) -> None:
         s2 = Shape(1, 2, 3)
 
         assert s1 / s2 == Shape(x / 1, t / 2, e / 3)
 
-    def test_add_scalar(self, x, t, e, s1) -> None:
+    def test_add_scalar(
+        self,
+        x: Variable,
+        t: Term,
+        e: Expression,
+        s1: Shape[Variable | Term | Expression],
+    ) -> None:
         assert s1.add(1) == Shape(x + 1, t + 1, e + 1)
 
-    def test_sub_scalar(self, x, t, e, s1) -> None:
+    def test_sub_scalar(
+        self,
+        x: Variable,
+        t: Term,
+        e: Expression,
+        s1: Shape[Variable | Term | Expression],
+    ) -> None:
         assert s1.sub(1) == Shape(x - 1, t - 1, e - 1)
 
-    def test_mul_scalar(self, x, t, e, s1) -> None:
+    def test_mul_scalar(
+        self,
+        x: Variable,
+        t: Term,
+        e: Expression,
+        s1: Shape[Variable | Term | Expression],
+    ) -> None:
         assert s1.mul(2) == Shape(2 * x, 2 * t, 2 * e)
 
-    def test_div_scalar(self, x, t, e, s1) -> None:
+    def test_div_scalar(
+        self,
+        x: Variable,
+        t: Term,
+        e: Expression,
+        s1: Shape[Variable | Term | Expression],
+    ) -> None:
         assert s1.truediv(2) == Shape(x / 2, t / 2, e / 2)
 
-    def test_add_unresolved(self, x, t, e, s1) -> None:
+    def test_add_unresolved(
+        self,
+        x: Variable,
+        t: Term,
+        e: Expression,
+        s1: Shape[Variable | Term | Expression],
+    ) -> None:
         s2 = Shape(t, e, x)
 
         assert s1 + s2 == s2 + s1 == Shape(x + t, t + e, e + x)
 
-    def test_sub_unresolved(self, x, t, e, s1) -> None:
+    def test_sub_unresolved(
+        self,
+        x: Variable,
+        t: Term,
+        e: Expression,
+        s1: Shape[Variable | Term | Expression],
+    ) -> None:
         s2 = Shape(t, e, x)
 
         assert s1 - s2 == -s2 - -s1 == Shape(x - t, t - e, e - x)
 
-    def test_get(self, x, t, e, s1) -> None:
+    def test_get(
+        self,
+        x: Variable,
+        t: Term,
+        e: Expression,
+        s1: Shape[Variable | Term | Expression],
+    ) -> None:
         s2 = s1.get()
         assert s1[0] is x
         assert s1[1] is t

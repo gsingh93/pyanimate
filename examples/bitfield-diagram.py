@@ -230,7 +230,7 @@ def create_canvas(title, fields, mode: Mode, endianness: Endianness, style) -> C
         cell_width = ctx.bit_width * field.display_bits
 
         if mode == Mode.WIDTH:
-            h.add(c.dotted_line(end=P(0, 50)))
+            h.add(c.dotted_line(vec=P(0, 50)))
 
             label = get_bit_label(field.bits, field.unit.value)
             label_tb = c.textbox(label, height=50)
@@ -238,9 +238,9 @@ def create_canvas(title, fields, mode: Mode, endianness: Endianness, style) -> C
             arrow_length = (
                 cell_width - label_tb.width - (default_style.padding * 4)
             ) / 2
-            arrow1 = c.arrow(double_sided=True, end=P(label_tb.width, 0))
+            arrow1 = c.arrow(double_sided=True, vec=P(label_tb.width, 0))
             arrow2 = c.arrow(
-                double_sided=True, end=P(arrow_length, 0)
+                double_sided=True, vec=P(arrow_length, 0)
             )  # arrow1.clone(True)
 
             # TODO: See if we can use clone here
@@ -264,7 +264,7 @@ def create_canvas(title, fields, mode: Mode, endianness: Endianness, style) -> C
 
         current_bit += field.max
 
-    h.add(c.dotted_line(end=P(0, 50)))
+    h.add(c.dotted_line(vec=P(0, 50)))
 
     v.add(t)
     v.add(h, offset=P(0, style.padding))
