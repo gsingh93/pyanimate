@@ -57,6 +57,7 @@ def parse_args():
         default=Endianness.LITTLE,
         help="TODO",
     )
+    parser.add_argument("--no-show", action="store_true", help="TODO")
     parser.add_argument("-w", "--width", default=1920, type=int, help="TODO")
     parser.add_argument("--height", default=1080, type=int, help="TODO")
     parser.add_argument("-c", "--crop", action="store_true", help="TODO")
@@ -325,7 +326,8 @@ def main() -> None:
     if args.crop:
         renderer.crop_to_fit()
 
-    renderer.show()
+    if not args.no_show:
+        renderer.show()
     renderer.output(args.output)
 
 

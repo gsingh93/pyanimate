@@ -29,6 +29,7 @@ def parse_args():
         type=int,
         help="The number of frames per second",
     )
+    parser.add_argument("--no-show", action="store_true", help="TODO")
     parser.add_argument("-w", "--width", default=1920, type=int, help="TODO")
     parser.add_argument("--height", default=1080, type=int, help="TODO")
     parser.add_argument("-s", "--scale", default=2, type=int, help="TODO")
@@ -144,8 +145,9 @@ def main() -> None:
 
         sys.exit(1)
 
-    with Image.open(args.output) as im:
-        im.show()
+    if not args.no_show:
+        with Image.open(args.output) as im:
+            im.show()
 
 
 if __name__ == "__main__":

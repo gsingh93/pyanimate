@@ -46,3 +46,8 @@ jobs:
       - name: Upload coverage to Codecov
         if: success() || failure()
         uses: codecov/codecov-action@v3
+
+      - name: Run examples
+        run: |
+          ./examples/animate.py --width 1080 --height 720 -f 5 --no-show
+          ./examples/bitfield-diagram.py --relative --no-show
