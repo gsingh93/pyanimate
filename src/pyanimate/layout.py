@@ -294,7 +294,7 @@ def Proxy(target: T) -> T:
 
 # TODO: We can make this class handle even more logic from the subclasses
 class Layout(Object):
-    def __init__(self, align=Align.CENTER, **kwargs) -> None:
+    def __init__(self, align: Align = Align.CENTER, **kwargs) -> None:
         super().__init__(**kwargs)
         self.align = align
 
@@ -449,17 +449,20 @@ class TextBox(Rectangle):
         return self._align
 
     def prepare_impl(self, renderer: Renderer) -> None:
+        # See if any dimensions are dynamically sized
         if self._width_constraint is None or self._height_constraint is None:
             _, _, right, bottom = renderer.text_bbox(self.text, self.style)
 
+            # For dynamically sized dimensions, we make sure to include room for the
+            # padding
             if self._width_constraint is None:
                 logger.debug("New width for %s: %s", self, right)
-                self._width_constraint = self.width == right
+                self._width_constraint = self.width == right + self.style.padding * 2
                 self.canvas.solver.add(self._width_constraint)
 
             if self._height_constraint is None:
                 logger.debug("New height for %s: %s", self, bottom)
-                self._height_constraint = self.height == bottom
+                self._height_constraint = self.height == bottom + self.style.padding * 2
                 self.canvas.solver.add(self._height_constraint)
 
             self.canvas.solver.update()
@@ -469,23 +472,26 @@ class TextBox(Rectangle):
         # of behind it
         super().render(renderer)
 
+        middle_y = int(self.height.value() / 2)
         if self.align == Align.RIGHT:
             renderer.text(
                 self.text,
-                self.pos + P(int(self.width.value()), 0),
-                self.style.clone(anchor=Anchor.TOP_RIGHT),
+                self.pos + P(int(self.width.value()), middle_y),
+                self.style.clone(anchor=Anchor.MIDDLE_RIGHT),
             )
         elif self.align == Align.CENTER:
             renderer.text(
                 self.text,
-                (
-                    self.pos
-                    + P(int(self.width.value()), int(self.height.value())).truediv(2)
-                ),
+                self.pos + P(self.width.value() // 2, middle_y),
                 self.style.clone(anchor=Anchor.MIDDLE_MIDDLE),
             )
         else:
-            renderer.text(self.text, self.pos, self.style)
+            assert self.align == Align.LEFT
+            renderer.text(
+                self.text,
+                self.pos + P(0, middle_y),
+                self.style.clone(anchor=Anchor.MIDDLE_LEFT),
+            )
 
     def __deepcopy__(self, memo):
         copy = super().__deepcopy__(memo)
