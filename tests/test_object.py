@@ -52,6 +52,10 @@ class TestParentChildObject:
         parent = Object(c)
 
         parent.add(child)
+
+        # Initialize the Solver
+        c.prepare(mock_renderer)
+
         parent.prepare(mock_renderer)
 
         return parent
@@ -81,6 +85,9 @@ class TestParentChildObject:
 
         parent.remove(child)
 
+        # Reinitialize the Solver
+        parent.canvas.prepare(mock_renderer)
+
         assert child not in parent.children
         assert child.parent is None
 
@@ -93,9 +100,14 @@ class TestParentChildObject:
         assert child.parent == parent
         assert child.pos == P(10, 20)
 
-    @pytest.mark.xfail
-    def test_replace(self, _parent, _child) -> None:
-        assert False
+    def test_remove_twice(self, parent, child) -> None:
+        """
+        Test that removing a child object twice raises an error
+        """
+        parent.remove(child)
+
+        with pytest.raises(ValueError):
+            parent.remove(child)
 
 
 class TestLatestObject:

@@ -259,7 +259,6 @@ class Translate(Transform):
             parent.children[self.obj],
             val,
         )
-        self.obj.clear_constraints()
         parent.children[self.obj] = val
 
 

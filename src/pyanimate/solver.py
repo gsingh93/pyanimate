@@ -443,6 +443,10 @@ class Solver:
 
         return var, res
 
+    def reset(self) -> None:
+        self._solver = kiwi.Solver()
+        self._constraints.clear()
+
     def add(self, c: Constraint) -> None:
         logger.verbose("Adding constraint %s", c)
         self._constraints.add(c)

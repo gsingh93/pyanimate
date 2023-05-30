@@ -58,30 +58,10 @@ class Object:
         self.children: OrderedDict[Object, P] = OrderedDict()
         self.parent: Object | None = None
 
-        # self.canvas.solver.add(self._x >= 0)
-        # self.canvas.solver.add(self._y >= 0)
-        # self.canvas.solver.add(self._w >= 0)
-        # self.canvas.solver.add(self._h >= 0)
-        # if width is not None:
-        #     self._width_constraint = self._w == width
-        #     self.canvas.solver.add(self._width_constraint)
-        # if height is not None:
-        #     self._height_constraint = self._h == height
-        #     self.canvas.solver.add(self._height_constraint)
-
-        # Contains all constraints that relate this object to its parent
-        self.constraints: list[Constraint] = []
-
-        self.constraints.append(self._x >= 0)
-        self.constraints.append(self._y >= 0)
-        self.constraints.append(self._w >= 0)
-        self.constraints.append(self._h >= 0)
         if width is not None:
             self._width_constraint = self._w == width
-            self.constraints.append(self._width_constraint)
         if height is not None:
             self._height_constraint = self._h == height
-            self.constraints.append(self._height_constraint)
 
     @property
     def pos(self) -> P[int]:
@@ -135,9 +115,9 @@ class Object:
         self._height_constraint = self._h == val
         # self.canvas.solver.add(self._height_constraint)
 
-    def add(self, obj: Object | _Proxy[Object], offset: P = P(0, 0)) -> None:
+    def add(self, obj: Object | ObjectProxy, offset: P = P(0, 0)) -> None:
         if isinstance(obj, _Proxy):
-            obj = obj._obj
+            obj = obj.latest()
 
         logger.debug("Adding %s to %s at offset %r", obj, self, offset)
         self.children[obj] = offset
@@ -146,68 +126,25 @@ class Object:
         obj.parent = self
         obj.style.parent_obj_style = self.style
 
-    def find(self, obj: Object, remove: bool = False) -> Object | None:
-        for child in self.children:
-            if child == obj:
-                if remove:
-                    del self.children[obj]
+    def remove(self, obj: Object | ObjectProxy) -> None:
+        if isinstance(obj, _Proxy):
+            obj = obj.latest()
 
-                    child.parent = None
-                    obj.parent = None
-                    child.clear_constraints()
-                    obj.clear_constraints()
-
-                return child
-
-        for child in self.children:
-            result = child.find(obj, remove)
-            if result:
-                return result
-
-        return None
-
-    def remove(self, obj: Object) -> bool:
-        return self.find(obj, remove=True) is not None
-
-    def replace(self, obj: Object, new: Object) -> None:
-        # We need to search for `obj` as we need the actual object we're going to be
-        # replacing, not just some object that is equal to it
-        old = self.find(obj)
-        if not old:
+        if obj not in self.children:
             raise ValueError(f"Object {obj} not found")
 
-        # TODO: Speed this up by adding a cloned_from/cloned_to attribute that can find
-        # the newer version of the object
-
-        assert old.parent is not None
-        parent = self.find(old.parent)
-        assert parent is not None
-
-        logger.debug(
-            "Replacing %s with %s in parent %s", str(old), str(new), str(parent)
-        )
-
-        # Preserve the order of items in the dictionary
-        parent.children = OrderedDict(
-            (new, value) if key == old else (key, value)
-            for key, value in parent.children.items()
-        )
-        old.parent = None
-        old.clear_constraints()
-        new.parent = parent
-        new.style.parent_obj_style = parent.style
+        del self.children[obj]
+        obj.parent = None
 
     def prepare_impl(self, _renderer: Renderer) -> None:
         for obj, offset in self.children.items():
             c = self.x + offset.x == obj.x
             self.canvas.solver.add(c)
             self.canvas.solver.update()
-            obj.constraints.append(c)
 
             c = self.y + offset.y == obj.y
             self.canvas.solver.add(c)
             self.canvas.solver.update()
-            obj.constraints.append(c)
 
     def prepare(self, renderer: Renderer) -> None:
         self.canvas.solver.add(self._x >= 0)
@@ -227,8 +164,6 @@ class Object:
         self.prepare_impl(renderer)
 
         for obj, offset in self.children.items():
-            # TODO: It seems like this offset isn't the same as the one that was updated
-            # from the Translate animation
             logger.debug("Preparing child %s %s (offset %r)", obj, obj.pos, offset)
             obj.prepare(renderer)
 
@@ -262,14 +197,6 @@ class Object:
             return self.cloned_to.latest()
 
         return self
-
-    def clear_constraints(self) -> None:
-        for c in self.constraints:
-            # assert self.canvas.solver.hasConstraint(c)
-            if self.canvas.solver.hasConstraint(c):
-                self.canvas.solver.remove(c)
-
-        self.constraints.clear()
 
     def __deepcopy__(self, memo) -> Self:
         cls = self.__class__
@@ -310,16 +237,7 @@ class Object:
         c._x = deepcopy(self._x, memo)
         c._y = deepcopy(self._y, memo)
 
-        # c.canvas.solver.add(c._x >= 0)
-        # c.canvas.solver.add(c._y >= 0)
-        # c.canvas.solver.add(c._w >= 0)
-        # c.canvas.solver.add(c._h >= 0)
-
         self.cloned_to = copy
-
-        c.constraints = []
-        for constraint in self.constraints:
-            c.constraints.append(constraint)
 
         return copy
 
@@ -404,11 +322,9 @@ class Layout(Object):
         for obj, offset in self.children.items():
             c = self.get_center_constraint(obj, offset)
             self.canvas.solver.add(c)
-            obj.constraints.append(c)
 
             c = self.get_secondary_dim_constraint(obj, offset)
             self.canvas.solver.add(c)
-            obj.constraints.append(c)
 
             self.canvas.solver.update()
 
@@ -416,7 +332,6 @@ class Layout(Object):
         for obj, offset in self.children.items():
             c = self.get_linear_constraint(prev_child, obj, offset)
             self.canvas.solver.add(c)
-            obj.constraints.append(c)
 
             prev_child = obj
 
@@ -689,8 +604,12 @@ class Spacer(Object):
 
 class Canvas(Object):
     def __init__(self, **kwargs) -> None:
-        self.solver = Solver()
+        self._solver = Solver()
         super().__init__(self, **kwargs)
+
+    @property
+    def solver(self) -> Solver:
+        return self._solver
 
     def __deepcopy__(self, memo):
         cls = self.__class__
@@ -713,7 +632,7 @@ class Canvas(Object):
         memo[id(self)] = copy
 
         copy.canvas = copy
-        copy.solver = deepcopy(self.solver, memo)
+        copy._solver = Solver()
 
         copy.cloned_to = None
 
@@ -732,20 +651,13 @@ class Canvas(Object):
         c._x = deepcopy(self._x, memo)
         c._y = deepcopy(self._y, memo)
 
-        # c.canvas.solver.add(c._x >= 0)
-        # c.canvas.solver.add(c._y >= 0)
-        # c.canvas.solver.add(c._w >= 0)
-        # c.canvas.solver.add(c._h >= 0)
-
         self.cloned_to = copy
 
         return copy
 
     def add(self, obj: Object | _Proxy[Object], offset: P = P(0, 0)) -> None:
-        # If we're adding an Arrow with absolute coordinates, convert the absolute
-        # coordinates to relative by updating offset
         if isinstance(obj, _Proxy):
-            obj = obj._obj
+            obj = obj.latest()
 
         super().add(obj, offset.add(self.style.padding))
 
@@ -776,8 +688,8 @@ class Canvas(Object):
     def grid(self, *args, **kwargs) -> Grid:
         return Proxy(Grid(canvas=self, *args, **kwargs))
 
-    def render(self, renderer: Renderer) -> None:
-        self.solver = Solver()
+    def prepare(self, renderer: Renderer) -> None:
+        self.solver.reset()
 
         self.solver.add(self.x == 0)
         self.solver.add(self.y == 0)
@@ -785,6 +697,9 @@ class Canvas(Object):
         self.solver.add(self.width <= renderer.width)
         self.solver.add(self.height <= renderer.height)
 
+        super().prepare(renderer)
+
+    def render(self, renderer: Renderer) -> None:
         self.prepare(renderer)
 
         # for obj in self.children:
@@ -807,12 +722,10 @@ class Canvas(Object):
             c = self.width >= offset.x + obj.width
             self.solver.add(c)
             self.solver.update()
-            obj.constraints.append(c)
 
             c = self.height >= offset.y + obj.height
             self.solver.add(c)
             self.solver.update()
-            obj.constraints.append(c)
 
         # TODO: How to crop consistently across all frames? Crop at the end?
         # renderer.set_dimensions(P(self.width.value() * 1.5, self.height.value() * 1.5))

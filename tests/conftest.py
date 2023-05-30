@@ -41,6 +41,9 @@ def no_output(capsys):
 
 
 class MockRenderer(Renderer):
+    def __init__(self, render_ctx: RenderContext):
+        self.render_ctx = render_ctx
+
     def output(self, filename) -> None:
         raise NotImplementedError()
 
@@ -64,11 +67,11 @@ class MockRenderer(Renderer):
 
     @property
     def width(self) -> int:
-        raise NotImplementedError()
+        return self.render_ctx.w
 
     @property
     def height(self) -> int:
-        raise NotImplementedError()
+        return self.render_ctx.h
 
 
 @pytest.fixture(scope="class")
@@ -97,8 +100,8 @@ def renderer(render_ctx) -> Renderer:
 
 
 @pytest.fixture(scope="class")
-def mock_renderer() -> Renderer:
-    return MockRenderer()
+def mock_renderer(render_ctx) -> Renderer:
+    return MockRenderer(render_ctx)
 
 
 @pytest.fixture(scope="class", name="c_im")
