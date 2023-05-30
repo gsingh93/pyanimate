@@ -14,7 +14,7 @@ from pyanimate.scene import Scene
 from pyanimate.shape import CYAN, GREEN, MAGENTA, RED, YELLOW, Color
 from pyanimate.shape import Point as P
 
-style = sty.Style(padding=20, font="Roboto-Regular.ttf", font_size=32)
+style = sty.Style(padding=20, font="./examples/Roboto-Regular.ttf", font_size=32)
 sty.set_style(style)
 
 logger = logging.getLogger(__name__)

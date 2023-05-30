@@ -293,7 +293,7 @@ def main() -> None:
     )
     default_style = Style(
         padding=args.padding * args.scale,
-        font="Roboto-Regular.ttf",
+        font="./examples/Roboto-Regular.ttf",
         font_size=args.font_size * args.scale,
     )
     pyanimate.style.set_style(default_style)
