@@ -41,7 +41,7 @@ def parse_args():
         action="store_true",
         help="Make the width of a bit as small as possible while preserving the relative sizes between fields",
     )
-    parser.add_argument("-s", "--scale", default=2, type=int, help="TODO")
+    parser.add_argument("-s", "--scale", default=2, type=float, help="TODO")
     parser.add_argument(
         "-m", "--mode", choices=list(Mode), default=Mode.WIDTH, help="TODO"
     )

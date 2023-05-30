@@ -32,7 +32,7 @@ def parse_args():
     parser.add_argument("--no-show", action="store_true", help="TODO")
     parser.add_argument("-w", "--width", default=1920, type=int, help="TODO")
     parser.add_argument("--height", default=1080, type=int, help="TODO")
-    parser.add_argument("-s", "--scale", default=2, type=int, help="TODO")
+    parser.add_argument("-s", "--scale", default=2, type=float, help="TODO")
     parser.add_argument("-o", "--output", default="output.png", help="TODO")
     parser.add_argument(
         "--log-level",

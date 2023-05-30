@@ -14,7 +14,7 @@ logger = get_logger(__name__)
 
 class RenderContext:
     def __init__(
-        self, width: int, height: int, dpi: tuple[int, int], scale: int
+        self, width: int, height: int, dpi: tuple[int, int], scale: float
     ) -> None:
         self.scale = scale
         self.w = width
@@ -74,8 +74,8 @@ class PILRenderer(Renderer):
 
         self.ctx = ctx
 
-        self._w = ctx.w * ctx.scale
-        self._h = ctx.h * ctx.scale
+        self._w = int(ctx.w * ctx.scale)
+        self._h = int(ctx.h * ctx.scale)
 
         # TODO: Make configurable
         self.background = Color(255, 255, 255, 255)
@@ -155,7 +155,7 @@ class PILRenderer(Renderer):
 
     def text(self, text: str, p: P, style: Style) -> None:
         logger.verbose("Text: %s %s", repr(text), p)
-        font = self._get_font(style.font, style.font_size * self.ctx.scale)
+        font = self._get_font(style.font, int(style.font_size * self.ctx.scale))
         font_color = self._composite_background(
             style.composite_font_color, style.composite_alpha
         )
@@ -169,7 +169,7 @@ class PILRenderer(Renderer):
         )
 
     def text_bbox(self, text: str, style: Style) -> tuple[int, int, int, int]:
-        font = self._get_font(style.font, style.font_size * self.ctx.scale)
+        font = self._get_font(style.font, int(style.font_size * self.ctx.scale))
         return self.draw.textbbox((0, 0), text, font=font)
 
     def line(self, p1: P, p2: P, style: Style) -> None:
