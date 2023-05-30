@@ -390,6 +390,26 @@ class Constraint:
         e = Expression.from_expression(c.expression())
         return Constraint(e, c.op(), c.strength())
 
+    def __or__(
+        self,
+        other: float
+        | Literal["weak"]
+        | Literal["medium"]
+        | Literal["strong"]
+        | Literal["required"],
+    ) -> Constraint:
+        return Constraint.from_constraint(self._constraint | other)
+
+    def __ror__(
+        self,
+        other: float
+        | Literal["weak"]
+        | Literal["medium"]
+        | Literal["strong"]
+        | Literal["required"],
+    ) -> Constraint:
+        return Constraint.from_constraint(self._constraint | other)
+
     # def __eq__(self, other: Constraint) -> bool:
     #     return self._constraint == other._constraint
 

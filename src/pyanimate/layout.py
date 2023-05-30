@@ -514,6 +514,21 @@ class Line(Object):
         vec = P.from_polar(mag, angle)
         return cls(vec=vec, **kwargs)
 
+    def prepare_impl(self, _renderer: Renderer) -> None:
+        if self._width_constraint is None:
+            w = self._vec.x
+
+            logger.debug("New width for %s: %s", self, w)
+            self.canvas.solver.add((self.width == w) | "strong")
+            self.canvas.solver.add((self.width == -1 * w) | "strong")
+
+        if self._height_constraint is None:
+            h = self._vec.y
+
+            logger.debug("New height for %s: %s", self, h)
+            self.canvas.solver.add((self.height == h) | "strong")
+            self.canvas.solver.add((self.height == -1 * h) | "strong")
+
     def __deepcopy__(self, memo):
         copy = super().__deepcopy__(memo)
 
