@@ -55,7 +55,7 @@ class Renderer(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def crop_to_fit(self) -> None:
+    def crop(self, width, height) -> None:
         raise NotImplementedError()
 
     @property
@@ -106,7 +106,8 @@ class PILRenderer(Renderer):
 
     def set_dimensions(self, dim: P) -> None:
         logger.debug("Setting dimensions: %s", dim)
-        self._w, self._h = map(int, dim.mul(self.ctx.scale))
+        # TODO: no scaling is applied here, it causes problems
+        self._w, self._h = map(int, dim)
 
     def show(self) -> None:
         self.image.show()
@@ -123,9 +124,20 @@ class PILRenderer(Renderer):
         #     )
         self.image.save(filename, dpi=self.ctx.dpi)
 
-    def crop_to_fit(self) -> None:
-        logger.debug("Cropping to %dx%d", self._w, self._h)
-        self.image = self.image.crop((0, 0, self._w, self._h))
+    def crop(self, dim: P[int] | None = None, offset: P[int] = P(0, 0)) -> None:
+        if dim is None:
+            width, height = self._w - offset.x, self._h - offset.y
+        else:
+            width, height = dim
+
+        assert width > 0 and height > 0, "Invalid crop dimensions"
+        assert offset.x >= 0 and offset.y >= 0, "Invalid crop offset"
+        assert (
+            width + offset.x <= self._w and height + offset.y <= self._h
+        ), "Crop out of bounds"
+
+        logger.debug("Cropping to %dx%d", width, height)
+        self.image = self.image.crop((offset.x, offset.y, width, height))
 
     def rectangle(self, p1: P, p2: P, style: Style) -> None:
         logger.verbose("Rectangle: %s %s", p1, p2)

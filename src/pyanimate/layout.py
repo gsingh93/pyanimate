@@ -691,6 +691,9 @@ class Canvas(Object):
     def prepare(self, renderer: Renderer) -> None:
         self.solver.reset()
 
+        self._width_constraint = None
+        self._height_constraint = None
+
         self.solver.add(self.x == 0)
         self.solver.add(self.y == 0)
 
@@ -702,13 +705,12 @@ class Canvas(Object):
     def render(self, renderer: Renderer) -> None:
         self.prepare(renderer)
 
-        # for obj in self.children:
-        #     self.solver.add(obj.x + obj.width <= renderer.width())
-        #     self.solver.add(obj.y + obj.height <= renderer.height())
+        # Make sure that children are not rendered outside of the canvas
+        for obj in self.children:
+            self.solver.add(obj.x + obj.width <= self.width)
+            self.solver.add(obj.y + obj.height <= self.height)
 
         self.solver.update()
-
-        # print(self.solver.dumps())
 
         for obj in self.children:
             logger.debug(
@@ -717,15 +719,3 @@ class Canvas(Object):
                 obj.pos,
             )
             obj.render(renderer)
-
-        for obj, offset in self.children.items():
-            c = self.width >= offset.x + obj.width
-            self.solver.add(c)
-            self.solver.update()
-
-            c = self.height >= offset.y + obj.height
-            self.solver.add(c)
-            self.solver.update()
-
-        # TODO: How to crop consistently across all frames? Crop at the end?
-        # renderer.set_dimensions(P(self.width.value() * 1.5, self.height.value() * 1.5))

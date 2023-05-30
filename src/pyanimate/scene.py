@@ -64,7 +64,6 @@ class Scene:
         logger.verbose("Canvas:\n%s", self.cur_keyframe.canvas.dump())
         self.cur_keyframe.canvas.render(self.renderer)
 
-        self.renderer.crop_to_fit()
         self.renderer.output(FRAME_DIR / f"frame-{self.frame_num}.png")
         self.frame_num += 1
         self.renderer.clear()

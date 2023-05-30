@@ -324,7 +324,7 @@ def main() -> None:
         raise
 
     if args.crop:
-        renderer.crop_to_fit()
+        raise NotImplementedError("Crop not implemented")
 
     if not args.no_show:
         renderer.show()

@@ -62,7 +62,7 @@ class MockRenderer(Renderer):
     def set_dimensions(self, dim) -> None:
         raise NotImplementedError()
 
-    def crop_to_fit(self) -> None:
+    def crop(self, dim, offset) -> None:
         raise NotImplementedError()
 
     @property
@@ -109,7 +109,6 @@ def canvas_image(c: Canvas, renderer: Renderer) -> Generator[ImageT, None, None]
     p = Path("output.png")
 
     c.render(renderer)
-    renderer.crop_to_fit()
     renderer.output(p)
     assert p.exists(), f"File {p.absolute()} does not exist"
     with Image.open(p) as im:
