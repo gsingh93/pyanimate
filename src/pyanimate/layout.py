@@ -7,6 +7,8 @@ from copy import deepcopy
 from enum import Enum
 from typing import Generic, Self, TypeAlias, TypeVar
 
+from kiwisolver import UnsatisfiableConstraint
+
 from . import get_logger
 from .renderer import Renderer
 from .shape import Point as P
@@ -727,9 +729,13 @@ class Canvas(Object):
         self.prepare(renderer)
 
         # Make sure that children are not rendered outside of the canvas
-        for obj in self.children:
-            self.solver.add(obj.x + obj.width <= self.width)
-            self.solver.add(obj.y + obj.height <= self.height)
+        try:
+            for obj in self.children:
+                self.solver.add(obj.x + obj.width <= self.width)
+                self.solver.add(obj.y + obj.height <= self.height)
+        except UnsatisfiableConstraint:
+            logger.error("Image exceeds bounds")
+            raise
 
         self.solver.update()
 
