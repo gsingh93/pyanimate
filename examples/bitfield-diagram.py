@@ -16,11 +16,6 @@ from pyanimate.style import Anchor, Style
 
 logger = logging.getLogger(os.path.basename(__file__))
 
-# These global variables will be initialized in main, so we assume they are not Optional
-# types
-ctx: RenderContext = None  # type: ignore[reportGeneralTypeIssues]
-default_style: Style = None  # type: ignore[reportGeneralTypeIssues]
-
 
 class Mode(str, Enum):
     WIDTH = "width"
@@ -58,11 +53,11 @@ def parse_args():
         help="TODO",
     )
     parser.add_argument("--no-show", action="store_true", help="TODO")
-    parser.add_argument("-w", "--width", default=1920, type=int, help="TODO")
-    parser.add_argument("--height", default=1080, type=int, help="TODO")
+    parser.add_argument("-w", "--width", default=1080, type=int, help="TODO")
+    parser.add_argument("--height", default=720, type=int, help="TODO")
     parser.add_argument("-c", "--crop", action="store_true", help="TODO")
     parser.add_argument("--bit-width", default=100, type=int, help="TODO")
-    parser.add_argument("-p", "--padding", default=10, type=int, help="TODO")
+    parser.add_argument("-p", "--padding", default=5, type=int, help="TODO")
     parser.add_argument("-f", "--font-size", default=32, type=int, help="TODO")
     parser.add_argument("-o", "--output", default="output.png", help="TODO")
     parser.add_argument(
@@ -179,14 +174,16 @@ def bdaddr_fields():
     ]
 
 
-def create_canvas(title, fields, mode: Mode, endianness: Endianness, style) -> Canvas:
+def create_canvas(
+    title, fields, bit_width: int, mode: Mode, endianness: Endianness, style: Style
+) -> Canvas:
     c = Canvas()
 
     v = c.vlayout(align=Align.CENTER)
 
     # Title
     logger.info("Laying out title")
-    v.add(c.textbox(title, style=default_style.clone(anchor=Anchor.TOP_LEFT)))
+    v.add(c.textbox(title, style=style.clone(anchor=Anchor.TOP_LEFT)))
 
     # LSB/MSB
     logger.info("Laying out LSB/MSB")
@@ -210,7 +207,7 @@ def create_canvas(title, fields, mode: Mode, endianness: Endianness, style) -> C
     logger.info("Laying out table")
     t = Table(canvas=c)
     for field in fields:
-        cell_width = ctx.bit_width * field.display_bits
+        cell_width = bit_width * field.display_bits
         text = f"{field.name}\n({field.max})"
         if mode == Mode.WIDTH:
             text = f"{field.name}"
@@ -228,7 +225,7 @@ def create_canvas(title, fields, mode: Mode, endianness: Endianness, style) -> C
     h = c.hlayout()
     current_bit = 0
     for field in fields:
-        cell_width = ctx.bit_width * field.display_bits
+        cell_width = bit_width * field.display_bits
 
         if mode == Mode.WIDTH:
             h.add(c.dotted_line(vec=P(0, 50)))
@@ -276,7 +273,6 @@ def create_canvas(title, fields, mode: Mode, endianness: Endianness, style) -> C
 
 
 def main() -> None:
-    global ctx, default_style
     args = parse_args()
 
     logging.basicConfig(
@@ -287,7 +283,6 @@ def main() -> None:
     ctx = RenderContext(
         args.width,
         args.height,
-        args.bit_width,
         (300, 300),
         args.scale,
     )
@@ -313,7 +308,14 @@ def main() -> None:
         if gcd == 1:
             logger.warning("Warning: gcd is 1")
 
-    canvas = create_canvas(title, fields, args.mode, args.endianness, default_style)
+    canvas = create_canvas(
+        title,
+        fields,
+        args.bit_width * args.scale,
+        args.mode,
+        args.endianness,
+        default_style,
+    )
 
     logger.info("Starting rendering")
     renderer = PILRenderer(ctx)

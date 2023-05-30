@@ -81,7 +81,7 @@ def dim() -> tuple[int, int]:
 
 @pytest.fixture(scope="class")
 def render_ctx(dim) -> RenderContext:
-    return RenderContext(dim[0], dim[1], 1, (300, 300), 1)
+    return RenderContext(dim[0], dim[1], (300, 300), 1)
 
 
 @pytest.fixture(scope="class", name="c")

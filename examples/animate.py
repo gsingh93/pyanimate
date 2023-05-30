@@ -127,7 +127,7 @@ def main() -> None:
         logger.error("Frame rate must be between 1 and 60, inclusive")
         sys.exit(1)
 
-    ctx = RenderContext(args.width, args.height, 100, (300, 300), args.scale)
+    ctx = RenderContext(args.width, args.height, (300, 300), args.scale)
 
     s = create_scene(ctx)
     try:

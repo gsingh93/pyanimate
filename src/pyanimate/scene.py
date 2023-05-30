@@ -16,7 +16,6 @@ FRAME_DIR = Path(".frames")
 default_render_ctx = RenderContext(
     1920,
     1080,
-    100,
     (300, 300),
     2,
 )

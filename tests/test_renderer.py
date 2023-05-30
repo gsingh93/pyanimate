@@ -10,7 +10,7 @@ from . import ImageTestBase
 
 class TestRenderer:
     def test_render_context(self) -> None:
-        ctx = RenderContext(width=10, height=20, bit_width=2, dpi=(300, 300), scale=2)
+        ctx = RenderContext(width=10, height=20, dpi=(300, 300), scale=2)
 
         assert ctx.scale == 2
         assert ctx.w == 10
@@ -18,7 +18,7 @@ class TestRenderer:
         assert ctx.dpi == (300, 300)
 
     def test_pil_renderer(self) -> None:
-        ctx = RenderContext(width=10, height=20, bit_width=2, dpi=(300, 300), scale=2)
+        ctx = RenderContext(width=10, height=20, dpi=(300, 300), scale=2)
         renderer = PILRenderer(ctx)
 
         assert renderer.ctx == ctx

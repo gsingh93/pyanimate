@@ -14,13 +14,11 @@ logger = get_logger(__name__)
 
 class RenderContext:
     def __init__(
-        self, width: int, height: int, bit_width: int, dpi: tuple[int, int], scale: int
+        self, width: int, height: int, dpi: tuple[int, int], scale: int
     ) -> None:
         self.scale = scale
         self.w = width
         self.h = height
-        self.cell_height = int(100 * scale)
-        self.bit_width = int(bit_width * scale)
         self.dpi = dpi
 
     def __str__(self) -> str:
