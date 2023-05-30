@@ -177,9 +177,11 @@ def bdaddr_fields():
 def create_canvas(
     title, fields, bit_width: int, mode: Mode, endianness: Endianness, style: Style
 ) -> Canvas:
+    small_font_size = int(style.font_size * 0.6)
+
     c = Canvas()
 
-    v = c.vlayout(align=Align.CENTER)
+    v = c.vlayout(align=Align.CENTER, width=c.width - style.padding)
 
     # Title
     logger.info("Laying out title")
@@ -187,7 +189,7 @@ def create_canvas(
 
     # LSB/MSB
     logger.info("Laying out LSB/MSB")
-    lsb_msb = c.hlayout(width=1000)
+    lsb_msb = c.hlayout()
 
     if endianness == Endianness.LITTLE:
         left_text = "LSB"
@@ -197,15 +199,32 @@ def create_canvas(
         right_text = "LSB"
         fields.reverse()
 
-    lsb_msb.add(c.textbox(left_text, width=750, align=Align.LEFT, stroke_width=0))
-    lsb_msb.add(c.textbox(right_text, width=750, align=Align.RIGHT, stroke_width=0))
+    t = Table(canvas=c)
+
+    lsb_msb.add(
+        c.textbox(
+            left_text,
+            width=t.width / 2,
+            align=Align.LEFT,
+            stroke_width=0,
+            font_size=small_font_size,
+        )
+    )
+    lsb_msb.add(
+        c.textbox(
+            right_text,
+            width=t.width / 2,
+            align=Align.RIGHT,
+            stroke_width=0,
+            font_size=small_font_size,
+        )
+    )
 
     v.add(lsb_msb)
-    v.add(c.spacer())
 
     # Table
     logger.info("Laying out table")
-    t = Table(canvas=c)
+
     for field in fields:
         cell_width = bit_width * field.display_bits
         text = f"{field.name}\n({field.max})"
@@ -214,9 +233,8 @@ def create_canvas(
         t.add(
             c.textbox(
                 text,
-                align=Anchor.MIDDLE_MIDDLE,
+                align=Align.CENTER,
                 width=cell_width,
-                height=75,
             )
         )
 
@@ -228,41 +246,33 @@ def create_canvas(
         cell_width = bit_width * field.display_bits
 
         if mode == Mode.WIDTH:
-            h.add(c.dotted_line(vec=P(0, 50)))
-
             label = get_bit_label(field.bits, field.unit.value)
-            label_tb = c.textbox(label, height=50)
+            label_tb = c.textbox(label, stroke_width=1, font_size=small_font_size)
 
-            arrow_length = (
-                cell_width - label_tb.width - (default_style.padding * 4)
-            ) / 2
-            arrow1 = c.arrow(double_sided=True, vec=P(label_tb.width, 0))
-            arrow2 = c.arrow(
-                double_sided=True, vec=P(arrow_length, 0)
-            )  # arrow1.clone(True)
+            h.add(c.dotted_line(vec=P(0, h.height - style.padding)))
 
-            # TODO: See if we can use clone here
-            s1 = c.spacer()
-            s2 = c.spacer()  # s1.clone(True)
-            s3 = c.spacer()  # s1.clone(True)
-            s4 = c.spacer()  # s1.clone(True)
+            # The length of the arrow is the size of the field cell minus the size of
+            # the label, minus one padding per arrow, divided by two for two arrows. We
+            # only account for one padding per arrow because the padding between the
+            # label and the arrow is included in the label width
+            arrow_length = (cell_width - label_tb.width - (style.padding * 2)) / 2
 
-            bit_label = c.hlayout()
-            bit_label.add(s1)
-            bit_label.add(arrow1, offset=P(0, 20))
-            bit_label.add(s2)
-            bit_label.add(label_tb)
-            bit_label.add(s3)
-            bit_label.add(arrow2, offset=P(0, 20))
-            bit_label.add(s4)
+            # TODO: Constant arrowhead length instead of ratio
+            arrow1 = c.arrow(double_sided=True, vec=P(arrow_length, 0))
+            # TODO: arrow2 = arrow1.clone(True)
+            arrow2 = c.arrow(double_sided=True, vec=P(arrow_length, 0))
 
-            h.add(bit_label)
+            h.add(c.spacer())
+            h.add(arrow1)
+            h.add(label_tb)
+            h.add(arrow2)
+            h.add(c.spacer())
         else:
-            h.add(c.textbox(str(current_bit), width=cell_width, height=50))
+            h.add(c.textbox(str(current_bit), width=cell_width))
 
         current_bit += field.max
 
-    h.add(c.dotted_line(vec=P(0, 50)))
+    h.add(c.dotted_line(vec=P(0, h.height - style.padding)))
 
     v.add(t)
     v.add(h, offset=P(0, style.padding))
