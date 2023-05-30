@@ -563,8 +563,10 @@ class DottedLine(Line):
         return copy
 
     def render(self, renderer: Renderer) -> None:
-        length = int(self._vec.mag)
-        u = self._vec.unit()
+        v = self._vec.get()
+
+        length = int(v.mag)
+        u = v.unit()
 
         xy1 = self.pos
         for _ in range(0, length, self._dash_len):
