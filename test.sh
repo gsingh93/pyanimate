@@ -2,7 +2,7 @@
 
 set -x
 
-export PYTEST_ADDOPTS="--showlocals -v -s"
+export PYTEST_ADDOPTS="--showlocals -vv -s"
 
 FILTER=${1:-""}
 if [ "$FILTER" != "" ]; then
