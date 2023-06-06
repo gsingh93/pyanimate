@@ -29,10 +29,37 @@ class TestRenderer:
         assert renderer.image.size == (20, 40)
 
 
-class TestTextBox(ImageTestBase):
+class TestTextBoxAlignLeft(ImageTestBase):
     @pytest.fixture(scope="class")
     def dim(self) -> tuple[int, int]:
-        return 10, 5
+        return 10, 10
+
+    @pytest.fixture(scope="class", autouse=True)
+    def setup_scene(self, c, dim) -> None:
+        t = c.textbox(
+            text="A", font_size=4, width=dim[0] - 1, height=dim[1] - 1, align=Align.LEFT
+        )
+        c.add(t)
+
+    def frame(self) -> list[str]:
+        return [
+            "wwwwwwwwww",
+            "wbbbbbbbbb",
+            "wbwwwwwwwb",
+            "wbwwwwwwwb",
+            "wb?wwwwwwb",
+            "wb??wwwwwb",
+            "wb??wwwwwb",
+            "wbwwwwwwwb",
+            "wbwwwwwwwb",
+            "wbbbbbbbbb",
+        ]
+
+
+class TestTextBoxAlignLeftDynamicHeight(ImageTestBase):
+    @pytest.fixture(scope="class")
+    def dim(self) -> tuple[int, int]:
+        return 10, 7
 
     @pytest.fixture(scope="class", autouse=True)
     def setup_scene(self, c, dim) -> None:
@@ -43,7 +70,9 @@ class TestTextBox(ImageTestBase):
         return [
             "wwwwwwwwww",
             "wbbbbbbbbb",
+            "wbwwwwwwwb",
             "wb?wwwwwwb",
+            "wb??wwwwwb",
             "wb??wwwwwb",
             "wbbbbbbbbb",
         ]
@@ -52,7 +81,38 @@ class TestTextBox(ImageTestBase):
 class TestTextBoxAlignRight(ImageTestBase):
     @pytest.fixture(scope="class")
     def dim(self) -> tuple[int, int]:
-        return 10, 5
+        return 10, 10
+
+    @pytest.fixture(scope="class", autouse=True)
+    def setup_scene(self, c, dim) -> None:
+        t = c.textbox(
+            text="A",
+            font_size=4,
+            width=dim[0] - 1,
+            height=dim[1] - 1,
+            align=Align.RIGHT,
+        )
+        c.add(t)
+
+    def frame(self) -> list[str]:
+        return [
+            "wwwwwwwwww",
+            "wbbbbbbbbb",
+            "wbwwwwwwwb",
+            "wbwwwwwwwb",
+            "wbwwwww??b",
+            "wbwwwww??b",
+            "wbwwwww??b",
+            "wbwwwwwwwb",
+            "wbwwwwwwwb",
+            "wbbbbbbbbb",
+        ]
+
+
+class TestTextBoxAlignRightDynamicHeight(ImageTestBase):
+    @pytest.fixture(scope="class")
+    def dim(self) -> tuple[int, int]:
+        return 10, 7
 
     @pytest.fixture(scope="class", autouse=True)
     def setup_scene(self, c, dim) -> None:
@@ -63,6 +123,8 @@ class TestTextBoxAlignRight(ImageTestBase):
         return [
             "wwwwwwwwww",
             "wbbbbbbbbb",
+            "wbwwwwwwwb",
+            "wbwwwww??b",
             "wbwwwww??b",
             "wbwwwww??b",
             "wbbbbbbbbb",
@@ -72,7 +134,38 @@ class TestTextBoxAlignRight(ImageTestBase):
 class TestTextBoxAlignCenter(ImageTestBase):
     @pytest.fixture(scope="class")
     def dim(self) -> tuple[int, int]:
-        return 10, 5
+        return 10, 10
+
+    @pytest.fixture(scope="class", autouse=True)
+    def setup_scene(self, c, dim) -> None:
+        t = c.textbox(
+            text="A",
+            font_size=4,
+            width=dim[0] - 1,
+            height=dim[1] - 1,
+            align=Align.CENTER,
+        )
+        c.add(t)
+
+    def frame(self) -> list[str]:
+        return [
+            "wwwwwwwwww",
+            "wbbbbbbbbb",
+            "wbwwwwwwwb",
+            "wbwwwwwwwb",
+            "wbww??wwwb",
+            "wbww???wwb",
+            "wbww???wwb",
+            "wbwwwwwwwb",
+            "wbwwwwwwwb",
+            "wbbbbbbbbb",
+        ]
+
+
+class TestTextBoxAlignCenterDynamicHeight(ImageTestBase):
+    @pytest.fixture(scope="class")
+    def dim(self) -> tuple[int, int]:
+        return 10, 7
 
     @pytest.fixture(scope="class", autouse=True)
     def setup_scene(self, c, dim) -> None:
@@ -83,13 +176,19 @@ class TestTextBoxAlignCenter(ImageTestBase):
         return [
             "wwwwwwwwww",
             "wbbbbbbbbb",
-            "wbww.?.wwb",
-            "wbww.??.wb",
+            "wbwwwwwwwb",
+            "wbww??wwwb",
+            "wbww???wwb",
+            "wbww???wwb",
             "wbbbbbbbbb",
         ]
 
 
 class TestTextBoxDynamicSize(ImageTestBase):
+    @pytest.fixture(scope="class")
+    def dim(self) -> tuple[int, int]:
+        return 6, 7
+
     @pytest.fixture(scope="class", autouse=True)
     def setup_scene(self, c) -> None:
         t = c.textbox(text="A", font_size=4)
@@ -97,11 +196,13 @@ class TestTextBoxDynamicSize(ImageTestBase):
 
     def frame(self) -> list[str]:
         return [
-            "wwwww",
-            "wbbbw",
-            "wb?bw",
-            "wb?b.",
-            "wbbb.",
+            "wwwwww",
+            "wbbbbb",
+            "wbwwwb",
+            "wb??wb",
+            "wb???b",
+            "wb???b",
+            "wbbbbb",
         ]
 
 
