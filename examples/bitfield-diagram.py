@@ -62,7 +62,7 @@ def parse_args():
     parser.add_argument("-o", "--output", default="output.png", help="TODO")
     parser.add_argument(
         "--log-level",
-        choices=["debug", "info", "warning", "error", "critical"],
+        choices=["verbose", "debug", "info", "warning", "error", "critical"],
         default="warning",
     )
 
@@ -336,7 +336,7 @@ def main() -> None:
         raise
 
     if args.crop:
-        raise NotImplementedError("Crop not implemented")
+        renderer.crop(dim=canvas.dim, offset=canvas.pos)
 
     if not args.no_show:
         renderer.show()
