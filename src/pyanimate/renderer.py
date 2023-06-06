@@ -135,7 +135,14 @@ class PILRenderer(Renderer):
         ), "Crop out of bounds"
 
         logger.debug("Cropping to %dx%d", width, height)
-        self.image = self.image.crop((offset.x, offset.y, width, height))
+        self.image = self.image.crop(
+            (
+                int(offset.x * self.ctx.scale),
+                int(offset.y * self.ctx.scale),
+                int(width * self.ctx.scale),
+                int(height * self.ctx.scale),
+            ),
+        )
 
     def rectangle(self, p1: P, p2: P, style: Style) -> None:
         logger.verbose("Rectangle: %s %s", p1, p2)
@@ -169,12 +176,20 @@ class PILRenderer(Renderer):
         )
 
     def text_bbox(self, text: str, style: Style) -> tuple[int, int, int, int]:
-        font = self._get_font(style.font, int(style.font_size * self.ctx.scale))
-        return self.draw.textbbox((0, 0), text, font=font)
+        # Since we're returning this information to the caller, we shouldn't scale it
+        font = self._get_font(style.font, int(style.font_size))
+        t = self.draw.textbbox((0, 0), text, font=font)
+        return t
 
     def line(self, p1: P, p2: P, style: Style) -> None:
         # Dotted line is too verbose
-        # logger.verbose("Line: %s %s", p1, p2)
+        logger.verbose("Line: %s %s", p1, p2)
+        logger.verbose(
+            "Line scaled by %s: %s %s",
+            self.ctx.scale,
+            p1.mul(self.ctx.scale),
+            p2.mul(self.ctx.scale),
+        )
         stroke_color = self._composite_background(
             style.composite_stroke_color, style.composite_alpha
         )

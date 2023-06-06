@@ -293,13 +293,13 @@ def main() -> None:
     ctx = RenderContext(
         args.width,
         args.height,
-        (300, 300),
+        (100, 100),
         args.scale,
     )
     default_style = Style(
-        padding=args.padding * args.scale,
+        padding=args.padding,
         font="./examples/Roboto-Regular.ttf",
-        font_size=args.font_size * args.scale,
+        font_size=args.font_size,
     )
     pyanimate.style.set_style(default_style)
 
@@ -321,7 +321,7 @@ def main() -> None:
     canvas = create_canvas(
         title,
         fields,
-        args.bit_width * args.scale,
+        args.bit_width,
         args.mode,
         args.endianness,
         default_style,
