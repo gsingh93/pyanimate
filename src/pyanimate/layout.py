@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import math
+import sys
 import uuid
 from collections import OrderedDict
 from copy import deepcopy
@@ -724,9 +725,6 @@ class Canvas(Object):
         self.solver.add(self.x == 0)
         self.solver.add(self.y == 0)
 
-        self.solver.add(self.width <= renderer.width)
-        self.solver.add(self.height <= renderer.height)
-
         super().prepare(renderer)
 
     def render(self, renderer: Renderer) -> None:
@@ -734,12 +732,23 @@ class Canvas(Object):
 
         # Make sure that children are not rendered outside of the canvas
         try:
+            # An implementation detail of kiwisolver is that if adding a constraint
+            # doesn't violate any other constraints, the solution for the variable will
+            # not change. Since we want the Canvas to be as small as possible, we need
+            # to add the constraints that limit the minimum size of the Canvas first, so
+            # that some solution will be picked, and then we need to add the constraints
+            # that limit the maximum size afterwards, so that the smallest solution will
+            # still be chosen if there is no constraint violation.
             for obj in self.children:
                 self.solver.add(obj.x + obj.width <= self.width)
                 self.solver.add(obj.y + obj.height <= self.height)
-        except UnsatisfiableConstraint:
+
+            self.solver.add(self.width <= renderer.ctx.w)
+            self.solver.add(self.height <= renderer.ctx.h)
+        except UnsatisfiableConstraint as e:
             logger.error("Image exceeds bounds")
-            raise
+            logger.error("%s", self.solver.dumps())
+            sys.exit(1)
 
         self.solver.update()
 
@@ -750,3 +759,5 @@ class Canvas(Object):
                 obj.pos,
             )
             obj.render(renderer)
+
+        logger.debug("Finished rendering canvas:\n%s", self.dump())
