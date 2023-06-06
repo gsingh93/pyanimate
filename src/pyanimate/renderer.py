@@ -58,6 +58,11 @@ class Renderer(ABC):
 
     @property
     @abstractmethod
+    def context(self) -> RenderContext:
+        raise NotImplementedError()
+
+    @property
+    @abstractmethod
     def width(self) -> int:
         raise NotImplementedError()
 
@@ -83,6 +88,10 @@ class PILRenderer(Renderer):
         self.image = Image.new("RGBA", (self._w, self._h), self.background)
         self.draw = ImageDraw.Draw(self.image)
         self.fonts: dict[tuple[str, int], FreeTypeFont] = {}
+
+    @property
+    def context(self) -> RenderContext:
+        return self.ctx
 
     @property
     def width(self) -> int:

@@ -409,13 +409,13 @@ class Grid(Object):
 
     def prepare_impl(self, renderer: Renderer) -> None:
         if self._width_constraint is None:
-            w = renderer.ctx.w - self.style.padding
+            w = renderer.context.w - self.style.padding
             logger.debug("New width for %s: %s", self, w)
             self._width_constraint = self.width == w
             self.canvas.solver.add(self._width_constraint)
 
         if self._height_constraint is None:
-            h = renderer.ctx.h - self.style.padding
+            h = renderer.context.h - self.style.padding
             logger.debug("New height for %s: %s", self, h)
             self._height_constraint = self.height == h
             self.canvas.solver.add(self._height_constraint)
@@ -743,9 +743,9 @@ class Canvas(Object):
                 self.solver.add(obj.x + obj.width <= self.width)
                 self.solver.add(obj.y + obj.height <= self.height)
 
-            self.solver.add(self.width <= renderer.ctx.w)
-            self.solver.add(self.height <= renderer.ctx.h)
-        except UnsatisfiableConstraint as e:
+            self.solver.add(self.width <= renderer.context.w)
+            self.solver.add(self.height <= renderer.context.h)
+        except UnsatisfiableConstraint:
             logger.error("Image exceeds bounds")
             logger.error("%s", self.solver.dumps())
             sys.exit(1)

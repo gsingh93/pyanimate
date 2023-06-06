@@ -66,6 +66,10 @@ class MockRenderer(Renderer):
         raise NotImplementedError()
 
     @property
+    def context(self) -> RenderContext:
+        return self.render_ctx
+
+    @property
     def width(self) -> int:
         return self.render_ctx.w
 
