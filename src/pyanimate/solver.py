@@ -15,12 +15,9 @@ SolverType: TypeAlias = Union[int, float, "Variable", "Term", "Expression"]
 
 
 class Variable:
-    def __init__(self, name: str | None = None):
+    def __init__(self, name: str = ""):
         self._name = name
-        if name:
-            self._var = kiwi.Variable(name)
-        else:
-            self._var = kiwi.Variable()
+        self._var = kiwi.Variable(name)
 
     @staticmethod
     def from_variable(variable: kiwi.Variable) -> Variable:
@@ -28,6 +25,9 @@ class Variable:
         v._name = variable.name()
         v._var = variable
         return v
+
+    def name(self) -> str:
+        return self._name
 
     def value(self) -> float:
         return self._var.value()
@@ -136,7 +136,10 @@ class Variable:
         return v
 
     def __str__(self) -> str:
-        return f"{self._var} [{hex(id(self._var))}]"
+        return f"{self._var}"
+
+    def __repr__(self) -> str:
+        return f"{self} [{hex(id(self._var))}]"
 
 
 class Term:
@@ -253,7 +256,10 @@ class Term:
         return t
 
     def __str__(self) -> str:
-        return f"{self._term} [{hex(id(self._term))}]"
+        return f"{self._term}"
+
+    def __repr__(self) -> str:
+        return f"{self} [{hex(id(self._term))}]"
 
 
 class Expression:
@@ -377,7 +383,10 @@ class Expression:
         return e
 
     def __str__(self) -> str:
-        return f"{self._expr} [{hex(id(self._expr))}]"
+        return f"{self._expr}"
+
+    def __repr__(self) -> str:
+        return f"{self} [{hex(id(self._expr))}]"
 
 
 class Constraint:
@@ -416,10 +425,20 @@ class Constraint:
     # def __hash__(self) -> int:
     #     return hash(self._constraint)
 
-    def variables(self) -> list[Variable]:
-        res = []
+    def variables(self) -> set[Variable]:
+        res = set()
         for t in self._expr._terms:
-            res.append(t._var)
+            res.add(t._var)
+
+        return res
+
+    def dump(self) -> str:
+        res = " + ".join([f"({t}) [{t.value()}]" for t in self._expr._terms])
+        res += f" {self._constraint.op()} {-1*self._expr._constant}"
+        res += f" | strength = {self._constraint.strength()}"
+        # TODO: Remove type ignore when this is fixed: https://github.com/nucleic/kiwi/issues/165
+        if self._constraint.violated():  # type: ignore
+            res += " (VIOLATED)"
 
         return res
 
@@ -443,9 +462,12 @@ class Constraint:
 class Solver:
     def __init__(self):
         self._solver = kiwi.Solver()
-        self._constraints = set()
+        self._constraints: set[Constraint] = set()
 
-    def _find(self, v: str) -> tuple[Variable | None, set[Constraint]]:
+    def _find(self, v: str | Variable) -> tuple[Variable | None, set[Constraint]]:
+        if isinstance(v, Variable):
+            v = v.name()
+
         res = set()
         res_strs = set()
         var = None
@@ -483,17 +505,24 @@ class Solver:
         self._solver.updateVariables()
 
     def dumps(self) -> str:
-        res = "\n".join(map(str, self.variables()))
+        self.update()
 
-        for c in self._constraints:
-            res += f"{c}\n"
+        res = ""
+        for v in self.variables():
+            res += f"{v.name()} = {v.value()}\n"
+            res += self.dump_var_constraints(v)
+            res += "\n\n"
 
         return res
 
-    def variables(self) -> list[Variable]:
-        res = []
+    def dump_var_constraints(self, v: Variable) -> str:
+        _, constraints = self._find(v.name())
+        return "\n".join([c.dump() for c in constraints])
+
+    def variables(self) -> set[Variable]:
+        res = set()
         for c in self._constraints:
-            res.extend(c.variables())
+            res |= c.variables()
 
         return res
 

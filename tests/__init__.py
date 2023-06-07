@@ -54,6 +54,8 @@ class ImageTestBase(ABC):
 
     @pytest.mark.dependency(name="dimensions")
     def test_dimensions(self, c_im, dim):
+        if self.show:
+            c_im.show()
         actual = c_im.size
         expected = dim
         assert actual == expected

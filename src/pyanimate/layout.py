@@ -51,11 +51,10 @@ class Object:
         self.canvas = canvas
         self.cloned_to = None
 
-        short_id = self.__class__.__name__ + "." + str(self._id)[:4]
-        self._x = Variable(f"x.{short_id}")
-        self._y = Variable(f"y.{short_id}")
-        self._w = Variable(f"w.{short_id}")
-        self._h = Variable(f"h.{short_id}")
+        self._x = Variable(f"x.{self.name}")
+        self._y = Variable(f"y.{self.name}")
+        self._w = Variable(f"w.{self.name}")
+        self._h = Variable(f"h.{self.name}")
         self._width_constraint = None
         self._height_constraint = None
         self.children: OrderedDict[Object, P] = OrderedDict()
@@ -65,6 +64,10 @@ class Object:
             self._width_constraint = self._w == width
         if height is not None:
             self._height_constraint = self._h == height
+
+    @property
+    def name(self):
+        return self.__class__.__name__ + "." + str(self._id)[:4]
 
     @property
     def pos(self) -> P[int]:
@@ -340,7 +343,6 @@ class Layout(Object):
 
             self.canvas.solver.update()
 
-        # TODO: Add to obj constraints?
         self.set_primary_dim_constraint()
 
 
@@ -531,14 +533,14 @@ class Line(Object):
 
             logger.debug("New width for %s: %s", self, w)
             self.canvas.solver.add((self.width == w) | "strong")
-            self.canvas.solver.add((self.width == -1 * w) | "strong")
+            self.canvas.solver.add((self.width == -w) | "strong")
 
         if self._height_constraint is None:
             h = self._vec.y
 
             logger.debug("New height for %s: %s", self, h)
             self.canvas.solver.add((self.height == h) | "strong")
-            self.canvas.solver.add((self.height == -1 * h) | "strong")
+            self.canvas.solver.add((self.height == -h) | "strong")
 
     def __deepcopy__(self, memo):
         copy = super().__deepcopy__(memo)
