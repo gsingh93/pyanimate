@@ -32,6 +32,10 @@ class Variable:
     def value(self) -> float:
         return self._var.value()
 
+    def __neg__(self) -> Term:
+        term = -self._var
+        return Term.from_term(term)
+
     def __eq__(self, other: SolverType) -> Constraint:
         if isinstance(other, (int, float)):
             c = self._var == other
@@ -154,6 +158,10 @@ class Term:
 
     def value(self) -> float:
         return self._term.value()
+
+    def __neg__(self) -> Term:
+        term = -self._term
+        return Term.from_term(term)
 
     def __eq__(self, other: SolverType) -> Constraint:
         if isinstance(other, (int, float)):
@@ -281,6 +289,10 @@ class Expression:
             variables.append(t._var)
 
         return variables
+
+    def __neg__(self) -> Expression:
+        expr = -self._expr
+        return Expression.from_expression(expr)
 
     def __eq__(self, other: SolverType) -> Constraint:
         if isinstance(other, (int, float)):
