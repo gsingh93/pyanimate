@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from enum import Enum
-from typing import Any
+from typing import Any, NotRequired, TypedDict, Unpack
 
 from .shape import BLACK, WHITE, Color
 
@@ -21,6 +21,18 @@ class Anchor(str, Enum):
 
 
 _default_style: Style | None = None
+
+
+class StyleParams(TypedDict):
+    padding: NotRequired[int | None]
+    font: NotRequired[str | None]
+    font_size: NotRequired[int | None]
+    anchor: NotRequired[Anchor | None]
+    stroke_color: NotRequired[Color | None]
+    stroke_width: NotRequired[int | None]
+    fill_color: NotRequired[Color | None]
+    font_color: NotRequired[Color | None]
+    alpha: NotRequired[int | None]
 
 
 class Style:
@@ -139,7 +151,7 @@ class Style:
 
         return int(self._parent_obj_style.composite_alpha * self.alpha / 255)
 
-    def clone(self, **kwargs) -> Style:
+    def clone(self, **kwargs: Unpack[StyleParams]) -> Style:
         # TODO: Should we be passing in the parent_obj_style here, or should it
         # automatically work if the parent is set?
         return Style(parent=self, parent_obj_style=self._parent_obj_style, **kwargs)

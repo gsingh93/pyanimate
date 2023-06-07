@@ -6,15 +6,15 @@ import uuid
 from collections import OrderedDict
 from copy import deepcopy
 from enum import Enum
-from typing import Generic, Self, TypeAlias, TypeVar
+from typing import Generic, NotRequired, Self, TypeAlias, TypeVar, Unpack
 
 from kiwisolver import UnsatisfiableConstraint
 
 from . import get_logger
 from .renderer import Renderer
 from .shape import Point as P
-from .solver import Constraint, Solver, Variable
-from .style import Anchor, Style
+from .solver import Constraint, Expression, Solver, Term, Variable
+from .style import Anchor, Style, StyleParams
 
 logger = get_logger(__name__, indent=True)
 
@@ -27,14 +27,25 @@ class Align(str, Enum):
     LEFT = "left"
 
 
+class ObjectParamsNoCanvas(StyleParams):
+    width: NotRequired[int | Variable | Term | Expression | None]
+    height: NotRequired[int | Variable | Term | Expression | None]
+    style: NotRequired[Style | None]
+
+
+class ObjectParams(ObjectParamsNoCanvas):
+    canvas: Canvas
+
+
 class Object:
     def __init__(
         self,
         canvas: Canvas,
+        *,
         width=None,
         height=None,
         style: Style | None = None,
-        **kwargs,
+        **kwargs: Unpack[StyleParams],
     ) -> None:
         # Construct a new Style that inherits from the parent
         if not style:
@@ -298,9 +309,19 @@ def Proxy(target: T) -> T:
     return _Proxy(target)  # type: ignore
 
 
+class LayoutParams(ObjectParams):
+    align: NotRequired[Align]
+
+
+class LayoutParamsNoCanvas(ObjectParamsNoCanvas):
+    align: NotRequired[Align]
+
+
 # TODO: We can make this class handle even more logic from the subclasses
 class Layout(Object):
-    def __init__(self, align: Align = Align.CENTER, **kwargs) -> None:
+    def __init__(
+        self, *, align: Align = Align.CENTER, **kwargs: Unpack[ObjectParams]
+    ) -> None:
         super().__init__(**kwargs)
         self.align = align
 
@@ -404,8 +425,16 @@ class Rectangle(Object):
         super().render(renderer)
 
 
+class GridParams(ObjectParams):
+    step_size: NotRequired[int]
+
+
+class GridParamsNoCanvas(ObjectParamsNoCanvas):
+    step_size: NotRequired[int]
+
+
 class Grid(Object):
-    def __init__(self, step_size=100, **kwargs) -> None:
+    def __init__(self, *, step_size=100, **kwargs: Unpack[ObjectParams]) -> None:
         super().__init__(**kwargs)
         self.step_size = step_size
 
@@ -437,8 +466,18 @@ class Grid(Object):
             )
 
 
+class TextBoxParams(ObjectParams):
+    align: NotRequired[Align]
+
+
+class TextBoxParamsNoCanvas(ObjectParamsNoCanvas):
+    align: NotRequired[Align]
+
+
 class TextBox(Rectangle):
-    def __init__(self, text: str, align=Align.CENTER, **kwargs) -> None:
+    def __init__(
+        self, text: str, *, align=Align.CENTER, **kwargs: Unpack[ObjectParams]
+    ) -> None:
         super().__init__(**kwargs)
         self._text = text
         self._align = align
@@ -513,12 +552,20 @@ class TextBox(Rectangle):
 
 
 class Table(HLayout):
-    def __init__(self, **kwargs) -> None:
+    def __init__(self, **kwargs: Unpack[LayoutParams]) -> None:
         super().__init__(**kwargs)
 
 
+class LineParams(ObjectParams):
+    vec: P
+
+
+class LineParamsNoCanvas(ObjectParamsNoCanvas):
+    vec: P
+
+
 class Line(Object):
-    def __init__(self, *, vec: P, **kwargs) -> None:
+    def __init__(self, *, vec: P, **kwargs: Unpack[ObjectParams]) -> None:
         super().__init__(**kwargs)
         self._vec = vec
 
@@ -555,8 +602,16 @@ class Line(Object):
         renderer.line(start, end, self.style)
 
 
+class DottedLineParams(LineParams):
+    dash_len: NotRequired[int]
+
+
+class DottedLineParamsNoCanvas(LineParamsNoCanvas):
+    dash_len: NotRequired[int]
+
+
 class DottedLine(Line):
-    def __init__(self, dash_len=10, **kwargs) -> None:
+    def __init__(self, *, dash_len=10, **kwargs: Unpack[LineParams]) -> None:
         super().__init__(**kwargs)
         self._dash_len = dash_len
 
@@ -580,8 +635,24 @@ class DottedLine(Line):
             xy1 = xy1 + u.mul(self._dash_len)
 
 
+class ArrowParams(LineParams):
+    double_sided: NotRequired[bool]
+    arrowhead_ratio: NotRequired[float]
+
+
+class ArrowParamsNoCanvas(LineParamsNoCanvas):
+    double_sided: NotRequired[bool]
+    arrowhead_ratio: NotRequired[float]
+
+
 class Arrow(Line):
-    def __init__(self, double_sided=False, arrowhead_ratio=0.2, **kwargs) -> None:
+    def __init__(
+        self,
+        *,
+        double_sided=False,
+        arrowhead_ratio=0.2,
+        **kwargs: Unpack[LineParams],
+    ) -> None:
         super().__init__(**kwargs)
         self.double_sided = double_sided
         self.aratio = arrowhead_ratio
@@ -623,7 +694,7 @@ class Arrow(Line):
 
 
 class Spacer(Object):
-    def __init__(self, **kwargs) -> None:
+    def __init__(self, **kwargs: Unpack[ObjectParams]) -> None:
         super().__init__(**kwargs)
 
         if self._width_constraint is None:
@@ -633,7 +704,7 @@ class Spacer(Object):
 
 
 class Canvas(Object):
-    def __init__(self, **kwargs) -> None:
+    def __init__(self, **kwargs: Unpack[ObjectParamsNoCanvas]) -> None:
         self._solver = Solver()
         super().__init__(self, **kwargs)
 
@@ -691,32 +762,32 @@ class Canvas(Object):
 
         super().add(obj, offset.add(self.style.padding))
 
-    def rectangle(self, *args, **kwargs) -> Rectangle:
-        return Proxy(Rectangle(canvas=self, *args, **kwargs))
+    def rectangle(self, **kwargs: Unpack[ObjectParamsNoCanvas]) -> Rectangle:
+        return Proxy(Rectangle(canvas=self, **kwargs))
 
-    def textbox(self, *args, **kwargs) -> TextBox:
-        return Proxy(TextBox(canvas=self, *args, **kwargs))
+    def textbox(self, text: str, **kwargs: Unpack[TextBoxParamsNoCanvas]) -> TextBox:
+        return Proxy(TextBox(canvas=self, text=text, **kwargs))
 
-    def line(self, vec: P, *args, **kwargs) -> Line:
-        return Proxy(Line(canvas=self, vec=vec, *args, **kwargs))
+    def line(self, **kwargs: Unpack[LineParamsNoCanvas]) -> Line:
+        return Proxy(Line(canvas=self, **kwargs))  # pylint: disable=missing-kwoa
 
-    def dotted_line(self, *args, **kwargs) -> DottedLine:
-        return Proxy(DottedLine(canvas=self, *args, **kwargs))
+    def dotted_line(self, **kwargs: Unpack[DottedLineParamsNoCanvas]) -> DottedLine:
+        return Proxy(DottedLine(canvas=self, **kwargs))
 
-    def arrow(self, *args, **kwargs) -> Arrow:
-        return Proxy(Arrow(canvas=self, *args, **kwargs))
+    def arrow(self, **kwargs: Unpack[ArrowParamsNoCanvas]) -> Arrow:
+        return Proxy(Arrow(canvas=self, **kwargs))
 
-    def spacer(self, *args, **kwargs) -> Spacer:
-        return Proxy(Spacer(canvas=self, *args, **kwargs))
+    def spacer(self, **kwargs: Unpack[ObjectParamsNoCanvas]) -> Spacer:
+        return Proxy(Spacer(canvas=self, **kwargs))
 
-    def vlayout(self, *args, **kwargs) -> VLayout:
-        return Proxy(VLayout(canvas=self, *args, **kwargs))
+    def vlayout(self, **kwargs: Unpack[LayoutParamsNoCanvas]) -> VLayout:
+        return Proxy(VLayout(canvas=self, **kwargs))
 
-    def hlayout(self, *args, **kwargs) -> HLayout:
-        return Proxy(HLayout(canvas=self, *args, **kwargs))
+    def hlayout(self, **kwargs: Unpack[LayoutParamsNoCanvas]) -> HLayout:
+        return Proxy(HLayout(canvas=self, **kwargs))
 
-    def grid(self, *args, **kwargs) -> Grid:
-        return Proxy(Grid(canvas=self, *args, **kwargs))
+    def grid(self, **kwargs: Unpack[GridParamsNoCanvas]) -> Grid:
+        return Proxy(Grid(canvas=self, **kwargs))
 
     def prepare(self, renderer: Renderer) -> None:
         self.solver.reset()
