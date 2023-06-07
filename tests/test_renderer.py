@@ -1,6 +1,6 @@
 import pytest
 
-from pyanimate.layout import Align, Spacer
+from pyanimate.layout import Align, Arrow, Spacer
 from pyanimate.renderer import PILRenderer, RenderContext
 from pyanimate.shape import RED, WHITE
 from pyanimate.shape import Point as P
@@ -332,6 +332,69 @@ class TestArrow(ImageTestBase):
         end = P(5, 8)
         r = c.arrow(vec=end - start, arrowhead_ratio=0.5)
         c.add(r, start)
+
+    def frame(self) -> list[str]:
+        return [
+            "wwwwwwwwwwww",
+            "wwwwwwbwwwww",
+            "wwwwwwbwwwww",
+            "wwwwwwbwwwww",
+            "wwwwwwbwwwww",
+            "wwwwwwbwwwww",
+            "wwwbwwbwbwww",
+            "wwwwbwbbwwww",
+            "wwwwwbbbwwww",
+            "wwwwwwbwwwww",
+            "wwwwwwwwwwww",
+        ]
+
+
+class TestArrowDimensions(ImageTestBase):
+    show = True
+
+    @pytest.fixture(scope="class")
+    def arrow1(self, c) -> tuple[Arrow, P]:
+        start = P(1, 2)
+        end = P(28, 28)
+        return c.arrow(vec=end - start, arrowhead_ratio=0.5), start
+
+    @pytest.fixture(scope="class")
+    def arrow2(self, c) -> tuple[Arrow, P]:
+        end = P(1, 2)
+        start = P(28, 28)
+        return (
+            c.arrow(
+                vec=end - start,
+                arrowhead_ratio=0.5,
+                width=start.x - end.x,
+                height=start.y - end.y,
+            ),
+            start,
+        )
+
+    @pytest.fixture(scope="class")
+    def dim(self) -> tuple[int, int]:
+        return 70, 50
+
+    @pytest.fixture(scope="class", autouse=True)
+    def setup_scene(self, c, arrow1, arrow2, mock_renderer) -> None:
+        arrow1, start1 = arrow1
+        arrow2, start2 = arrow2
+
+        hlayout = c.hlayout()
+        hlayout.add(arrow1, start1)
+        hlayout.add(arrow2, P(28, 28))
+
+        c.add(hlayout)
+        # c.prepare(mock_renderer)
+        # print("")
+        # print(c.pos, hlayout.pos, arrow1.pos, arrow2.pos)
+        # print(c.dim, hlayout.dim, arrow1.dim, arrow2.dim)
+        # print(
+        #     c.children[hlayout.latest()],
+        #     hlayout.children[arrow1.latest()],
+        #     hlayout.children[arrow2.latest()],
+        # )
 
     def frame(self) -> list[str]:
         return [
