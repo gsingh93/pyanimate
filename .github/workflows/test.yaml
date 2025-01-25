@@ -5,23 +5,21 @@ jobs:
   tests:
     strategy:
       fail-fast: false
-    runs-on: ubuntu-22.04
+    runs-on: [ubuntu-22.04, ubuntu-24.04]
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v3
-
-      - uses: actions/setup-python@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
-          cache: "pip"
+          python-version: 3.11
+
+      - name: Run image
+        uses: abatilo/actions-poetry@v3
+        with:
+          poetry-version: main
 
       - name: Install dependencies
-        run: |
-          pip install -r requirements.txt
-          pip install -r dev-requirements.txt
-
-      - name: Install package
-        run: pip install -e .
+        run: poetry install --with dev
 
       - name: Run tests
         run: |
