@@ -208,3 +208,33 @@ max-nested-blocks = 6
 
 [tool.pylint.reports]
 output-format = "colorized"
+
+[tool.poetry]
+name = "pyanimate"
+version = "0.2.0"
+description = ""
+authors = ["Gulshan Singh <gsingh2011@gmail.com>"]
+license = "MIT"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+kiwisolver = "^1.4.8"
+Pillow = "^10.4.0"
+
+[tool.poetry.group.dev.dependencies]
+coverage = "~=7.6"
+isort = "~=5.13"
+mypy = "~=1.14"
+pylint = "~=3.3"
+pyright = "~=1.1"
+pytest = "~=8.3"
+pytest-cov = "~=6.0"
+pytest-dependency = "~=0.6"
+pytest-pyright = "~=0.0.6"
+rich = "~=13.3"
+ruff = "~=0.9"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
