@@ -446,7 +446,7 @@ class Constraint:
 
     def dump(self) -> str:
         res = " + ".join([f"({t}) [{t.value()}]" for t in self._expr._terms])
-        res += f" {self._constraint.op()} {-1*self._expr._constant}"
+        res += f" {self._constraint.op()} {-1 * self._expr._constant}"
         res += f" | strength = {self._constraint.strength()}"
         # TODO: Remove type ignore when this is fixed: https://github.com/nucleic/kiwi/issues/165
         if self._constraint.violated():  # type: ignore

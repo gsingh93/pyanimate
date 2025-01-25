@@ -139,9 +139,9 @@ class PILRenderer(Renderer):
 
         assert width > 0 and height > 0, "Invalid crop dimensions"
         assert offset.x >= 0 and offset.y >= 0, "Invalid crop offset"
-        assert (
-            width + offset.x <= self._w and height + offset.y <= self._h
-        ), "Crop out of bounds"
+        assert width + offset.x <= self._w and height + offset.y <= self._h, (
+            "Crop out of bounds"
+        )
 
         logger.debug("Cropping to %dx%d", width, height)
         self.image = self.image.crop(

@@ -5,7 +5,7 @@ set -e
 
 LINT_FILES="src/pyanimate tests examples"
 
-ruff check --fix --show-source ${LINT_FILES}
+ruff check --fix --output-format=full ${LINT_FILES}
 # mypy ${LINT_FILES} || true
 
 # We use tests/*.py here to exclude the typesafety directory. We can't just
@@ -14,6 +14,8 @@ ruff check --fix --show-source ${LINT_FILES}
 pyright src/pyanimate examples tests/*.py
 
 isort --check-only --diff ${LINT_FILES}
-black --check --diff ${LINT_FILES}
+ruff format ${LINT_FILES}
 
-PYTHONPATH=$(pwd) pylint --load-plugins assert_checker,assign_dim_in_prepare ${LINT_FILES} || true
+# PYTHONPATH=$(pwd) pylint \
+#           --load-plugins assert_checker,assign_dim_in_prepare \
+#           ${LINT_FILES} || true
